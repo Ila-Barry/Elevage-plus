@@ -1,0 +1,274 @@
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8f9fc;
+            overflow-x: hidden;
+        }
+
+        /* ================= LAYOUT PRINCIPAL ================= */
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ================= SIDEBAR ================= */
+        .main-sidebar {
+            width: 260px;
+            background: #17863c;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        /* ================= SIDEBAR MENU ================= */
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-item {
+            width: 100%;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 14px;
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-item i {
+            font-size: 18px;
+            width: 22px;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            text-decoration: none;
+        }
+
+        /* ================= ACTIVE ITEM ================= */
+
+        .sidebar-item.active{
+            background: #ffffff;
+            color: #198754 !important;
+            box-shadow: 0 5px 15px rgba(25,135,84,0.08);
+            border: 1px solid #e4f3eb;
+        }
+
+        .sidebar-item.active i{
+            color: #198754 !important;
+        }
+
+        .sidebar-item.active span{
+            color: #198754 !important;
+        }
+
+        /* ================= SIDEBAR CARD ================= */
+        .sidebar-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 8px 4px;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .sidebar-card img {
+            width: 40px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-card h5 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #17863c;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-card p {
+            font-size: 11px;
+            color: #666;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        .sidebar-card button {
+            border: none;
+            background: #17863c;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .sidebar-card button:hover {
+            background: #12692f;
+        }
+
+        /* ================= CONTENT PRINCIPAL ================= */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            width: calc(100% - 260px);
+            min-height: 100vh;
+        }
+
+        /* ================= NAVBAR ================= */
+        .top-navbar {
+            background: #ffffff;
+            border-bottom: 1px solid #e9ecef;
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        /* ================= SEARCH ================= */
+        .search-box {
+            width: 280px;
+            height: 42px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+        }
+
+        .search-box i {
+            color: #6c757d;
+            margin-right: 10px;
+        }
+
+        .search-box input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            outline: none;
+            font-size: 14px;
+        }
+
+        /* ================= PROFILE ================= */
+        .profile-dropdown .dropdown-toggle {
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        .profile-image {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-name {
+            margin: 0 10px;
+            font-weight: 600;
+            color: #212529;
+        }
+
+        .dropdown-menu {
+            border: none;
+            border-radius: 12px;
+            padding: 10px 0;
+            min-width: 220px;
+            margin-top: 12px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+
+        .dropdown-item {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+        }
+
+        /* ================= CONTENU PAGE ================= */
+        .page-content {
+            padding: 25px;
+        }
+
+        /* ================= RESPONSIVE ================= */
+        @media (max-width: 768px) {
+            .main-sidebar {
+                transform: translateX(-100%);
+                width: 260px;
+            }
+
+            .main-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .top-navbar {
+                padding: 12px 15px;
+            }
+
+            .search-box {
+                width: 200px;
+            }
+
+            .profile-name {
+                display: none;
+            }
+
+            .menu-toggle {
+                display: block !important;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .menu-toggle {
+                display: none;
+            }
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #17863c;
+            cursor: pointer;
+            margin-right: 15px;
+        }
