@@ -16,10 +16,19 @@
 </head>
 <body>
 
+    <!-- btn dynamique-->
+    <button class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
 <div class="app-wrapper">
     
     <!-- ================= SIDEBAR ================= -->
     <aside class="main-sidebar mt-5" id="sidebar">
+        <button class="close-sidebar d-md-none" id="closeSidebar">
+            <i class="fas fa-times"></i>
+        </button>
+        
         <!-- MENU -->
         <div class="sidebar-menu">
             <a href="#" class="sidebar-item active">
@@ -51,25 +60,27 @@
                 <i class="fas fa-pen"></i>
                 <span>Mon blog</span>
             </a>
-            <!-- <a href="{{ url('/messagerie') }}" class="sidebar-item">
-                <i class="fas fa-comment-dots"></i>
-                <span>Messagerie</span>
-            </a>
-            <a href="{{ url('/parametres') }}" class="sidebar-item">
-                <i class="fas fa-cog"></i>
-                <span>Paramètres</span>
-            </a> -->
         </div>
 
         <!-- CARD -->
         <div class="sidebar-card">
-            <img src="https://cdn-icons-png.flaticon.com/512/2620/2620277.png" alt="mobile app">
-            <h5>Application mobile</h5>
-            <p>Gérez votre élevage partout, à tout moment</p>
-            <button>
-                Télécharger
-                <i class="fas fa-download ml-1"></i>
-            </button>
+            <!-- Version complète (grands écrans seulement) -->
+            <div class="card-full d-none d-xl-block">
+                <img src="https://cdn-icons-png.flaticon.com/512/2620/2620277.png" alt="mobile app">
+                <h5>Application mobile</h5>
+                <p>Gérez votre élevage partout, à tout moment</p>
+                <button>
+                    Télécharger
+                    <i class="fas fa-download ml-1"></i>
+                </button>
+            </div>
+            
+            <!-- Version compacte (tous les écrans sauf très grands) -->
+            <div class="card-compact d-xl-none">
+                <a href="#" class="download-icon">
+                    <i class="fas fa-download"></i>
+                </a>
+            </div>
         </div>
     </aside>
 </div>
@@ -81,14 +92,21 @@
 <script>
     $(document).ready(function() {
         // Toggle sidebar on mobile
-        $('#menuToggle').on('click', function() {
+        $('#menuToggle').on('click', function(e) {
+            e.stopPropagation();
             $('#sidebar').toggleClass('open');
+        });
+        
+        // Close sidebar with close button (mobile)
+        $('#closeSidebar').on('click', function() {
+            $('#sidebar').removeClass('open');
         });
 
         // Close sidebar when clicking outside on mobile
         $(document).on('click', function(event) {
             if ($(window).width() <= 768) {
-                if (!$(event.target).closest('#sidebar').length && !$(event.target).closest('#menuToggle').length) {
+                if (!$(event.target).closest('#sidebar').length && 
+                    !$(event.target).closest('#menuToggle').length) {
                     $('#sidebar').removeClass('open');
                 }
             }
@@ -99,10 +117,13 @@
             $('.sidebar-item').removeClass('active');
             $(this).addClass('active');
         });
+        
+        // Pour les écrans moyens, les tooltips peuvent être utiles
+        if ($(window).width() >= 769 && $(window).width() <= 1024) {
+            $('.sidebar-item').each(function() {
+                var text = $(this).find('span').text();
+                $(this).attr('title', text);
+            });
+        }
     });
 </script>
-
-@stack('scripts')
-
-</body>
-</html>

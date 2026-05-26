@@ -19,7 +19,7 @@
     <!-- ================= NAVBAR ================= -->
     <header class="main-navbar">
         <div class="container-fluid px-lg-4">
-            <nav class="navbar navbar-expand-lg navbar-light p-0">
+            <nav class="navbar navbar-expand-lg navbar-light p-0 w-100">
                 <!-- ================= LOGO ================= -->
                 <a href="#" class="navbar-brand logo-wrapper d-flex align-items-center">
                     <div class="logo-circle">
@@ -31,7 +31,13 @@
                 </a>
 
                 <!-- ================= TOGGLER ================= -->
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler"
+                        type="button"
+                        data-toggle="collapse"
+                        data-target="#mainNavbar"
+                        aria-controls="mainNavbar"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
@@ -106,17 +112,25 @@
     </main>
 
     <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        // Vérifier que Bootstrap dropdown fonctionne
-        $(document).ready(function() {
-            $('.dropdown-toggle').dropdown();
-            console.log('Dropdown initialized');
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Solution purement Bootstrap - désactiver puis réactiver le toggler
+    $(document).ready(function() {
+        var toggler = $('.navbar-toggler');
+        var collapse = $('.navbar-collapse');
+        
+        toggler.on('click', function(e) {
+            if (collapse.hasClass('show')) {
+                collapse.removeClass('show');
+            } else {
+                collapse.addClass('show');
+            }
+            return false;
         });
-    </script>
-    
+    });
+</script>cript>
     @stack('scripts')
 </body>
 </html>
