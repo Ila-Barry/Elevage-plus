@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/navbar.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/layoutCSS/navbar.css') }}">
 </head>
 <body>
 
@@ -40,7 +40,7 @@
                     <!-- ================= MENU CENTER ================= -->
                     <ul class="navbar-nav mx-auto navbar-menu">
                         <li class="nav-item">
-                            <a href="#" class="nav-link active">
+                            <a href="{{ url('dashboard') }}" class="nav-link active">
                                 <i class="fas fa-home"></i>
                                 <span>Dashboard</span>
                             </a>
@@ -52,13 +52,13 @@
                             </a>
                         </li> -->
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ url('/messages') }}" class="nav-link">
                                 <i class="fas fa-comment"></i>
                                 <span>Messages</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ url('/auth/profile') }}" class="nav-link">
                                 <i class="fas fa-user"></i>
                                 <span>Profil</span>
                             </a>
@@ -80,11 +80,11 @@
                                 <span class="profile-name">Jean Diagne</span>
                             </button>
                             <div class="dropdown-menu dropdown-menu-right shadow border-0" aria-labelledby="profileDropdown">
-                                <a class="dropdown-item" href="#">
+                                <a class="dropdown-item" href="{{ url('/auth/profile') }}">
                                     <i class="fas fa-user mr-2"></i>
                                     Profil
                                 </a>
-                                <a class="dropdown-item" href="#">
+                                <a class="dropdown-item" href="{{ url('/auth/parametre') }}">
                                     <i class="fas fa-cog mr-2"></i>
                                     Paramètres
                                 </a>

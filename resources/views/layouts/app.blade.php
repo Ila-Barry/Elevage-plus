@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/layoutCSS/app.css') }}">
 </head>
 <body>
 
@@ -79,7 +79,7 @@
                     <!-- ===== DROITE ===== -->
                     <div class="navbar-actions d-flex flex-column flex-lg-row align-items-stretch ml-3 align-items-lg-center">
 
-                            <a href="{{ url('/login') }}"
+                            <a href="{{ url('/auth/login') }}"
                             class="btn btn-outline-success mr-lg-2 mb-2 mb-lg-0">
 
                                 <i class="fas fa-sign-in-alt mr-1"></i>
@@ -87,7 +87,7 @@
 
                             </a>
 
-                            <a href="{{ url('/register') }}"
+                            <a href="{{ url('/auth/register') }}"
                             class="btn btn-success">
 
                                 <i class="fas fa-user-plus mr-1"></i>

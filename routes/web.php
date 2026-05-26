@@ -14,7 +14,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('hom');
+    return view('home');
+});
+
+Route::get('/profilEleveur', function () {
+    return view('profilEleveur');
 });
 
 Route::get('/dashboard', function () {
@@ -41,10 +45,23 @@ Route::get('/blog', function () {
     return view('blog');
 });
 
-Route::get('/messagerie', function () {
+Route::get('/messages', function () {
     return view('messages');
 });
 
-// Route::get('/parametres', function () {
-//     return view('parametres');
-// });
+
+Route::get('/auth/parametre', function () {
+    return view('auth/parametre');
+});
+
+Route::get('/auth/profile', function () {
+    return view('auth/profile');
+});
+
+Route::get('/auth/login', function () {
+    return view('auth/login');
+});
+
+Route::get('/auth/register', function () {
+    return view('auth/register');
+});
