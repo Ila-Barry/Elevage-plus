@@ -6,25 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('publications', function (Blueprint $table) {
+        Schema::create('commentaires', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('publication_id');
+            $table->foreign('publication_id')->references('id')->on('publications')->onDelete('cascade');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->string('titre');
-            $table->enum('categorie', ['experience', 'conseil', 'alerte'])->default('experience');  // ← corrigé
-            $table->text('image_url')->nullable();
             $table->text('contenu');
-            $table->integer('nbr_likes')->default(0);
-            $table->integer('nbr_vues')->default(0);
-            $table->enum('etat', ['publiee', 'brouillon'])->default('brouillon');
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('publications');
+        //
     }
 };

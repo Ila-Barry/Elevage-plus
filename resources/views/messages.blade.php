@@ -1,22 +1,17 @@
-@extends('layouts.navbar')
+@extends('layouts.menu')
 
-@section('title', 'Messages - Élevage+')
+@section('title', 'Messages')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/eleveurCSS/messages.css') }}">
+@endpush
 
 @section('content')
 
-    <!-- style_css -->
-    <link rel="stylesheet" href="{{ asset('css/eleveurCSS/messages.css') }}">
+<div class="dashboard-wrapper">
 
-    <!-- contenue de la page messages -->
-    <div class="row">
-        <div class="col-md-4">
-            @include('layouts.sidebar')
-        </div>
+    <!-- contenu messages -->
 
-        <!-- space de travail -->
-        <div class="col-md-8">
-            <h1>Messages</h1>
-            <p>Gérez vos messages ici !</p>
-        </div>
-    </div>
+</div>
+
 @endsection

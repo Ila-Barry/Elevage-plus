@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Authentication Defaults
@@ -14,7 +13,7 @@ return [
     */
 
     'defaults' => [
-        'guard' => 'web',
+        'guard' => 'api',  // ← Changer 'web' par 'api' pour utiliser JWT par défaut
         'passwords' => 'users',
     ],
 
@@ -39,6 +38,12 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
+        ],
+        
+        // ✅ AJOUTER CE GUARD POUR JWT
+        'api' => [
+            'driver' => 'jwt',        // Utilise JWT comme driver
+            'provider' => 'users',    // Utilise le provider 'users'
         ],
     ],
 
@@ -80,7 +85,7 @@ return [
     | than one user table or model in the application and you want to have
     | separate password reset settings based on the specific user types.
     |
-    | The expire time is the number of minutes that each reset token will be
+    | The expiry time is the number of minutes that each reset token will be
     | considered valid. This security feature keeps tokens short-lived so
     | they have less time to be guessed. You may change this as needed.
     |
@@ -111,5 +116,4 @@ return [
     */
 
     'password_timeout' => 10800,
-
 ];
