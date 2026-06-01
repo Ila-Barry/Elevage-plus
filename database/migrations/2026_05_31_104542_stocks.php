@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('stocks', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('produit_id');
+            $table->foreign('produit_id')->references('id')->on('produits')->onDelete('cascade');
+            $table->enum('type', ['entree', 'sortie'])->default('entree');
+            $table->decimal('quantite', 10, 2);
+            $table->text('motif')->nullable();
             $table->timestamps();
         });
     }

@@ -1,22 +1,17 @@
-@extends('layouts.navbar')
+@extends('layouts.menu')
 
-@section('title', 'Blog - Élevage+')
+@section('title', 'Blog')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/eleveurCSS/blog.css') }}">
+@endpush
 
 @section('content')
 
-    <!-- style_css -->
-    <link rel="stylesheet" href="{{ asset('css/eleveurCSS/blog.css') }}">
+<div class="dashboard-wrapper">
 
-    <!-- contenue de la page blog -->
-    <div class="row">
-        <div class="col-md-4">
-            @include('layouts.sidebar')
-        </div>
+    <!-- contenu blog -->
 
-        <!-- space de travail -->
-        <div class="col-md-8">
-            <h1>Blog</h1>
-            <p>Consultez nos dernières actualités !</p>
-        </div>
-    </div>
+</div>
+
 @endsection

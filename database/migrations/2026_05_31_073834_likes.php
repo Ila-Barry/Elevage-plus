@@ -11,16 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('elevages', function (Blueprint $table) {
+        Schema::create('likes', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('publication_id');
+            $table->foreign('publication_id')->references('id')->on('publications')->onDelete('cascade');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->string('nom');
-            $table->string('img_url')->nullable();
-            $table->string('localisation');
-            $table->integer('superficie');
-            $table->string('type_elevage');
-            $table->text('description')->nullable();
+            $table->unique(['publication_id', 'user_id']);
             $table->timestamps();
         });
     }
@@ -30,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('elevages');
+        //
     }
 };

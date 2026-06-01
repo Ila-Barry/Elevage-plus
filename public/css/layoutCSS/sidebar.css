@@ -11,9 +11,19 @@ body {
 }
 
 /* ================= LAYOUT PRINCIPAL ================= */
-.app-wrapper {
+.dashboard-layout {
     display: flex;
     min-height: 100vh;
+    position: relative;
+}
+
+/* ================= CONTENU PRINCIPAL ================= */
+.dashboard-content {
+    flex: 1;
+    transition: margin-left 0.3s ease;
+    width: 100%;
+    min-height: 100vh;
+    background: #f8f9fc;
 }
 
 /* ================= SIDEBAR ================= */
@@ -32,11 +42,22 @@ body {
     transition: all 0.3s ease;
 }
 
-/* Version compacte pour écrans moyens (tablettes) */
+/* Version pour grands écrans (défaut) */
+@media (min-width: 1025px) {
+    .dashboard-content {
+        margin-left: 260px;
+    }
+}
+
+/* Version compacte pour écrans moyens (tablettes 769px - 1024px) */
 @media (min-width: 769px) and (max-width: 1024px) {
     .main-sidebar {
         width: 80px;
         padding: 20px 10px;
+    }
+    
+    .dashboard-content {
+        margin-left: 80px;
     }
     
     .sidebar-item span {
@@ -58,7 +79,7 @@ body {
     }
 }
 
-/* Version mobile (petits écrans) */
+/* Version mobile (≤768px) */
 @media (max-width: 768px) {
     .main-sidebar {
         transform: translateX(-100%);
@@ -67,6 +88,11 @@ body {
     
     .main-sidebar.open {
         transform: translateX(0);
+    }
+    
+    .dashboard-content {
+        margin-left: 0 !important;
+        width: 100%;
     }
     
     .sidebar-item span {
@@ -95,7 +121,7 @@ body {
     }
 }
 
-/* Menu toggle button */
+/* Menu toggle button (mobile uniquement) */
 .menu-toggle {
     display: none;
     background: #17863c;
@@ -107,9 +133,9 @@ body {
     font-size: 20px;
     cursor: pointer;
     position: fixed;
-    top: 70px;
+    top: 55px;
     left: 15px;
-    z-index: 999;
+    z-index: 1001;
 }
 
 @media (max-width: 768px) {
@@ -118,30 +144,6 @@ body {
         align-items: center;
         justify-content: center;
     }
-    
-    .main-content {
-        margin-left: 0;
-        width: 100%;
-    }
-    
-    .top-navbar {
-        padding-left: 70px;
-    }
-}
-
-/* Style pour les écrans moyens à larges */
-@media (min-width: 769px) {
-    .main-content {
-        margin-left: 260px;
-        width: calc(100% - 260px);
-    }
-}
-
-@media (min-width: 769px) and (max-width: 1024px) {
-    .main-content {
-        margin-left: 80px;
-        width: calc(100% - 80px);
-    }
 }
 
 /* ================= SIDEBAR MENU ================= */
@@ -149,6 +151,13 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin-top: 60px; /* Espace pour le bouton toggle sur mobile */
+}
+
+@media (min-width: 769px) {
+    .sidebar-menu {
+        margin-top: 0;
+    }
 }
 
 .sidebar-item {
@@ -199,7 +208,7 @@ body {
     border-radius: 16px;
     padding: 8px 4px;
     text-align: center;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
 }
 
 .sidebar-card img {
@@ -238,21 +247,11 @@ body {
     background: #12692f;
 }
 
-/* ================= SIDEBAR CARD ================= */
-.sidebar-card {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 8px 4px;
-    text-align: center;
-    margin-bottom: 50px;
-}
-
-/* Version complète - visible uniquement sur grands écrans */
+/* Version compacte du card */
 .card-full {
     display: none;
 }
 
-/* Version compacte - visible sur tous les écrans par défaut */
 .card-compact {
     display: flex;
     justify-content: center;
@@ -333,4 +332,11 @@ body {
     background: #12692f;
     color: white;
     transform: scale(1.05);
+}
+
+/* Ajustement pour le contenu du dashboard */
+.dashboard-wrapper {
+    padding: 1.5rem;
+    max-width: 1600px;
+    margin: 0 auto;
 }

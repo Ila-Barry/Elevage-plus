@@ -1,22 +1,17 @@
-@extends('layouts.navbar')
+@extends('layouts.menu')
 
-@section('title', 'Animaux - Élevage+')
+@section('title', 'Animaux')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/eleveurCSS/animaux.css') }}">
+@endpush
 
 @section('content')
 
-    <!-- style_css -->
-    <link rel="stylesheet" href="{{ asset('css/eleveurCSS/animaux.css') }}">
+<div class="dashboard-wrapper">
 
-    <!-- contenue de la page animaux -->
-    <div class="row">
-        <div class="col-md-4">
-            @include('layouts.sidebar')
-        </div>
+    <!-- contenu animaux -->
 
-        <!-- space de travail -->
-        <div class="col-md-8">
-            <h1>Animaux</h1>
-            <p>Gérez vos animaux ici !</p>
-        </div>
-    </div>
+</div>
+
 @endsection

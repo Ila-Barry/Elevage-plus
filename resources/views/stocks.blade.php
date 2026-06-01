@@ -1,22 +1,17 @@
-@extends('layouts.navbar')
+@extends('layouts.menu')
 
-@section('title', 'Stocks - Élevage+')
+@section('title', 'Stocks')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/eleveurCSS/stocks.css') }}">
+@endpush
 
 @section('content')
 
-    <!-- style_css -->
-    <link rel="stylesheet" href="{{ asset('css/eleveurCSS/stocks.css') }}">
+<div class="dashboard-wrapper">
 
-    <!-- contenue de la page stocks -->
-    <div class="row">
-        <div class="col-md-4">
-            @include('layouts.sidebar')
-        </div>
+    <!-- contenu stocks -->
 
-        <!-- space de travail -->
-        <div class="col-md-8">
-            <h1>Stocks</h1>
-            <p>Gérez vos stocks ici !</p>
-        </div>
-    </div>
+</div>
+
 @endsection

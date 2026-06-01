@@ -6,32 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('animals', function (Blueprint $table) {
+        Schema::create('produits', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('elevage_id');
             $table->foreign('elevage_id')->references('id')->on('elevages')->onDelete('cascade');
             $table->string('nom');
-            $table->string('race');
-            $table->string('espece');
-            $table->decimal('poids', 10, 2);
-            $table->string('statut_sanitaire');
-            $table->string('img_url')->nullable();
-            $table->date('date_naissance');
+            $table->decimal('quantite', 10, 2);
+            $table->string('categorie');
+            $table->decimal('seuil_alerte', 10, 2);
             $table->text('description')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('animals');
+        Schema::dropIfExists('produits');  // ← ajouté
     }
 };

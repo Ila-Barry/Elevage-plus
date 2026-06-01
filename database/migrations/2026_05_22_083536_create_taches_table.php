@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('taches', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('animal_id');
+            $table->foreign('animal_id')->references('id')->on('animals')->onDelete('cascade');
+            $table->string('type');
+            $table->date('date_planifiee');
+            $table->date('date_realisee')->nullable();
+            $table->boolean('terminee')->default(false);
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }
