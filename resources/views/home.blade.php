@@ -11,7 +11,7 @@
     <h1>Bienvenue sur Élevage+ !</h1>
     <p>Gérez vos élevages et animaux en toute simplicité.</p>
 
-@endsection
+    
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -344,3 +344,5 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+@endsection
