@@ -11,23 +11,15 @@
 
     class AnimalController extends Controller
     {
-        // Liste des animaux de l'utilisateur connecté
+        // Liste des animaux
         public function index()
         {
-            $elevages = Elevage::where('user_id', Auth::id())->pluck('id');
+            $animaux = Animal::latest()->paginate(10);
 
-            $animaux = Animal::whereIn('elevage_id', $elevages)
-                        ->latest()
-                        ->paginate(10);
-
-            return view('animaux', compact('animaux'));
-        }
-
-        // Formulaire de création
-        public function create()
-        {
-            $elevages = Elevage::where('user_id', Auth::id())->get();
-            return view('animaux.create', compact('elevages'));
+            return response()->json([
+                'status' => 'success',
+                'data' => $animaux
+            ], 200);
         }
 
         // Enregistrer un nouvel animal
@@ -37,59 +29,82 @@
                 'elevage_id'       => 'required|exists:elevages,id',
                 'nom'              => 'required|string|max:255',
                 'espece'           => 'required|string|max:255',
-                'race'             => 'nullable|string|max:255',
-                'poids'            => 'nullable|numeric|min:0',
+                'race'             => 'required|string|max:255',
+                'poids'            => 'required|numeric|min:0',
                 'statut_sanitaire' => 'required|string|max:255',
-                'date_naissance'   => 'nullable|date|before:today',
+                'date_naissance'   => 'required|date|before:today',
                 'description'      => 'nullable|string',
                 'img_url'          => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             ]);
 
-            $data = $request->all();
+            $elevage = Elevage::findOrFail($request->elevage_id);
+                if (
+                    Auth::user()->role !== 'admin'
+                    && $elevage->user_id !== Auth::id()
+                ) {
+                    return response()->json([
+                        'status'  => 'error',
+                        'message' => 'Action non autorisée.'
+                    ], 403);
+                }
+                {
+                    return response()->json([
+                        'status'  => 'error',
+                        'message' => 'Action non autorisée.'
+                    ], 403);
+                }
 
-            // Gestion de l'image
+            $data = $request->only([
+                'elevage_id',
+                'nom',
+                'espece',
+                'race',
+                'poids',
+                'statut_sanitaire',
+                'date_naissance',
+                'description'
+            ]);
+
             if ($request->hasFile('img_url')) {
                 $data['img_url'] = $request->file('img_url')
                                     ->store('animaux', 'public');
             }
 
-            Animal::create($data);
+            $animal = Animal::create($data);
 
-            return redirect()->route('animaux.index')
-                            ->with('success', 'Animal ajouté avec succès !');
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Animal ajouté avec succès',
+                'data'    => $animal
+            ], 201);
         }
 
         // Détails d'un animal
         public function show(Animal $animal)
         {
-            $this->verifierProprietaire($animal);
-
-            // Calcul automatique de l'âge
+            // Calcul de l'âge
             if ($animal->date_naissance) {
-                $naissance = carbon::parse($animal->date_naissance);
+                $naissance = Carbon::parse($animal->date_naissance);
                 $mois = $naissance->diffInMonths(Carbon::now());
 
-                if ($mois<6) {
+                if ($mois < 6) {
                     $age = 'Moins de 6 mois';
-                }elseif ($mois <= 12) {
+                } elseif ($mois <= 12) {
                     $age = 'Entre 6 et 12 mois';
-                }else {
-                    $annees = $naissance->diffInYears(carbon::now());
-                    $age = 'Plus 1 an ('.$annees.' ans)';
+                } else {
+                    $annees = $naissance->diffInYears(Carbon::now());
+                    $age = 'Plus de 1 an (' . $annees . ' ans)';
                 }
-            }else {
-                    $age = 'Non renseigné';
-                }
-        }
+            } else {
+                $age = 'Non renseigné';
+            }
 
-        // Formulaire de modification
-        public function edit(Animal $animal)
-        {
-            $this->verifierProprietaire($animal);
-            $elevages = Elevage::where('user_id', Auth::id())->get();
-            return view('animaux.edit', compact('animal', 'elevages'));
+            return response()->json([
+                'status' => 'success',
+                'data'   => $animal,
+                'age'    => $age
+            ], 200);
         }
-
         // Mettre à jour un animal
         public function update(Request $request, Animal $animal)
         {
@@ -99,26 +114,49 @@
                 'elevage_id'       => 'required|exists:elevages,id',
                 'nom'              => 'required|string|max:255',
                 'espece'           => 'required|string|max:255',
-                'race'             => 'nullable|string|max:255',
-                'poids'            => 'nullable|numeric|min:0',
+                'race'             => 'required|string|max:255',
+                'poids'            => 'required|numeric|min:0',
                 'statut_sanitaire' => 'required|string|max:255',
-                'date_naissance'   => 'nullable|date|before:today',
+                'date_naissance'   => 'required|date|before:today',
                 'description'      => 'nullable|string',
                 'img_url'          => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             ]);
 
-            $data = $request->all();
+            $data = $request->only([
+                'elevage_id',
+                'nom',
+                'espece',
+                'race',
+                'poids',
+                'statut_sanitaire',
+                'date_naissance',
+                'description'
+            ]);
 
-            // Gestion de l'image
             if ($request->hasFile('img_url')) {
                 $data['img_url'] = $request->file('img_url')
                                     ->store('animaux', 'public');
             }
 
+            $elevage = Elevage::findOrFail($request->elevage_id);
+
+            if (
+                Auth::user()->role !== 'admin'
+                && $elevage->user_id !== Auth::id()
+            ) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Action non autorisée.'
+                ], 403);
+            }
+
             $animal->update($data);
 
-            return redirect()->route('animaux.index')
-                            ->with('success', 'Animal modifié avec succès !');
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Animal modifié avec succès',
+                'data'    => $animal
+            ], 200);
         }
 
         // Supprimer un animal
@@ -127,17 +165,26 @@
             $this->verifierProprietaire($animal);
             $animal->delete();
 
-            return redirect()->route('animaux.index')
-                            ->with('success', 'Animal supprimé avec succès !');
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Animal supprimé avec succès'
+            ], 200);
         }
 
         // Vérifier que l'animal appartient à l'utilisateur connecté
         private function verifierProprietaire(Animal $animal)
         {
+            if (Auth::user()->role === 'admin') {
+                return;
+            }
+
             $elevageIds = Elevage::where('user_id', Auth::id())->pluck('id');
 
             if (!$elevageIds->contains($animal->elevage_id)) {
-                abort(403, 'Action non autorisée.');
+                response()->json([
+                    'status'  => 'error',
+                    'message' => 'Action non autorisée.'
+                ], 403)->throwResponse();
             }
         }
     }

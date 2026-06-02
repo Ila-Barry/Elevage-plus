@@ -1,28 +1,23 @@
 <?php
 
-namespace App\Http\Controllers;
+    namespace App\Http\Controllers;
 
-use App\Models\Elevage;
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+    use App\Models\Elevage;
+    use App\Http\Controllers\Controller;
+    use Illuminate\Http\Request;
+    use Illuminate\Support\Facades\Auth;
 
-class ElevageController extends Controller
+    class ElevageController extends Controller
     {
-        // Liste des élevages de l'utilisateur connecté
+        // Liste des élevages
         public function index()
         {
-            $elevages = Elevage::where('user_id', Auth::id())
-                        ->latest()
-                        ->paginate(10);
+            $elevages = Elevage::latest()->paginate(10);
 
-            return view('elevages', compact('elevages'));
-        }
-
-        // Formulaire de création
-        public function create()
-        {
-            return view('elevages.create');
+            return response()->json([
+                'status' => 'success',
+                'data' => $elevages
+            ], 200);
         }
 
         // Enregistrer un nouvel élevage
@@ -33,37 +28,41 @@ class ElevageController extends Controller
                 'localisation' => 'required|string|max:255',
                 'superficie'   => 'required|integer|min:1',
                 'type_elevage' => 'required|string|max:255',
-                'description'  => 'nullable|string',  //On peut mettre required à la place de nullable si necèssaire.
-                'img_url'      => 'nullable|image|mimes:jpeg,png,jpg|max:2048',  //L'insertion d'une image reste facultative.
+                'description'  => 'nullable|string',
+                'img_url'      => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             ]);
-                //récupération des données.
-            $data = $request->all();
-            $data['user_id'] = Auth::id(); // Je récupère l'ID du propriétaire qui a ajouté l'image.
 
-            // Gestion de l'image
+            $data = $request->only([
+                'nom',
+                'localisation',
+                'superficie',
+                'type_elevage',
+                'description'
+            ]);
+
+            $data['user_id'] = Auth::id();
+
             if ($request->hasFile('img_url')) {
                 $data['img_url'] = $request->file('img_url')
                                     ->store('elevages', 'public');
             }
 
-            Elevage::create($data);
-            
-            return redirect()->route('elevages.index')
-                            ->with('success', 'Élevage créé avec succès !');
+            $elevage = Elevage::create($data);
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Élevage créé avec succès',
+                'data'    => $elevage
+            ], 201);
         }
 
         // Détails d'un élevage
         public function show(Elevage $elevage)
         {
-            $this->verifierProprietaire($elevage);
-            return view('elevages.show', compact('elevage'));
-        }
-
-        // Formulaire de modification
-        public function edit(Elevage $elevage)
-        {
-            $this->verifierProprietaire($elevage);
-            return view('elevages.edit', compact('elevage'));
+            return response()->json([
+                'status' => 'success',
+                'data' => $elevage
+            ], 200);
         }
 
         // Mettre à jour un élevage
@@ -80,7 +79,13 @@ class ElevageController extends Controller
                 'img_url'      => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             ]);
 
-            $data = $request->all();
+            $data = $request->only([
+                'nom',
+                'localisation',
+                'superficie',
+                'type_elevage',
+                'description'
+            ]);
 
             if ($request->hasFile('img_url')) {
                 $data['img_url'] = $request->file('img_url')
@@ -89,8 +94,11 @@ class ElevageController extends Controller
 
             $elevage->update($data);
 
-            return redirect()->route('elevages.index')
-                            ->with('success', 'Élevage modifié avec succès !');
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Élevage modifié avec succès',
+                'data'    => $elevage
+            ], 200);
         }
 
         // Supprimer un élevage
@@ -99,15 +107,24 @@ class ElevageController extends Controller
             $this->verifierProprietaire($elevage);
             $elevage->delete();
 
-            return redirect()->route('elevages.index')
-                            ->with('success', 'Élevage supprimé avec succès !');
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Élevage supprimé avec succès'
+            ], 200);
         }
 
         // Vérifier que l'élevage appartient à l'utilisateur connecté
         private function verifierProprietaire(Elevage $elevage)
         {
+            if (Auth::user()->role === 'admin') {
+                return;
+            }
+
             if ($elevage->user_id !== Auth::id()) {
-                abort(403, 'Action non autorisée.');
+                response()->json([
+                    'status'  => 'error',
+                    'message' => 'Action non autorisée.'
+                ], 403)->throwResponse();
             }
         }
     }

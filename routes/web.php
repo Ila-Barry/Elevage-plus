@@ -1,8 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ElevageController;
-use App\Http\Controllers\AnimalController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -26,13 +25,13 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 });
 
-/*Route::get('/elevages', function () {
+Route::get('/elevages', function () {
     return view('elevages');
 });
 
 Route::get('/animaux', function () {
     return view('animaux');
-});*/
+});
 
 Route::get('/taches', function () {
     return view('taches');
@@ -65,13 +64,4 @@ Route::get('/auth/login', function () {
 
 Route::get('/auth/register', function () {
     return view('auth/register');
-});
-
-Route::middleware(['auth'])->group(function(){
-
-    //Routes Élevages
-    Route::resource('elevages', ElevageController::class);
-
-    //Routes Animaux
-    Route::resource('animaux', AnimalController::class);
 });
