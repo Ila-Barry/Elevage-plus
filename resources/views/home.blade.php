@@ -7,77 +7,6 @@
     <!-- style_css -->
     <link rel="stylesheet" href="{{ asset('css/eleveurCSS/home.css') }}">
 
-    <!-- contenue de la page home -->
-    <h1>Bienvenue sur Élevage+ !</h1>
-    <p>Gérez vos élevages et animaux en toute simplicité.</p>
-
-    
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Élevage+ - Accueil | Gestion & communauté pour éleveurs</title>
-
-    <!-- Bootstrap 4.6 CSS (CDN) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-    <!-- Font Awesome 6 (gratuit) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Google Fonts : Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
-    <!-- Custom CSS (séparé) -->
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-    <!-- ================= HEADER (identique à la maquette + menu fourni) ================= -->
-    <header class="main-header shadow-sm">
-        <div class="container">
-            <nav class="navbar navbar-expand-lg navbar-light px-0">
-                <!-- Logo -->
-                <a class="navbar-brand d-flex align-items-center logo-brand" href="#">
-                    <i class="fas fa-paw mr-2"></i>
-                    <span>ÉLEVAGE+</span>
-                </a>
-
-                <!-- Toggler mobile -->
-                <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#mainNavbar"
-                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Menu">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <!-- Contenu navbar -->
-                <div class="collapse navbar-collapse" id="mainNavbar">
-                    <!-- Barre de recherche centrale -->
-                    <ul class="navbar-nav mx-auto align-items-lg-center w-100 justify-content-center">
-                        <li class="nav-item search-item w-100">
-                            <form class="search-form w-100">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text bg-white border-right-0">
-                                            <i class="fas fa-search text-muted"></i>
-                                        </span>
-                                    </div>
-                                    <input type="text" class="form-control border-left-0" placeholder="Rechercher un élevage, une publication...">
-                                </div>
-                            </form>
-                        </li>
-                    </ul>
-
-                    <!-- Boutons connexion / inscription -->
-                    <div class="navbar-actions d-flex flex-column flex-lg-row align-items-stretch ml-3 align-items-lg-center">
-                        <a href="#" class="btn btn-outline-success mr-lg-2 mb-2 mb-lg-0">
-                            <i class="fas fa-sign-in-alt mr-1"></i> Connexion
-                        </a>
-                        <a href="#" class="btn btn-success">
-                            <i class="fas fa-user-plus mr-1"></i> Inscription
-                        </a>
-                    </div>
-                </div>
-            </nav>
-        </div>
-    </header>
-
     <main>
         <!-- ================= SECTION HERO ================= -->
         <section class="hero-section bg-gradient-light">
@@ -315,34 +244,5 @@
         </div>
     </main>
 
-    <!-- ================= FOOTER (identique à la maquette) ================= -->
-    <footer class="main-footer mt-5">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-copyright">
-                    © 2026 Élevage+
-                </div>
-                <div class="footer-links">
-                    <a href="#">Mentions légales</a>
-                    <span class="text-muted">|</span>
-                    <a href="#">Contact</a>
-                    <span class="text-muted">|</span>
-                    <a href="#">CGU</a>
-                </div>
-                <div class="footer-social">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Scripts obligatoires (Bootstrap, jQuery) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
 
 @endsection
