@@ -3,12 +3,26 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PublicationController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ElevageController;
+use App\Http\Controllers\AnimalController;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes - Authentification
 |--------------------------------------------------------------------------
 */
+
+/*
+|--------------------------------------------------------------------------
+| Routes publiques
+|--------------------------------------------------------------------------
+*/
+
+Route::apiResource('elevages', ElevageController::class)
+    ->only(['index', 'show']);
+
+Route::apiResource('animaux', AnimalController::class)
+    ->only(['index', 'show']);
 
 // Route factice pour éviter l'erreur de redirection
 Route::get('/login', function () {
@@ -60,7 +74,6 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
 });
 
 
-
 /*
 |--------------------------------------------------------------------------
 | API Routes - Publications
@@ -102,3 +115,16 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin/publications')->group(fu
     Route::post('/{id}/unblock', [PublicationController::class, 'adminUnblock']);
     Route::delete('/reports/{id}', [PublicationController::class, 'adminDeleteReport']);
 });
+
+// Routes protégées
+Route::middleware(['auth:api'])->group(function () {
+
+    Route::apiResource('elevages', ElevageController::class)
+        ->except(['index', 'show']);
+
+    Route::apiResource('animaux', AnimalController::class)
+        ->except(['index', 'show']);
+
+});
+
+
