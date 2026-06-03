@@ -1,5 +1,5 @@
 <?php
-// database/migrations/2025_01_01_000005_create_likes_table.php
+// table migration pour les partages des publications
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -12,14 +12,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('likes', function (Blueprint $table) {
+        Schema::create('shares', function (Blueprint $table) {
             $table->id();
             $table->foreignId('publication_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('plateforme', 50); // facebook, twitter, whatsapp, copie_lien
             $table->timestamps();
-            
-            // Empêcher un utilisateur de liker plusieurs fois la même publication
-            $table->unique(['publication_id', 'user_id']);
             
             // Index pour les performances
             $table->index('publication_id');
@@ -32,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('likes');
+        Schema::dropIfExists('shares');
     }
 };
