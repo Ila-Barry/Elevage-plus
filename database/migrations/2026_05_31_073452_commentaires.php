@@ -1,4 +1,5 @@
 <?php
+// database/migrations/2025_01_01_000004_create_commentaires_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -13,12 +14,19 @@ return new class extends Migration
     {
         Schema::create('commentaires', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('publication_id');
-            $table->foreign('publication_id')->references('id')->on('publications')->onDelete('cascade');
-            $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreignId('publication_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('parent_id')->nullable()->constrained('commentaires')->onDelete('cascade');
             $table->text('contenu');
+            $table->integer('nbr_likes')->default(0);
+            $table->boolean('is_edited')->default(false);
             $table->timestamps();
+            
+            // Index pour les performances
+            $table->index('publication_id');
+            $table->index('user_id');
+            $table->index('parent_id');
+            $table->index('created_at');
         });
     }
 
@@ -27,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('commentaires');
     }
 };
