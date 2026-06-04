@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\Api\ElevageController;
 use App\Http\Controllers\Api\AnimalController;
+use App\Http\Controllers\Api\TacheController;
 
 /*
 |--------------------------------------------------------------------------
@@ -64,4 +65,34 @@ Route::middleware(['auth:api'])->group(function () {
     // Statistiques utilisateur
     Route::get('/user/animaux/stats', [AnimalController::class, 'userStats']);
 });
-?>
+
+// routes/api.php - Ajouter les routes pour les tâches
+
+/*
+|--------------------------------------------------------------------------
+| Routes publiques (lecture seule)
+|--------------------------------------------------------------------------
+*/
+Route::get('/taches', [TacheController::class, 'index']);
+Route::get('/taches/{id}', [TacheController::class, 'show']);
+Route::get('/taches/calendar', [TacheController::class, 'calendar']);
+Route::get('/elevages/{elevageId}/taches/stats', [TacheController::class, 'stats']);
+
+/*
+|--------------------------------------------------------------------------
+| Routes protégées (authentification requise)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth:api'])->group(function () {
+    // CRUD Tâches
+    Route::post('/taches', [TacheController::class, 'store']);
+    Route::put('/taches/{id}', [TacheController::class, 'update']);
+    Route::patch('/taches/{id}', [TacheController::class, 'update']);
+    Route::delete('/taches/{id}', [TacheController::class, 'destroy']);
+    
+    // Action spécifique
+    Route::post('/taches/{id}/complete', [TacheController::class, 'complete']);
+    
+    // Tâches utilisateur
+    Route::get('/user/taches', [TacheController::class, 'userTaches']);
+});
