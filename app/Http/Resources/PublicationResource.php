@@ -1,0 +1,77 @@
+<?php
+// app/Http/Resources/PublicationResource.php 
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class PublicationResource extends JsonResource
+{
+    /**
+     * Transforme le resource en tableau.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        $user = $request->user();
+        
+        return [
+            'id' => $this->id,
+            'titre' => $this->titre,
+            'categorie' => $this->categorie,
+            'categorie_label' => $this->getCategorieLabel(),
+            'contenu' => $this->contenu,
+            'resume' => $this->resume,
+            'temps_lecture' => $this->temps_lecture,
+            'image_url' => $this->image_url,
+            'video_url' => $this->video_url,
+            'fichier' => $this->fichier_url ? [
+                'url' => $this->fichier_url,
+                'nom' => $this->fichier_nom,
+            ] : null,
+            'statistiques' => [
+                'likes' => $this->nbr_likes,
+                'commentaires' => $this->nbr_commentaires,
+                'partages' => $this->nbr_partages,
+                'vues' => $this->nbr_vues,
+                'signalements' => $this->when($user?->isAdmin(), $this->nbr_signalements),
+            ],
+            'interactions' => [
+                'liked_by_user' => $this->isLikedByUser($user),
+                'reported_by_user' => $this->isReportedByUser($user),
+            ],
+            'statut' => $this->statut,
+            'raison_blocage' => $this->when($this->statut === 'bloquee', $this->raison_blocage),
+            'auteur' => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+                'photo_url' => $this->user->photo_url,
+                'role' => $this->user->role,
+            ],
+            'commentaires' => CommentaireResource::collection(
+                $this->whenLoaded('commentaires', function() {
+                    return $this->commentaires->whereNull('parent_id');
+                })
+            ),
+            'published_at' => $this->published_at?->toIso8601String(),
+            'published_at_human' => $this->published_at?->diffForHumans(),
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * Retourne le libellé de la catégorie
+     */
+    protected function getCategorieLabel(): string
+    {
+        return match($this->categorie) {
+            'experience' => '💡 Expérience',
+            'conseil' => '🌾 Conseil',
+            'alerte' => '⚠️ Alerte',
+            default => $this->categorie,
+        };
+    }
+}
