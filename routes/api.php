@@ -4,7 +4,12 @@
 use App\Http\Controllers\Api\ElevageController;
 use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\TacheController;
+use App\Http\Controllers\Api\AuthController;
 
+
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
 /*
 |--------------------------------------------------------------------------
 | Routes protégées (authentification requise)
@@ -96,3 +101,4 @@ Route::middleware(['auth:api'])->group(function () {
     // Tâches utilisateur
     Route::get('/user/taches', [TacheController::class, 'userTaches']);
 });
+
