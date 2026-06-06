@@ -1,20 +1,16 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PublicationController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ProduitController;
+use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\ElevageController;
 use App\Http\Controllers\AnimalController;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes - Authentification
-|--------------------------------------------------------------------------
-*/
-
-/*
-|--------------------------------------------------------------------------
-| Routes publiques
 |--------------------------------------------------------------------------
 */
 
@@ -128,3 +124,34 @@ Route::middleware(['auth:api'])->group(function () {
 });
 
 
+/*
+|--------------------------------------------------------------------------
+| API Routes - Produits et Stocks
+|--------------------------------------------------------------------------
+*/
+
+// Routes protégées (authentification requise)
+Route::middleware(['auth:api'])->prefix('stock')->group(function () {
+    
+    // Produits
+    Route::prefix('produits')->group(function () {
+        Route::get('/', [ProduitController::class, 'index']);
+        Route::post('/', [ProduitController::class, 'store']);
+        Route::get('/critiques', [ProduitController::class, 'produitsCritiques']);
+        Route::get('/rupture', [ProduitController::class, 'produitsRupture']);
+        Route::get('/statistiques', [ProduitController::class, 'statistiques']);
+        Route::get('/{id}', [ProduitController::class, 'show']);
+        Route::put('/{id}', [ProduitController::class, 'update']);
+        Route::delete('/{id}', [ProduitController::class, 'destroy']);
+    });
+    
+    // Mouvements de stock
+    Route::prefix('mouvements')->group(function () {
+        Route::get('/', [StockController::class, 'historique']);
+        Route::post('/{produitId}/entree', [StockController::class, 'addStock']);
+        Route::post('/{produitId}/sortie', [StockController::class, 'removeStock']);
+    });
+    
+    // Rapports
+    Route::get('/rapport', [StockController::class, 'rapport']);
+});
