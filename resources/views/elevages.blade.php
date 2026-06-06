@@ -64,9 +64,12 @@
                         <div class="action-buttons-group d-flex flex-column align-items-stretch align-items-sm-end gap-2">
                             
                             <!-- Bouton Voir -->
-                            <button type="button" class="btn btn-action btn-view d-flex align-items-center justify-content-center">
-                                <i class="far fa-eye mr-2"></i> voir
-                            </button>
+                            <button type="button" class="btn d-flex align-items-center justify-content-center gap-2"
+        style="background-color: rgba(25, 135, 84, 0.15); color: #198754; border: 1px solid rgba(25, 135, 84, 0.2); font-weight: 500; padding: 4px 15px; border-radius: 6px; min-width: 95px;"
+        data-toggle="modal" data-target="#voirElevageModal">
+    <i class="far fa-eye"></i>
+    <span>voir</span>
+</button>
                             
                             <!-- Bouton Modifier -->
                             <button type="button" class="btn btn-action btn-edit d-flex align-items-center justify-content-center" data-toggle="modal" data-target="#createElevageModal">
@@ -204,4 +207,79 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="voirElevageModal" tabindex="-1" role="dialog" aria-labelledby="voirElevageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+            
+            <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="modal-title fw-bold text-uppercase" id="voirElevageModalLabel" style="font-size: 16px; color: #1a1a1a;">
+                    🐄 CRÉER UN ÉLEVAGE
+                </h5>
+                <button type="button" class="close text-danger border-0 bg-transparent" data-dismiss="modal" aria-label="Close" style="font-size: 24px; line-height: 1;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <form>
+                    <div class="p-3 mb-3 border rounded" style="background-color: #fafafa;">
+                        <label class="form-label fw-bold small text-muted">🖼️ Photo <span class="text-muted font-weight-normal">(optionnelle)</span></label>
+                        <div class="d-flex align-items-center gap-3 mt-1">
+                            <div class="border rounded d-flex align-items-center justify-content-center bg-white" style="width: 70px; height: 70px; border-style: dashed !important;">
+                                🖼️
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-success d-flex align-items-center gap-1" style="border-radius: 6px;">
+                                🖼️ Choisir une image
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1" style="border-radius: 6px;">
+                                ❌ Supprimer
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">🏷️ Nom de l'élevage <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" value="Élevage bovin de Thiès" style="border-radius: 6px; font-size: 14px;">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">🐄 Type d'élevage <span class="text-danger">*</span></label>
+                        <select class="form-control form-select" style="border-radius: 6px; font-size: 14px;">
+                            <option selected>Bovins</option>
+                            <option>Caprins</option>
+                            <option>Ovins</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">📍 Localisation</label>
+                        <input type="text" class="form-control" value="Thiès, Sénégal" style="border-radius: 6px; font-size: 14px;">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Superficie (hectares)</label>
+                        <input type="number" class="form-control" value="5" style="border-radius: 6px; font-size: 14px;">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">📝 Description <span class="text-muted font-weight-normal">(optionnelle)</span></label>
+                        <textarea class="form-control" rows="3" style="border-radius: 6px; font-size: 14px;">Élevage spécialisé dans la production laitière</textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-outline-secondary d-flex align-items-center gap-1" data-dismiss="modal" style="border-radius: 6px; min-width: 100px; justify-content: center;">
+                            ❎ Annuler
+                        </button>
+                        <button type="submit" class="btn btn-success d-flex align-items-center gap-1" style="background-color: #198754; border-radius: 6px; min-width: 100px; justify-content: center;">
+                            ✅ Valider
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 @endsection
