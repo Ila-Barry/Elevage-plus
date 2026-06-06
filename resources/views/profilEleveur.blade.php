@@ -6,7 +6,6 @@
 
     <!-- style_css -->
     <link rel="stylesheet" href="{{ asset('css/eleveurCSS/profilEleveur.css') }}">
-    <link rel="stylesheet" href="resources/views/profilEleveur.blade.php">
 
     <main>
   <!-- COVER avec background image -->

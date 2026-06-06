@@ -43,7 +43,7 @@
         <div class="post-top">
           <img src="https://i.pravatar.cc/40?u=jean1" class="avatar" alt="Jean Dupont">
           <div class="post-info">
-           <a href="resources/views/profilEleveur.blade.php"> <h4>Jean Dupont - Éleveur bovin <i class="fas fa-circle-check text-info"></i> • 2 jours ago</h4></a>
+           <a href="{{ url('/profilEleveur') }}"> <h4>Jean Dupont - Éleveur bovin <i class="fas fa-circle-check text-info"></i> • 2 jours ago</h4></a>
             <div class="post-meta">
               <span><i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="far fa-star"></i> (45 likes)</span>
               <span><i class="far fa-comment-dots"></i> 12 commentaires</span>
