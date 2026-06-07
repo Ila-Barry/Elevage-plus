@@ -1,10 +1,13 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PublicationController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ElevageController;
-use App\Http\Controllers\AnimalController;
+use App\Http\Controllers\Api\ProduitController;
+use App\Http\Controllers\Api\StockController;
+use App\Http\Controllers\Api\ElevageController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -12,23 +15,11 @@ use App\Http\Controllers\AnimalController;
 |--------------------------------------------------------------------------
 */
 
-/*
-|--------------------------------------------------------------------------
-| Routes publiques
-|--------------------------------------------------------------------------
-*/
-
-Route::apiResource('elevages', ElevageController::class)
-    ->only(['index', 'show']);
-
-Route::apiResource('animaux', AnimalController::class)
-    ->only(['index', 'show']);
-
-// Route factice pour éviter l'erreur de redirection
+// gere la redirection vers la route de login pour les utilisateurs non authentifiés
 Route::get('/login', function () {
     return response()->json([
-        'status' => 'error',
-        'message' => 'Non authentifié. Veuillez fournir un token valide.'
+        'success' => false,
+        'message' => 'Non authentifié. Veuillez vous connecter.'
     ], 401);
 })->name('login');
 
@@ -116,15 +107,55 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin/publications')->group(fu
     Route::delete('/reports/{id}', [PublicationController::class, 'adminDeleteReport']);
 });
 
-// Routes protégées
-Route::middleware(['auth:api'])->group(function () {
 
-    Route::apiResource('elevages', ElevageController::class)
-        ->except(['index', 'show']);
+/*
+|--------------------------------------------------------------------------
+| API Routes - Produits et Stocks
+|--------------------------------------------------------------------------
+*/
 
-    Route::apiResource('animaux', AnimalController::class)
-        ->except(['index', 'show']);
-
+// Routes protégées (authentification requise)
+Route::middleware(['auth:api'])->prefix('stock')->group(function () {
+    
+    // Produits
+    Route::prefix('produits')->group(function () {
+        Route::get('/', [ProduitController::class, 'index']);
+        Route::post('/', [ProduitController::class, 'store']);
+        Route::get('/critiques', [ProduitController::class, 'produitsCritiques']);
+        Route::get('/rupture', [ProduitController::class, 'produitsRupture']);
+        Route::get('/statistiques', [ProduitController::class, 'statistiques']);
+        Route::get('/{id}', [ProduitController::class, 'show']);
+        Route::put('/{id}', [ProduitController::class, 'update']);
+        Route::delete('/{id}', [ProduitController::class, 'destroy']);
+    });
+    
+    // Mouvements de stock
+    Route::prefix('mouvements')->group(function () {
+        Route::get('/', [StockController::class, 'historique']);
+        Route::post('/{produitId}/entree', [StockController::class, 'addStock']);
+        Route::post('/{produitId}/sortie', [StockController::class, 'removeStock']);
+    });
+    
+    // Rapports
+    Route::get('/rapport', [StockController::class, 'rapport']);
 });
 
 
+/*
+|--------------------------------------------------------------------------
+| API Routes - Élevages
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api'])->prefix('elevages')->group(function () {
+    // CRUD de base
+    Route::get('/', [ElevageController::class, 'index']);
+    Route::post('/', [ElevageController::class, 'store']);
+    Route::get('/statistiques', [ElevageController::class, 'statistiques']);
+    Route::get('/{id}', [ElevageController::class, 'show']);
+    Route::put('/{id}', [ElevageController::class, 'update']);
+    Route::delete('/{id}', [ElevageController::class, 'destroy']);
+    
+    // Actions spécifiques
+    Route::patch('/{id}/statut', [ElevageController::class, 'changeStatut']);
+});
