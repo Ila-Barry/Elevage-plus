@@ -266,7 +266,142 @@
             Affichage : 1/45
         </div>
 
+    <!-- MODALE DÉTAIL DE L'ANIMAL -->
+    <div id="detailAnimalModal" class="modal">
+        <div class="modal-content modal-detail">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-info-circle" style="color: #198754; margin-right: 10px;"></i>
+                    DÉTAIL DE L'ANIMAL : <span id="detailAnimalNom">MARGUERITE</span>
+                </h2>
+                <span class="modal-close">&times;</span>
+            </div>
+
+            <div class="modal-body">
+                <div class="detail-container">
+                    <!-- Colonne gauche -->
+                    <div class="detail-left">
+                        <!-- Photo de l'animal -->
+                        <div class="detail-photo">
+                            <img id="detailAnimalImage" src="https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=400" alt="Animal">
+                        </div>
+
+                        <!-- Informations générales -->
+                        <div class="info-section">
+                            <h3>
+                                <i class="fas fa-info-circle"></i>
+                                INFORMATIONS GÉNÉRALES
+                            </h3>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Nom :</span>
+                                    <span class="info-value" id="detailNom">Marguerite</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Espèce :</span>
+                                    <span class="info-value" id="detailEspece">Bovin</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Race :</span>
+                                    <span class="info-value" id="detailRace">Brune</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Date naissance :</span>
+                                    <span class="info-value" id="detailDateNaissance">15/03/2022 <span style="color:#888;">(âge : 4 ans)</span></span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Poids :</span>
+                                    <span class="info-value" id="detailPoids">450 kg</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Statut sanitaire :</span>
+                                    <span class="info-value">
+                                        <span class="badge-sante-detail" id="detailStatutSanitaire">Bonne</span>
+                                    </span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Élevage :</span>
+                                    <span class="info-value" id="detailElevage">Drenage bovin - Thèse</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Colonne droite -->
+                    <div class="detail-right">
+                        <!-- Historique des tâches -->
+                        <div class="tasks-section">
+                            <h3>
+                                <i class="fas fa-history"></i>
+                                HISTORIQUE DES TÂCHES
+                            </h3>
+                            <div class="tasks-list" id="detailHistoriqueTaches">
+                                <div class="task-item">
+                                    <span class="task-type">Vaccination</span>
+                                    <span class="task-date">10/03/2022</span>
+                                </div>
+                                <div class="task-item">
+                                    <span class="task-type">Poids</span>
+                                    <span class="task-date">430 kg</span>
+                                </div>
+                                <div class="task-item">
+                                    <span class="task-type">Vermifuge</span>
+                                    <span class="task-date">15/01/2022</span>
+                                </div>
+                                <div class="task-item">
+                                    <span class="task-type">Prochaine vaccination</span>
+                                    <span class="task-date">15/06/2022</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Courbe de poids -->
+                        <div class="weight-chart-section">
+                            <h3>
+                                <i class="fas fa-chart-line"></i>
+                                COURBE DE POIDS
+                            </h3>
+                            <div class="chart-container">
+                                <canvas id="weightChart" width="400" height="250" style="max-width:100%; height:auto;"></canvas>
+                            </div>
+                            <div class="weight-labels" id="detailWeightLabels">
+                                <span>0</span><span>50</span><span>100</span><span>150</span><span>200</span>
+                                <span>250</span><span>300</span><span>350</span><span>400</span><span>450</span><span>500</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Applications mobiles -->
+                <div class="mobile-apps-section">
+                    <div class="mobile-apps-content">
+                        <div class="apps-icons">
+                            <div class="app-icon">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span>Début solitaire</span>
+                            </div>
+                            <div class="app-icon">
+                                <i class="fas fa-chart-simple"></i>
+                                <span>Perturbation</span>
+                            </div>
+                            <div class="app-icon">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Sécurité</span>
+                            </div>
+                            <div class="app-icon">
+                                <i class="fas fa-microchip"></i>
+                                <span>Technologie</span>
+                            </div>
+                        </div>
+                        <div class="app-pagination">
+                            <span>Appuyez sur 1 sur 10</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
 <!-- MODALE AJOUTER UN ANIMAL -->
 <div id="addAnimalModal" class="modal">
@@ -345,6 +480,9 @@
 
         </div>
     </div>
+
+
+
 </div>
 
 <!-- MODALE MODIFIER L'ANIMAL -->
