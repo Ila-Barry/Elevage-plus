@@ -5,184 +5,344 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Modèle Elevage
  * 
- * Représente un élevage géré par un utilisateur (éleveur)
+ * Représente un élevage appartenant à un utilisateur (éleveur)
  * 
  * @property int $id
  * @property int $user_id
  * @property string $nom
- * @property string $localisation
- * @property int $superficie
- * @property string $type_elevage
  * @property string|null $img_url
+ * @property string $localisation
+ * @property float $superficie
+ * @property string $type_elevage
  * @property string|null $description
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
- * 
- * @property-read User $proprietaire
- * @property-read \Illuminate\Database\Eloquent\Collection|Animal[] $animaux
- * @property-read \Illuminate\Database\Eloquent\Collection|Produit[] $produits
+ * @property string|null $adresse
+ * @property string|null $ville
+ * @property string|null $code_postal
+ * @property string $pays
+ * @property float|null $latitude
+ * @property float|null $longitude
+ * @property string|null $telephone
+ * @property string|null $email_contact
+ * @property string $statut
+ * @property \Carbon\Carbon $date_creation
  */
 class Elevage extends Model
 {
     use HasFactory;
 
     /**
-     * Types d'élevage autorisés
+     * Types d'élevage disponibles
      */
     public const TYPES_ELEVAGE = [
-        'bovins',
-        'ovins', 
-        'caprins',
-        'volailles',
-        'mixte',
-        'autres'
+        'bovins' => 'Bovins',
+        'ovins' => 'Ovins',
+        'caprins' => 'Caprins',
+        'volailles' => 'Volailles',
+        'porcins' => 'Porcins',
+        'equins' => 'Équins',
+        'apiculture' => 'Apiculture',
+        'cuniculture' => 'Cuniculture',
+        'mixte' => 'Mixte',
+        'autre' => 'Autre',
     ];
 
     /**
-     * Attributs assignables en masse
+     * Statuts disponibles
+     */
+    public const STATUTS = [
+        'actif' => 'Actif',
+        'inactif' => 'Inactif',
+        'ferme' => 'Fermé',
+    ];
+
+    /**
+     * Les attributs assignables en masse.
      */
     protected $fillable = [
         'user_id',
         'nom',
+        'img_url',
         'localisation',
         'superficie',
         'type_elevage',
-        'img_url',
         'description',
+        'adresse',
+        'ville',
+        'code_postal',
+        'pays',
+        'latitude',
+        'longitude',
+        'telephone',
+        'email_contact',
+        'statut',
+        'date_creation',
     ];
 
     /**
-     * Attributs à cacher pour la sérialisation
-     */
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
-
-    /**
-     * Attributs à convertir
+     * Les attributs qui doivent être castés.
      */
     protected $casts = [
-        'superficie' => 'integer',
+        'superficie' => 'decimal:2',
+        'latitude' => 'decimal:8',
+        'longitude' => 'decimal:8',
+        'date_creation' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
 
     /**
-     * Relation avec l'utilisateur propriétaire (éleveur)
-     * Un élevage appartient à un utilisateur
-     * 
-     * @return BelongsTo
+     * Les valeurs par défaut des attributs.
      */
-    public function proprietaire(): BelongsTo
+    protected $attributes = [
+        'statut' => 'actif',
+        'pays' => 'Sénégal',
+    ];
+
+    // ========== RELATIONS ==========
+
+    /**
+     * Relation avec l'utilisateur (propriétaire)
+     */
+    public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
 
     /**
      * Relation avec les animaux
-     * Un élevage peut avoir plusieurs animaux
-     * 
-     * @return HasMany
      */
-    public function animaux(): HasMany
+    public function animaux()
     {
         return $this->hasMany(Animal::class);
     }
 
     /**
-     * Relation avec les produits (stocks)
-     * Un élevage peut avoir plusieurs produits
-     * 
-     * @return HasMany
+     * Relation avec les produits (stock)
      */
-    public function produits(): HasMany
+    public function produits()
     {
         return $this->hasMany(Produit::class);
     }
 
     /**
-     * Accesseur pour l'URL complète de l'image
-     * 
-     * @return Attribute
+     * Relation avec les mouvements de stock
      */
-    protected function imageUrl(): Attribute
+    public function mouvementsStock()
+    {
+        return $this->hasMany(MouvementStock::class);
+    }
+
+    /**
+     * Relation avec les tâches
+     */
+    public function taches()
+    {
+        return $this->hasManyThrough(Tache::class, Animal::class);
+    }
+
+    // ========== ACCESSORS ==========
+
+    /**
+     * Accesseur pour l'URL complète de l'image
+     */
+    protected function imgUrl(): Attribute
     {
         return Attribute::make(
-            get: function ($value, $attributes) {
-                if (empty($attributes['img_url'])) {
-                    return null;
+            get: function ($value) {
+                if (!$value) {
+                    return $this->getDefaultImage();
                 }
-                // Retourne l'URL complète si le chemin est stocké relativement
-                if (str_starts_with($attributes['img_url'], 'http')) {
-                    return $attributes['img_url'];
+                if (filter_var($value, FILTER_VALIDATE_URL)) {
+                    return $value;
                 }
-                return asset('storage/' . $attributes['img_url']);
+                return asset('storage/' . $value);
             }
         );
     }
 
     /**
-     * Accesseur pour le nombre d'animaux
-     * 
-     * @return int
+     * Accesseur pour le libellé du type d'élevage
      */
-    public function getAnimauxCountAttribute(): int
+    protected function typeElevageLabel(): Attribute
     {
-        return $this->animaux()->count();
+        return Attribute::make(
+            get: fn() => self::TYPES_ELEVAGE[$this->type_elevage] ?? $this->type_elevage
+        );
     }
 
     /**
-     * Vérifie si l'élevage appartient à un utilisateur donné
-     * 
-     * @param int $userId
-     * @return bool
+     * Accesseur pour le libellé du statut
      */
-    public function belongsToUser(int $userId): bool
+    protected function statutLabel(): Attribute
     {
-        return $this->user_id === $userId;
+        return Attribute::make(
+            get: fn() => self::STATUTS[$this->statut] ?? $this->statut
+        );
     }
 
     /**
-     * Scope pour filtrer par type d'élevage
-     * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $type
-     * @return \Illuminate\Database\Eloquent\Builder
+     * Accesseur pour l'adresse complète formatée
      */
-    public function scopeOfType($query, string $type)
+    protected function adresseComplete(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $parts = array_filter([
+                    $this->adresse,
+                    $this->ville,
+                    $this->code_postal,
+                    $this->pays,
+                ]);
+                return implode(', ', $parts);
+            }
+        );
+    }
+
+    /**
+     * Accesseur pour le nombre total d'animaux
+     */
+    protected function totalAnimaux(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->animaux()->count()
+        );
+    }
+
+    /**
+     * Accesseur pour le nombre total de produits en stock
+     */
+    protected function totalProduits(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->produits()->count()
+        );
+    }
+
+    /**
+     * Accesseur pour la valeur totale du stock
+     */
+    protected function valeurStockTotale(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->produits()->sum(DB::raw('quantite * COALESCE(prix_unitaire, 0)'))
+        );
+    }
+
+    // ========== SCOPES ==========
+
+    /**
+     * Scope pour les élevages actifs
+     */
+    public function scopeActif($query)
+    {
+        return $query->where('statut', 'actif');
+    }
+
+    /**
+     * Scope pour les élevages par type
+     */
+    public function scopeByType($query, string $type)
     {
         return $query->where('type_elevage', $type);
     }
 
     /**
-     * Scope pour filtrer par localisation
-     * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $localisation
-     * @return \Illuminate\Database\Eloquent\Builder
+     * Scope pour les élevages par localisation
      */
-    public function scopeLocatedIn($query, string $localisation)
+    public function scopeByLocalisation($query, string $localisation)
     {
-        return $query->where('localisation', 'LIKE', '%' . $localisation . '%');
+        return $query->where('localisation', 'LIKE', "%{$localisation}%")
+            ->orWhere('ville', 'LIKE', "%{$localisation}%")
+            ->orWhere('pays', 'LIKE', "%{$localisation}%");
     }
 
     /**
-     * Valide si le type d'élevage est autorisé
-     * 
-     * @param string $type
-     * @return bool
+     * Scope pour la recherche textuelle
      */
-    public static function isValidType(string $type): bool
+    public function scopeSearch($query, string $search)
     {
-        return in_array($type, self::TYPES_ELEVAGE);
+        return $query->where(function ($q) use ($search) {
+            $q->where('nom', 'LIKE', "%{$search}%")
+              ->orWhere('description', 'LIKE', "%{$search}%")
+              ->orWhere('localisation', 'LIKE', "%{$search}%")
+              ->orWhere('ville', 'LIKE', "%{$search}%");
+        });
+    }
+
+    /**
+     * Scope pour les élevages avec leurs statistiques
+     */
+    public function scopeWithStats($query)
+    {
+        return $query->withCount([
+            'animaux',
+            'produits',
+        ]);
+    }
+
+    // ========== MÉTHODES UTILITAIRES ==========
+
+    /**
+     * Vérifie si l'utilisateur est le propriétaire
+     */
+    public function isOwner(int $userId): bool
+    {
+        return $this->user_id === $userId;
+    }
+
+    /**
+     * Vérifie si l'élevage est actif
+     */
+    public function isActif(): bool
+    {
+        return $this->statut === 'actif';
+    }
+
+    /**
+     * Active l'élevage
+     */
+    public function activate(): void
+    {
+        $this->update(['statut' => 'actif']);
+    }
+
+    /**
+     * Désactive l'élevage
+     */
+    public function deactivate(): void
+    {
+        $this->update(['statut' => 'inactif']);
+    }
+
+    /**
+     * Ferme l'élevage
+     */
+    public function close(): void
+    {
+        $this->update(['statut' => 'ferme']);
+    }
+
+    /**
+     * Retourne l'image par défaut
+     */
+    protected function getDefaultImage(): string
+    {
+        $images = [
+            'bovins' => '/images/default-farm-cattle.jpg',
+            'ovins' => '/images/default-farm-sheep.jpg',
+            'caprins' => '/images/default-farm-goat.jpg',
+            'volailles' => '/images/default-farm-poultry.jpg',
+            'porcins' => '/images/default-farm-pig.jpg',
+            'mixte' => '/images/default-farm-mixed.jpg',
+        ];
+        
+        return asset($images[$this->type_elevage] ?? '/images/default-farm.jpg');
     }
 }
-?>

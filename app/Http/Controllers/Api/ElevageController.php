@@ -4,123 +4,130 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\ElevageRequest;
-use App\Http\Requests\Api\UpdateElevageRequest;
+use App\Http\Requests\Api\Elevage\CreateElevageRequest;
+use App\Http\Requests\Api\Elevage\UpdateElevageRequest;
+use App\Http\Requests\Api\Elevage\ElevageFilterRequest;
 use App\Http\Resources\ElevageResource;
 use App\Models\Elevage;
-use App\Services\ElevageService;
 use App\Traits\ApiResponseTrait;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * Contrôleur ElevageController
  * 
- * Gère toutes les opérations CRUD pour les élevages
- * 
- * @package App\Http\Controllers\Api
+ * Gère toutes les opérations liées aux élevages :
+ * - CRUD des élevages
+ * - Pagination et filtres
+ * - Vérification du propriétaire
+ * - Upload de photos
+ * - Statistiques
  */
 class ElevageController extends Controller
 {
     use ApiResponseTrait;
 
     /**
-     * Service de gestion des élevages
-     *
-     * @var ElevageService
+     * Constructeur avec middleware
      */
-    protected ElevageService $elevageService;
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+    }
 
     /**
-     * Constructeur avec injection de dépendances
+     * Liste des élevages de l'utilisateur connecté
      *
-     * @param ElevageService $elevageService
+     * @param ElevageFilterRequest $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function __construct(ElevageService $elevageService)
+    public function index(ElevageFilterRequest $request)
     {
-        $this->elevageService = $elevageService;
+        $user = $request->user();
         
-        // Application des middlewares pour la sécurité
-        $this->middleware('auth:api')->except(['index', 'show']);
-    }
-
-    /**
-     * Liste des élevages avec pagination
-     * GET /api/elevages
-     * 
-     * @param Request $request     * @return JsonResponse
-     */
-    public function index(Request $request): JsonResponse
-    {
-        try {
-            // Paramètres de pagination (conforme ELEV-04: pagination 10 par page)
-            $perPage = $request->input('per_page', 10);
-            $perPage = min($perPage, 50); // Limite à 50 max
-            
-            // Filtres optionnels
-            $filters = [
-                'type' => $request->input('type'),
-                'localisation' => $request->input('localisation'),
-                'search' => $request->input('search'),
-            ];
-            
-            // Récupération des élevages
-            $elevages = $this->elevageService->getAllPaginated($perPage, array_filter($filters));
-            
-            // Transformation des données
-            $data = [
-                'data' => ElevageResource::collection($elevages),
-                'meta' => [
-                    'current_page' => $elevages->currentPage(),
-                    'last_page' => $elevages->lastPage(),
-                    'per_page' => $elevages->perPage(),
-                    'total' => $elevages->total(),
-                    'from' => $elevages->firstItem(),
-                    'to' => $elevages->lastItem(),
-                ],
-            ];
-            
-            // Ajout des filtres actifs dans la réponse
-            if (!empty($filters['type'])) {
-                $data['filters']['type'] = $filters['type'];
-            }
-            if (!empty($filters['localisation'])) {
-                $data['filters']['localisation'] = $filters['localisation'];
-            }
-            if (!empty($filters['search'])) {
-                $data['filters']['search'] = $filters['search'];
-            }
-            
-            return $this->successResponse($data, 'Liste des élevages récupérée avec succès.');
-            
-        } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération des élevages: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération des élevages.', 500);
+        $query = Elevage::where('user_id', $user->id)
+            ->with(['user'])
+            ->withStats();
+        
+        // Filtre par type d'élevage
+        if ($request->filled('type_elevage')) {
+            $query->byType($request->type_elevage);
         }
+        
+        // Filtre par statut
+        if ($request->filled('statut')) {
+            $query->where('statut', $request->statut);
+        }
+        
+        // Recherche textuelle
+        if ($request->filled('search')) {
+            $query->search($request->search);
+        }
+        
+        // Filtre par localisation
+        if ($request->filled('localisation')) {
+            $query->byLocalisation($request->localisation);
+        }
+        
+        // Tri
+        $sort = $request->get('sort', 'date_creation');
+        $direction = $request->get('direction', 'desc');
+        
+        switch ($sort) {
+            case 'total_animaux':
+                $query->withCount('animaux')->orderBy('animaux_count', $direction);
+                break;
+            case 'superficie':
+                $query->orderBy('superficie', $direction);
+                break;
+            default:
+                $query->orderBy($sort, $direction);
+        }
+        
+        $perPage = $request->get('per_page', 12);
+        $elevages = $query->paginate($perPage);
+        
+        // Calcul du nombre total d'élevages
+        $totalElevages = Elevage::where('user_id', $user->id)->count();
+        
+        return $this->successResponse([
+            'data' => ElevageResource::collection($elevages),
+            'meta' => [
+                'current_page' => $elevages->currentPage(),
+                'last_page' => $elevages->lastPage(),
+                'per_page' => $elevages->perPage(),
+                'total' => $elevages->total(),
+                'total_elevages' => $totalElevages,
+            ],
+        ]);
     }
 
     /**
-     * Création d'un nouvel élevage
-     * POST /api/elevages
-     * 
-     * @param ElevageRequest $request
-     * @return JsonResponse
+     * Créer un nouvel élevage
+     *
+     * @param CreateElevageRequest $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(ElevageRequest $request): JsonResponse
+    public function store(CreateElevageRequest $request)
     {
+        DB::beginTransaction();
+        
         try {
-            // Autorisation via Policy
-            $this->authorize('create', Elevage::class);
-            
-            // Préparation des données
+            $user = $request->user();
             $data = $request->validated();
+            $data['user_id'] = $user->id;
+            $data['date_creation'] = now();
             
-            // Création de l'élevage
-            $elevage = $this->elevageService->createElevage(
-                $data,
-                $request->file('photo')
-            );
+            // Upload de l'image
+            if ($request->hasFile('image')) {
+                $data['img_url'] = $this->uploadImage($request->file('image'));
+            }
+            
+            $elevage = Elevage::create($data);
+            
+            DB::commit();
             
             return $this->successResponse(
                 new ElevageResource($elevage),
@@ -128,207 +135,223 @@ class ElevageController extends Controller
                 201
             );
             
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Vous n\'êtes pas autorisé à créer un élevage.');
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de la création de l\'élevage: ' . $e->getMessage());
+            DB::rollBack();
+            \Log::error('Erreur création élevage: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la création de l\'élevage.', 500);
         }
     }
 
     /**
-     * Détails d'un élevage spécifique
-     * GET /api/elevages/{id}
-     * 
+     * Afficher un élevage spécifique
+     *
+     * @param Request $request
      * @param int $id
-     * @return JsonResponse
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show(int $id): JsonResponse
+    public function show(Request $request, $id)
     {
-        try {
-            // Recherche de l'élevage
-            $elevage = Elevage::with(['proprietaire' => function($query) {
-                $query->select('id', 'name', 'photo_url', 'bio', 'profile_visibility');
-            }])->findOrFail($id);
-            
-            // Vérification des droits d'accès
-            if (auth()->check()) {
-                $this->authorize('view', $elevage);
-            } else {
-                // Non authentifié: seulement si profil public
-                if ($elevage->proprietaire->profile_visibility !== 'public') {
-                    return $this->forbiddenResponse('Ce profil est privé.');
-                }
-            }
-            
-            // Récupération des détails complets
-            $details = $this->elevageService->getElevageDetails($elevage);
-            
-            return $this->successResponse(
-                new ElevageResource($details),
-                'Détails de l\'élevage récupérés avec succès.'
-            );
-            
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFoundResponse('Élevage non trouvé.');
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Vous n\'avez pas accès à cet élevage.');
-        } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération de l\'élevage: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération des détails.', 500);
-        }
+        $user = $request->user();
+        
+        $elevage = Elevage::with(['user', 'animaux' => function ($query) {
+                $query->latest()->limit(10);
+            }])
+            ->withStats()
+            ->findOrFail($id);
+        
+        // Vérifier le propriétaire via Policy
+        $this->authorize('view', $elevage);
+        
+        return $this->successResponse(
+            ElevageResource::make($elevage, true)
+        );
     }
 
     /**
-     * Mise à jour d'un élevage
-     * PUT/PATCH /api/elevages/{id}
-     * 
+     * Mettre à jour un élevage
+     *
      * @param UpdateElevageRequest $request
      * @param int $id
-     * @return JsonResponse
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(UpdateElevageRequest $request, int $id): JsonResponse
+    public function update(UpdateElevageRequest $request, $id)
     {
+        $user = $request->user();
+        
+        $elevage = Elevage::findOrFail($id);
+        
+        // Vérifier le propriétaire via Policy
+        $this->authorize('update', $elevage);
+        
+        DB::beginTransaction();
+        
         try {
-            // Recherche de l'élevage
-            $elevage = Elevage::findOrFail($id);
+            $data = $request->validated();
             
-            // Vérification du propriétaire (conforme ELEV-02 et politique de sécurité)
-            $this->authorize('update', $elevage);
+            // Gestion de l'image
+            if ($request->hasFile('image')) {
+                // Supprimer l'ancienne image
+                if ($elevage->img_url && !str_contains($elevage->img_url, 'default-farm')) {
+                    $this->deleteImage($elevage->img_url);
+                }
+                $data['img_url'] = $this->uploadImage($request->file('image'));
+            } elseif ($request->input('delete_image')) {
+                if ($elevage->img_url && !str_contains($elevage->img_url, 'default-farm')) {
+                    $this->deleteImage($elevage->img_url);
+                }
+                $data['img_url'] = null;
+            }
             
-            // Préparation des données (ne garder que les champs modifiés)
-            $data = array_filter($request->validated(), function($value) {
-                return !is_null($value);
-            });
+            $elevage->update($data);
             
-            // Mise à jour
-            $updatedElevage = $this->elevageService->updateElevage(
-                $elevage,
-                $data,
-                $request->file('photo')
-            );
+            DB::commit();
             
             return $this->successResponse(
-                new ElevageResource($updatedElevage),
+                new ElevageResource($elevage->load('user')),
                 'Élevage mis à jour avec succès.'
             );
             
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFoundResponse('Élevage non trouvé.');
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Vous n\'êtes pas autorisé à modifier cet élevage.');
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de la mise à jour de l\'élevage: ' . $e->getMessage());
+            DB::rollBack();
+            \Log::error('Erreur mise à jour élevage: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la mise à jour de l\'élevage.', 500);
         }
     }
 
     /**
-     * Suppression d'un élevage
-     * DELETE /api/elevages/{id}
-     * 
+     * Supprimer un élevage
+     *
+     * @param Request $request
      * @param int $id
-     * @return JsonResponse
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, $id)
     {
+        $user = $request->user();
+        
+        $elevage = Elevage::findOrFail($id);
+        
+        // Vérifier le propriétaire via Policy
+        $this->authorize('delete', $elevage);
+        
+        DB::beginTransaction();
+        
         try {
-            // Recherche de l'élevage
-            $elevage = Elevage::findOrFail($id);
+            // Supprimer l'image
+            if ($elevage->img_url && !str_contains($elevage->img_url, 'default-farm')) {
+                $this->deleteImage($elevage->img_url);
+            }
             
-            // Vérification du propriétaire (conforme ELEV-03)
-            $this->authorize('delete', $elevage);
+            // Les animaux et produits seront supprimés automatiquement (cascade)
+            $elevage->delete();
             
-            // Suppression
-            $this->elevageService->deleteElevage($elevage);
+            DB::commit();
             
             return $this->successResponse(null, 'Élevage supprimé avec succès.');
             
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFoundResponse('Élevage non trouvé.');
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Vous n\'êtes pas autorisé à supprimer cet élevage.');
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de la suppression de l\'élevage: ' . $e->getMessage());
+            DB::rollBack();
+            \Log::error('Erreur suppression élevage: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la suppression de l\'élevage.', 500);
         }
     }
 
     /**
-     * Récupération des élevages de l'utilisateur connecté
-     * GET /api/user/elevages
-     * 
+     * Statistiques de tous les élevages de l'utilisateur
+     *
      * @param Request $request
-     * @return JsonResponse
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function userElevages(Request $request): JsonResponse
+    public function statistiques(Request $request)
     {
-        try {
-            $userId = auth()->id();
-            
-            // Récupération des élevages de l'utilisateur
-            $elevages = $this->elevageService->getUserElevages($userId);
-            
-            // Calcul du nombre total d'élevages (conforme au cahier des charges)
-            $totalElevages = $this->elevageService->getTotalElevagesCount($userId);
-            
-            return $this->successResponse([
-                'data' => ElevageResource::collection($elevages),
-                'total' => $totalElevages,
-                'stats' => [
-                    'by_type' => $this->getElevagesCountByType($elevages),
-                ],
-            ], 'Vos élevages récupérés avec succès.');
-            
-        } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération des élevages utilisateur: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération de vos élevages.', 500);
+        $user = $request->user();
+        
+        $elevages = Elevage::where('user_id', $user->id)->get();
+        
+        $stats = [
+            'total_elevages' => $elevages->count(),
+            'total_animaux' => $elevages->sum(fn($e) => $e->animaux()->count()),
+            'total_produits' => $elevages->sum(fn($e) => $e->produits()->count()),
+            'valeur_stock_totale' => $elevages->sum(fn($e) => $e->valeur_stock_totale),
+            'superficie_totale' => (float) $elevages->sum('superficie'),
+            'repartition_par_type' => [],
+            'repartition_par_statut' => [],
+        ];
+        
+        // Répartition par type
+        foreach (array_keys(Elevage::TYPES_ELEVAGE) as $type) {
+            $count = $elevages->where('type_elevage', $type)->count();
+            if ($count > 0) {
+                $stats['repartition_par_type'][$type] = [
+                    'label' => Elevage::TYPES_ELEVAGE[$type],
+                    'count' => $count,
+                ];
+            }
         }
-    }
-
-    /**
-     * Statistiques des élevages par type pour l'utilisateur
-     * GET /api/user/elevages/stats
-     * 
-     * @return JsonResponse
-     */
-    public function stats(): JsonResponse
-    {
-        try {
-            $userId = auth()->id();
-            
-            $stats = [
-                'total' => Elevage::where('user_id', $userId)->count(),
-                'by_type' => Elevage::where('user_id', $userId)
-                    ->selectRaw('type_elevage, count(*) as count')
-                    ->groupBy('type_elevage')
-                    ->get(),
-                'total_superficie' => Elevage::where('user_id', $userId)->sum('superficie'),
-                'total_animaux' => \App\Models\Animal::whereHas('elevage', function($q) use ($userId) {
-                    $q->where('user_id', $userId);
-                })->count(),
+        
+        // Répartition par statut
+        foreach (array_keys(Elevage::STATUTS) as $statut) {
+            $count = $elevages->where('statut', $statut)->count();
+            $stats['repartition_par_statut'][$statut] = [
+                'label' => Elevage::STATUTS[$statut],
+                'count' => $count,
             ];
-            
-            return $this->successResponse($stats, 'Statistiques récupérées avec succès.');
-            
-        } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération des statistiques: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération des statistiques.', 500);
         }
+        
+        return $this->successResponse($stats);
     }
 
     /**
-     * Calcule le nombre d'élevages par type
-     * 
-     * @param \Illuminate\Database\Eloquent\Collection $elevages
-     * @return array
+     * Changer le statut d'un élevage
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    private function getElevagesCountByType($elevages): array
+    public function changeStatut(Request $request, $id)
     {
-        $counts = [];
-        foreach (Elevage::TYPES_ELEVAGE as $type) {
-            $counts[$type] = $elevages->where('type_elevage', $type)->count();
+        $request->validate([
+            'statut' => 'required|string|in:' . implode(',', array_keys(Elevage::STATUTS)),
+        ]);
+        
+        $user = $request->user();
+        
+        $elevage = Elevage::findOrFail($id);
+        
+        // Vérifier le propriétaire
+        $this->authorize('update', $elevage);
+        
+        $elevage->update(['statut' => $request->statut]);
+        
+        return $this->successResponse(
+            ['statut' => $elevage->statut, 'statut_label' => $elevage->statut_label],
+            'Statut de l\'élevage mis à jour.'
+        );
+    }
+
+    /**
+     * Upload de l'image
+     *
+     * @param \Illuminate\Http\UploadedFile $image
+     * @return string
+     */
+    private function uploadImage($image): string
+    {
+        $filename = 'elevage_' . time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+        $path = $image->storeAs('elevages', $filename, 'public');
+        return $path;
+    }
+
+    /**
+     * Suppression de l'image
+     *
+     * @param string $path
+     * @return void
+     */
+    private function deleteImage(string $path): void
+    {
+        if (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
         }
-        return $counts;
     }
 }
