@@ -268,8 +268,6 @@
 
     </div>
 
-    {{-- Ajoutez ces sections de modale après la pagination, dans le fichier animal.blade.php --}}
-
 <!-- MODALE AJOUTER UN ANIMAL -->
 <div id="addAnimalModal" class="modal">
     <div class="modal-content">
@@ -345,20 +343,6 @@
                 </div>
             </form>
 
-            <!-- Section mobile app -->
-            <div class="mobile-app-section">
-                <div class="mobile-app-content">
-                    <div>
-                        <i class="fas fa-mobile-alt"></i>
-                        <strong>Application mobile</strong>
-                        <p>Gérer votre élevage partout, à tout moment</p>
-                    </div>
-                    <button class="btn-download">
-                        <i class="fas fa-download"></i>
-                        Télécharger
-                    </button>
-                </div>
-            </div>
         </div>
     </div>
 </div>

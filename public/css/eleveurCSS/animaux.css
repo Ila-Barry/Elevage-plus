@@ -304,7 +304,6 @@
     }
 
 }
-/* À ajouter dans le fichier animaux.css */
 
 /* ===========================
    MODALES
@@ -539,75 +538,4 @@ textarea.form-control {
     background: #146c43;
 }
 
-/* Mobile app section */
-.mobile-app-section {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #f0f0f0;
-}
 
-.mobile-app-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    background: #f8f9fa;
-    padding: 14px 18px;
-    border-radius: 16px;
-}
-
-.mobile-app-content i {
-    font-size: 32px;
-    color: #198754;
-    margin-right: 12px;
-}
-
-.mobile-app-content strong {
-    font-size: 15px;
-}
-
-.mobile-app-content p {
-    font-size: 12px;
-    color: #666;
-    margin: 4px 0 0;
-}
-
-.btn-download {
-    background: #198754;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 40px;
-    color: white;
-    font-size: 13px;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.btn-download:hover {
-    background: #146c43;
-}
-
-/* Responsive modale */
-@media (max-width: 640px) {
-    .modal-content {
-        margin: 15px;
-        width: auto;
-    }
-    
-    .modal-body {
-        padding: 20px;
-    }
-    
-    .mobile-app-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .photo-actions {
-        flex-direction: column;
-    }
-    
-    .form-actions {
-        flex-direction: column;
-    }
-}
