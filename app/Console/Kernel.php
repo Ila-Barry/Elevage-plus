@@ -1,4 +1,5 @@
 <?php
+// app/Console/Kernel.php
 
 namespace App\Console;
 
@@ -7,21 +8,16 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
-    /**
-     * Define the application's command schedule.
-     */
+    protected $commands = [
+        Commands\SendTacheRappels::class,
+    ];
+
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
-    }
-
-    /**
-     * Register the commands for the application.
-     */
-    protected function commands(): void
-    {
-        $this->load(__DIR__.'/Commands');
-
-        require base_path('routes/console.php');
+        // Envoi des rappels toutes les minutes
+        $schedule->command('tache:send-rappels')->everyMinute();
+        
+        // Régénération des rappels chaque nuit (sécurité)
+        $schedule->command('tache:regenerate-rappels')->dailyAt('01:00');
     }
 }
