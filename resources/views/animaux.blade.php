@@ -17,214 +17,11 @@
             <h2>GESTION DES ANIMAUX</h2>
         </div>
 
-        @extends('layouts.menu')
-
-@section('title', 'Ajouter un animal')
-
-@push('styles')
-<link rel="stylesheet" href="{{ asset('css/eleveurCSS/ajouter.css') }}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-@endpush
-
-@section('content')
-
-<div class="animal-form-container">
-
-    <h2 class="page-title">
-        AJOUTER UN ANIMAL
-    </h2>
-
-    <div class="animal-card">
-
-        <form action="#" method="POST" enctype="multipart/form-data">
-
-            @csrf
-
-            <!-- PHOTO -->
-
-            <div class="photo-section">
-
-                <label class="section-label">
-                    Photo <span>(optionnelle)</span>
-                </label>
-
-                <div class="photo-content">
-
-                    <div class="preview-box">
-
-                        <img id="preview"
-                             src=""
-                             alt="">
-
-                    </div>
-
-                    <input type="file"
-                           id="photo"
-                           name="photo"
-                           hidden>
-
-                    <button type="button"
-                            class="btn-upload"
-                            onclick="document.getElementById('photo').click()">
-                        Choisir une image
-                    </button>
-
-                    <button type="button"
-                            class="btn-remove"
-                            onclick="removeImage()">
-                        Supprimer
-                    </button>
-
-                </div>
-
-            </div>
-
-            <!-- CHAMPS -->
-
-            <div class="form-grid">
-
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-tag"></i>
-                        Nom *
-                    </label>
-
-                    <input type="text"
-                           placeholder="Nom animal">
-                </div>
-
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-paw"></i>
-                        Espèce *
-                    </label>
-
-                    <input type="text"
-                           placeholder="Animal espèce">
-                </div>
-
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-dna"></i>
-                        Race *
-                    </label>
-
-                    <input type="text"
-                           placeholder="Race">
-                </div>
-
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-calendar"></i>
-                        Date naissance *
-                    </label>
-
-                    <input type="date">
-                </div>
-
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-weight"></i>
-                        Poids (kg) *
-                    </label>
-
-                    <input type="number"
-                           placeholder="Poids">
-                </div>
-
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-heartbeat"></i>
-                        Statut sanitaire *
-                    </label>
-
-                    <input type="text"
-                           placeholder="Santé animal">
-                </div>
-
-            </div>
-
-            <!-- ELEVAGE -->
-
-            <div class="form-group full-width">
-
-                <label>
-                    <i class="fas fa-warehouse"></i>
-                    Élevage *
-                </label>
-
-                <select>
-                    <option>Choisir un élevage</option>
-                    <option>Élevage Thiès</option>
-                    <option>Élevage Dakar</option>
-                </select>
-
-            </div>
-
-            <!-- NOTE -->
-
-            <div class="form-group full-width">
-
-                <label>
-                    <i class="fas fa-sticky-note"></i>
-                    Note (optionnelle)
-                </label>
-
-                <textarea
-                    rows="4"
-                    placeholder="Description de l'animal"></textarea>
-
-            </div>
-
-            <!-- BOUTONS -->
-
-            <div class="form-actions">
-
-                <button type="reset"
-                        class="btn-cancel">
-                    Annuler
-                </button>
-
-                <button type="submit"
-                        class="btn-save">
-                    Enregistrer
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
-
-</div>
-
-@endsection
-
-@push('scripts')
-<script>
-
-document.getElementById('photo').addEventListener('change', function(e){
-
-    const file = e.target.files[0];
-
-    if(file){
-
-        document.getElementById('preview').src =
-        URL.createObjectURL(file);
-
-    }
-
-});
-
-function removeImage(){
-
-    document.getElementById('preview').src = '';
-    document.getElementById('photo').value = '';
-
-}
-
-</script>
-@endpush
+        <div class="header-actions">
+            <button class="btn-add-animal">
+                <i class="fas fa-plus"></i>
+                Ajouter un animal
+            </button>
 
             <div class="search-box">
                 <input type="text" placeholder="rechercher...">
@@ -470,6 +267,198 @@ function removeImage(){
         </div>
 
     </div>
+
+    {{-- Ajoutez ces sections de modale après la pagination, dans le fichier animal.blade.php --}}
+
+<!-- MODALE AJOUTER UN ANIMAL -->
+<div id="addAnimalModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>
+                <i class="fas fa-paw" style="color: #198754; margin-right: 10px;"></i>
+                AJOUTER UN ANIMAL
+            </h2>
+            <span class="modal-close">&times;</span>
+        </div>
+
+        <div class="modal-body">
+            <!-- Logo ÉLEVAGE+ -->
+            <div class="modal-logo">
+                <span class="logo-text">ÉLEVAGE<span style="color: #198754;">+</span></span>
+            </div>
+
+            <!-- Photo section -->
+            <div class="photo-section">
+                <label class="photo-label">Photo <span class="optional">(optionnelle)</span></label>
+                <div class="photo-preview" id="photoPreview">
+                    <i class="fas fa-camera-retro"></i>
+                    <span>Aperçu photo</span>
+                </div>
+                <div class="photo-actions">
+                    <button type="button" class="btn-choose-img" id="chooseImageBtn">
+                        <i class="fas fa-folder-open"></i>
+                        Choisir une image
+                    </button>
+                    <button type="button" class="btn-delete-img" id="deleteImageBtn">
+                        <i class="fas fa-trash-alt"></i>
+                        Supprimer
+                    </button>
+                </div>
+                <input type="file" id="animalImageInput" accept="image/*" style="display: none;">
+            </div>
+
+            <!-- Formulaire -->
+            <form id="addAnimalForm">
+                <div class="form-group">
+                    <label>NOM</label>
+                    <input type="text" placeholder="nom animal" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label>RACE</label>
+                    <input type="text" placeholder="race animal" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label>POIDS (kg)</label>
+                    <input type="number" step="0.1" placeholder="poids animal" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label>ELEVAGE</label>
+                    <select class="form-control">
+                        <option value="">élevage</option>
+                        <option>Ferme des Monts</option>
+                        <option>Vallée Verte</option>
+                        <option>Prairie Fleurie</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>NOTE <span class="optional">(optionnelle)</span></label>
+                    <textarea rows="3" placeholder="description de l'animal" class="form-control"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel">Annuler</button>
+                    <button type="submit" class="btn-save">Enregistrer</button>
+                </div>
+            </form>
+
+            <!-- Section mobile app -->
+            <div class="mobile-app-section">
+                <div class="mobile-app-content">
+                    <div>
+                        <i class="fas fa-mobile-alt"></i>
+                        <strong>Application mobile</strong>
+                        <p>Gérer votre élevage partout, à tout moment</p>
+                    </div>
+                    <button class="btn-download">
+                        <i class="fas fa-download"></i>
+                        Télécharger
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALE MODIFIER L'ANIMAL -->
+<div id="editAnimalModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>
+                <i class="fas fa-edit" style="color: #198754; margin-right: 10px;"></i>
+                MODIFIER L'ANIMAL
+            </h2>
+            <span class="modal-close">&times;</span>
+        </div>
+
+        <div class="modal-body">
+            <!-- Logo ÉLEVAGE+ -->
+            <div class="modal-logo">
+                <span class="logo-text">ÉLEVAGE<span style="color: #198754;">+</span></span>
+            </div>
+
+            <!-- Photo section -->
+            <div class="photo-section">
+                <label class="photo-label">Photo <span class="optional">(optionnelle)</span></label>
+                <div class="photo-preview" id="editPhotoPreview">
+                    <img id="editPreviewImage" src="" alt="Aperçu" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                    <div id="editPreviewPlaceholder" style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                        <i class="fas fa-camera-retro"></i>
+                        <span>Aperçu photo</span>
+                    </div>
+                </div>
+                <div class="photo-actions">
+                    <button type="button" class="btn-choose-img" id="editChooseImageBtn">
+                        <i class="fas fa-folder-open"></i>
+                        Choisir une image
+                    </button>
+                    <button type="button" class="btn-delete-img" id="editDeleteImageBtn">
+                        <i class="fas fa-trash-alt"></i>
+                        Supprimer
+                    </button>
+                </div>
+                <input type="file" id="editAnimalImageInput" accept="image/*" style="display: none;">
+            </div>
+
+            <!-- Formulaire -->
+            <form id="editAnimalForm">
+                <input type="hidden" id="editAnimalId">
+                <div class="form-group">
+                    <label>NOM</label>
+                    <input type="text" id="editNom" placeholder="nom animal" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label>RACE</label>
+                    <input type="text" id="editRace" placeholder="race animal" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label>POIDS (kg)</label>
+                    <input type="number" step="0.1" id="editPoids" placeholder="poids animal" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label>ELEVAGE</label>
+                    <select id="editElevage" class="form-control">
+                        <option value="">élevage</option>
+                        <option>Ferme des Monts</option>
+                        <option>Vallée Verte</option>
+                        <option>Prairie Fleurie</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>NOTE <span class="optional">(optionnelle)</span></label>
+                    <textarea id="editNote" rows="3" placeholder="description de l'animal" class="form-control"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel">Annuler</button>
+                    <button type="submit" class="btn-save">Mettre à jour</button>
+                </div>
+            </form>
+
+            <!-- Section mobile app -->
+            <div class="mobile-app-section">
+                <div class="mobile-app-content">
+                    <div>
+                        <i class="fas fa-mobile-alt"></i>
+                        <strong>Application mobile</strong>
+                        <p>Gérer votre élevage partout, à tout moment</p>
+                    </div>
+                    <button class="btn-download">
+                        <i class="fas fa-download"></i>
+                        Télécharger
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 </div>
 

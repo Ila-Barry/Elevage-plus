@@ -304,3 +304,310 @@
     }
 
 }
+/* À ajouter dans le fichier animaux.css */
+
+/* ===========================
+   MODALES
+=========================== */
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.modal-content {
+    background: white;
+    margin: 30px auto;
+    width: 90%;
+    max-width: 550px;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.modal-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+    color: #2d2d2d;
+}
+
+.modal-close {
+    font-size: 28px;
+    font-weight: 300;
+    cursor: pointer;
+    color: #aaa;
+    transition: color 0.2s;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: #dc3545;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+/* Logo */
+.modal-logo {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.logo-text {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+/* Photo section */
+.photo-section {
+    margin-bottom: 24px;
+}
+
+.photo-label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+    font-size: 14px;
+}
+
+.optional {
+    font-weight: normal;
+    color: #888;
+    font-size: 12px;
+}
+
+.photo-preview {
+    width: 100%;
+    height: 160px;
+    background: #f8f9fa;
+    border: 2px dashed #ddd;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #adb5bd;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.photo-preview i {
+    font-size: 36px;
+}
+
+.photo-preview span {
+    font-size: 13px;
+}
+
+.photo-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-choose-img {
+    flex: 1;
+    background: #e9ecef;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: 0.2s;
+}
+
+.btn-choose-img:hover {
+    background: #dee2e6;
+}
+
+.btn-delete-img {
+    flex: 1;
+    background: #f8d7da;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #dc3545;
+    transition: 0.2s;
+}
+
+.btn-delete-img:hover {
+    background: #f5c6cb;
+}
+
+/* Formulaire */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #198754;
+    box-shadow: 0 0 0 2px rgba(25,135,84,0.2);
+}
+
+textarea.form-control {
+    resize: vertical;
+    font-family: inherit;
+}
+
+/* Actions boutons */
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 28px;
+    margin-bottom: 30px;
+}
+
+.btn-cancel {
+    flex: 1;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 40px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #e9ecef;
+}
+
+.btn-save {
+    flex: 1;
+    background: #198754;
+    border: none;
+    padding: 10px;
+    border-radius: 40px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-save:hover {
+    background: #146c43;
+}
+
+/* Mobile app section */
+.mobile-app-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.mobile-app-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    background: #f8f9fa;
+    padding: 14px 18px;
+    border-radius: 16px;
+}
+
+.mobile-app-content i {
+    font-size: 32px;
+    color: #198754;
+    margin-right: 12px;
+}
+
+.mobile-app-content strong {
+    font-size: 15px;
+}
+
+.mobile-app-content p {
+    font-size: 12px;
+    color: #666;
+    margin: 4px 0 0;
+}
+
+.btn-download {
+    background: #198754;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 40px;
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-download:hover {
+    background: #146c43;
+}
+
+/* Responsive modale */
+@media (max-width: 640px) {
+    .modal-content {
+        margin: 15px;
+        width: auto;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .mobile-app-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .photo-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+}
