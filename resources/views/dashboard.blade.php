@@ -20,7 +20,7 @@
     {{-- Cartes stats principales (4 blocs) --}}
     <div class="stats-grid">
         {{-- Carte 1 : Animaux --}}
-        <div class="stat-card">
+        <div class="stat-card animals-card1">
             <div class="stat-icon">
                 <i class="fas fa-paw"></i>
             </div>
@@ -30,7 +30,7 @@
         </div>
 
         {{-- Carte 2 : Tâches du mois --}}
-        <div class="stat-card">
+        <div class="stat-card animals-card2">
             <div class="stat-icon">
                 <i class="fas fa-check-circle"></i>
             </div>

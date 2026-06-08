@@ -152,7 +152,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
   margin-top: 18px;
 }
 
-.btn {
+.profile-actions .btn {
   padding: 8px 20px;
   border-radius: 5px;
   border: 1px solid var(--border);
@@ -165,13 +165,13 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
   background: white;
 }
 
-.btn-suivre {
+.profile-actions .btn-suivre {
   background: var(--green);
   color: white;
   border-color: var(--green);
 }
 
-.btn-outline:hover {
+.profile-actions .btn-outline:hover {
   background: #f5f5f5;
 }
 

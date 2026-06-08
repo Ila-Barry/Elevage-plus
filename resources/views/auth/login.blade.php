@@ -17,19 +17,20 @@
 </head>
 <body>
 <div class="login-container">
+        <!-- Logo et en-tête -->
+        <div class="login-header">
+            <div class="logo">
+                <i class="fas fa-tractor"></i>
+                <span>ÉLEVAGE+</span>
+            </div>
+            <p class="login-subtitle">Pas de inscrit ? 
+                <a href="#" class="signup-link">S'inscrire</a>,
+            </p>
+        </div>
+
+        <!-- <img src="{{asset('images/img-elevage.jpeg')}}" > -->
 
         <div class="login-card">
-            <!-- Logo et en-tête -->
-            <div class="login-header">
-                <div class="logo">
-                    <i class="fas fa-tractor"></i>
-                    <span>ÉLEVAGE+</span>
-                </div>
-                <p class="login-subtitle">Pas de inscrit ? 
-                    <a href="#" class="signup-link">S'inscrire</a>,
-                </p>
-            </div>
-
             <!-- Titre du formulaire -->
             <div class="form-title">
                 <i class="fas fa-sign-in-alt"></i>
