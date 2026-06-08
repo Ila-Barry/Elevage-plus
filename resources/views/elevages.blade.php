@@ -24,68 +24,78 @@
         ['id' => 3, 'titre' => 'ÉLEVAGE BOVIN - THIÈS', 'type' => 'bovins', 'local' => 'Thiès, Sénégal', 'surface' => '5 hectares', 'animaux' => '45 bovins', 'date' => '15/03/2025']
         ] as $elevage)
 
-        <div class="elevage-card bg-white p-3 rounded shadow-sm border">
-            <div class="row align-items-center">
+       <div class="elevage-card bg-white rounded shadow-sm border mb-3">
+    <div class="row no-gutters align-items-stretch">
 
-                <!-- Image de l'élevage -->
-                <div class="col-12 col-md-3 col-lg-2 text-center text-md-left mb-3 mb-md-0">
-                    <div class="img-container">
-                        <img src="{{ asset('images/img-elevage.jpeg') }}" alt="Ferme Intégrée" class="img-fluid rounded border">
-                        <div class="img-overlay-text text-uppercase text-center">Ferme Intégrée<br><small>"Union" - Dakar / Sénégal</small></div>
-                    </div>
+        <div class="col-12 col-md-4 col-lg-3 col-image-container">
+            <div class="img-container-full">
+                <img src="{{ asset('images/img-elevage.jpeg') }}" alt="Ferme Intégrée">
+                <div class="img-overlay-text text-uppercase text-center">
+                    Ferme Intégrée<br>
+                    <small>"Union" - Dakar / Sénégal</small>
                 </div>
-
-                <!-- Informations textuelles de l'élevage -->
-                <div class="col-12 col-sm-8 col-md-6 col-lg-7">
-                    <h2 class="elevage-card-title text-uppercase mb-3">{{ $elevage['titre'] }}</h2>
-
-                    <div class="elevage-info-grid">
-                        <div class="info-item d-flex align-items-center mb-2">
-                            <i class="fas fa-map-marker-alt text-danger mr-3 info-icon"></i>
-                            <span><strong>Localisation :</strong> {{ $elevage['local'] }}</span>
-                        </div>
-                        <div class="info-item d-flex align-items-center mb-2">
-                            <i class="fas fa-layer-group text-secondary mr-3 info-icon"></i>
-                            <span><strong>Superficie :</strong> {{ $elevage['surface'] }}</span>
-                        </div>
-                        <div class="info-item d-flex align-items-center mb-2">
-                            <i class="fas fa-cow text-secondary mr-3 info-icon"></i>
-                            <span><strong>Animaux :</strong> {{ $elevage['animaux'] }}</span>
-                        </div>
-                        <div class="info-item d-flex align-items-center mb-0">
-                            <i class="far fa-calendar-alt text-danger mr-3 info-icon"></i>
-                            <span><strong>Créé le :</strong> {{ $elevage['date'] }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Colonne des Boutons d'action -->
-                <div class="col-12 col-sm-4 col-md-3 col-lg-3 text-center text-sm-right mt-3 mt-sm-0">
-                    <div class="action-buttons-group d-flex flex-column align-items-stretch align-items-sm-end gap-2">
-
-                        <!-- Bouton Voir -->
-                        <button type="button" class="btn d-flex align-items-center justify-content-center gap-2"
-                            style="background-color: rgba(25, 135, 84, 0.15); color: #198754; border: 1px solid rgba(25, 135, 84, 0.2); font-weight: 500; padding: 4px 15px; border-radius: 6px; min-width: 95px;"
-                            data-toggle="modal" data-target="#voirElevageModal">
-                            <i class="far fa-eye"></i>
-                            <span>voir</span>
-                        </button>
-
-                        <!-- Bouton Modifier -->
-                        <button type="button" class="btn btn-action btn-edit d-flex align-items-center justify-content-center" data-toggle="modal" data-target="#createElevageModal">
-                            <i class="fas fa-pencil-alt mr-2"></i> modifier
-                        </button>
-
-                        <!-- Bouton Supprimer -->
-                        <button type="button" class="btn btn-action btn-delete d-flex align-items-center justify-content-center">
-                            <i class="far fa-trash-alt mr-2"></i> Supprimer
-                        </button>
-
-                    </div>
-                </div>
-
             </div>
         </div>
+
+        <div class="col-12 col-md-5 col-lg-6 p-4 d-flex flex-column justify-content-center">
+            <h2 class="elevage-card-title text-uppercase mb-3">{{ $elevage['titre'] }}</h2>
+
+            <div class="elevage-info-grid d-flex flex-column gap-2">
+                <div class="info-item-row pb-1">
+                    <div class="info-label-side">
+                        <i class="fas fa-map-marker-alt text-danger info-icon"></i>
+                        <strong>Localisation :</strong>
+                    </div>
+                    <span class="text-muted">{{ $elevage['local'] }}</span>
+                </div>
+
+                <div class="info-item-row pb-1">
+                    <div class="info-label-side">
+                        <i class="fas fa-layer-group text-secondary info-icon"></i>
+                        <strong>Superficie :</strong>
+                    </div>
+                    <span class="text-muted">{{ $elevage['surface'] }}</span>
+                </div>
+
+                <div class="info-item-row pb-1">
+                    <div class="info-label-side">
+                        <i class="fas fa-cow text-secondary info-icon"></i>
+                        <strong>Animaux :</strong>
+                    </div>
+                    <span class="text-muted">{{ $elevage['animaux'] }}</span>
+                </div>
+
+                <div class="info-item-row pb-1">
+                    <div class="info-label-side">
+                        <i class="far fa-calendar-alt text-danger info-icon"></i>
+                        <strong>Créé le :</strong>
+                    </div>
+                    <span class="text-muted">{{ $elevage['date'] }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-3 col-lg-3 p-4 border-top border-md-top-0 d-flex align-items-center justify-content-center">
+            <div class="action-buttons-group d-flex flex-row flex-md-column align-items-stretch justify-content-center gap-2 w-100">
+                <button type="button" class="btn btn-action btn-view d-flex align-items-center justify-content-center gap-2" data-toggle="modal" data-target="#voirElevageModal">
+                    <i class="far fa-eye"></i>
+                    <span>voir</span>
+                </button>
+
+                <button type="button" class="btn btn-action btn-edit d-flex align-items-center justify-content-center gap-2" data-toggle="modal" data-target="#voirElevageModal">
+                    <i class="fas fa-pencil-alt"></i>
+                    <span>modifier</span>
+                </button>
+
+                <button type="button" class="btn btn-action btn-delete d-flex align-items-center justify-content-center gap-2">
+                    <i class="far fa-trash-alt"></i>
+                    <span>Supprimer</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
 
         @empty
         <div class="alert alert-info text-center">Aucun élevage enregistré pour le moment.</div>
