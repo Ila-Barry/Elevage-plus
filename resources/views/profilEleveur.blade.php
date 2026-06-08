@@ -2,7 +2,7 @@
 
 @section('title', 'Profil - Élevage+')
 
-@section('content')
+@section('content') 
 
     <!-- style_css -->
     <link rel="stylesheet" href="{{ asset('css/eleveurCSS/profilEleveur.css') }}">
