@@ -406,7 +406,6 @@
     </div>
 </div>
 
->>>>>>> Aicha
 <!-- MODALE AJOUTER UN ANIMAL -->
 <div id="addAnimalModal" class="modal">
     <div class="modal-content">
