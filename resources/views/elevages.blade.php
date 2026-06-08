@@ -24,6 +24,7 @@
         ] as $elevage)
 
     <div class="elevage-card bg-white rounded shadow-sm border mb-3">
+       <div class="elevage-card bg-white rounded shadow-sm border mb-3">
     <div class="row no-gutters align-items-stretch">
 
         <div class="col-12 col-md-4 col-lg-3 col-image-container">
