@@ -9,13 +9,25 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class ProduitResource extends JsonResource
 {
     /**
+     * Indique si les mouvements doivent être inclus
+     */
+    protected bool $includeMouvements = false;
+
+    /**
+     * Setter pour inclure les mouvements
+     */
+    public function setIncludeMouvements(bool $include = true): self
+    {
+        $this->includeMouvements = $include;
+        return $this;
+    }
+
+    /**
      * Transforme le resource en tableau.
-     *
-     * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'nom' => $this->nom,
             'categorie' => $this->categorie,
@@ -41,12 +53,25 @@ class ProduitResource extends JsonResource
             'derniere_commande' => $this->derniere_commande?->format('Y-m-d H:i:s'),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
+            'elevage' => $this->whenLoaded('elevage', function() {
+                return [
+                    'id' => $this->elevage->id,
+                    'nom' => $this->elevage->nom,
+                ];
+            }),
             'statistiques' => [
                 'total_entrees' => (float) $this->entrees()->sum('quantite'),
                 'total_sorties' => (float) $this->sorties()->sum('quantite'),
                 'dernier_mouvement' => $this->mouvements()->latest()->first()?->date_mouvement?->format('Y-m-d H:i:s'),
             ],
         ];
+
+        // Inclure les mouvements si demandé
+        if ($this->includeMouvements && $this->relationLoaded('mouvements')) {
+            $data['mouvements'] = MouvementStockResource::collection($this->mouvements);
+        }
+
+        return $data;
     }
 
     /**

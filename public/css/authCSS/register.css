@@ -1,5 +1,278 @@
-h1 {
-    color: #007bff;
-    font-size: 2.5rem;
-    font-weight: 900;
+/* public/css/authCSS/register.css */
+/* Avec background image + superposition */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    /* Image d'arrière-plan (élevage / campagne) */
+    background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Voile sombre pour améliorer la lisibilité du texte */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.55);
+    z-index: 0;
+}
+
+.container {
+    position: relative;
+    z-index: 2;
+}
+
+/* Carte principale - fond blanc avec un subtil effet glassmorphisme */
+.card {
+    background: rgba(255, 255, 255, 0.97);
+    border-radius: 32px !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(0px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.card:hover {
+    box-shadow: 0 30px 50px -14px rgba(0, 0, 0, 0.35);
+    transform: translateY(-2px);
+}
+
+/* Logo typographique + icône animal */
+.logo-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-text {
+    font-size: 1.9rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #1f6e43, #2b8c4a);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+.logo-wrapper i {
+    font-size: 2rem;
+    color: #2b8c4a;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+}
+
+/* Lien "Déja inscrit ? Se connecter" */
+.small-link {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #2c6e2f;
+    transition: all 0.2s;
+    border-bottom: 1px dashed transparent;
+}
+
+.small-link:hover {
+    color: #1f5430;
+    border-bottom-color: #2c6e2f;
+}
+
+/* Titre central avec soulignement élégant */
+.underline-title {
+    width: 70px;
+    height: 3px;
+    background: linear-gradient(90deg, #3b9b5e, #c2e0b0);
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+h3 {
+    font-weight: 700;
+    color: #1e2a2e;
+    letter-spacing: -0.3px;
+}
+
+/* Labels */
+.form-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2c3e2f;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Groupes d'input avec icônes */
+.custom-input-group .input-group-text {
+    background-color: #ffffff;
+    border: 1px solid #d4dee5;
+    border-right: none;
+    border-radius: 16px 0 0 16px;
+    padding: 0.6rem 1rem;
+    color: #588b5e;
+    transition: all 0.2s;
+}
+
+.custom-input-group .form-control {
+    border: 1px solid #d4dee5;
+    border-left: none;
+    border-radius: 0 16px 16px 0;
+    padding: 0.6rem 0.75rem 0.6rem 0;
+    font-size: 0.95rem;
+    background-color: white;
+    box-shadow: none;
+}
+
+.custom-input-group .form-control:focus {
+    border-color: #9bc48f;
+    box-shadow: 0 0 0 3px rgba(43, 140, 74, 0.15);
+    outline: none;
+}
+
+.custom-input-group .form-control:focus + .input-group-prepend .input-group-text {
+    border-color: #9bc48f;
+}
+
+.custom-input-group:hover .input-group-text,
+.custom-input-group:hover .form-control {
+    border-color: #bdd8ae;
+}
+
+/* Checkbox */
+.form-check-input {
+    cursor: pointer;
+    border-radius: 5px;
+    border: 1.5px solid #cbd5e0;
+    transition: 0.1s linear;
+}
+
+.form-check-input:checked {
+    background-color: #2b8c4a;
+    border-color: #2b8c4a;
+    box-shadow: 0 0 0 1px rgba(43, 140, 74, 0.2);
+}
+
+.form-check-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #2d3e2b;
+    margin-left: 4px;
+}
+
+/* Bouton S'INSCRIRE */
+.btn-submit {
+    background: linear-gradient(100deg, #24653a, #2e7d48);
+    border: none;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    transition: all 0.25s ease;
+    box-shadow: 0 5px 12px rgba(34, 110, 55, 0.25);
+}
+
+.btn-submit:hover {
+    background: linear-gradient(100deg, #1f5834, #266a3f);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px -10px rgba(39, 103, 49, 0.4);
+}
+
+.btn-submit:active {
+    transform: translateY(1px);
+}
+
+/* Lien "Se connecter" en bas */
+.link-login {
+    color: #24653a;
+    font-weight: 600;
+    border-bottom: 1px solid transparent;
+    transition: 0.2s;
+}
+
+.link-login:hover {
+    color: #104d29;
+    border-bottom-color: #2b8c4a;
+}
+
+/* Message erreur mot de passe */
+.password-match-error {
+    font-size: 0.75rem;
+    margin-top: 6px;
+    display: block;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+}
+
+.d-none {
+    display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1.8rem !important;
+    }
+
+    .logo-text {
+        font-size: 1.6rem;
+    }
+
+    .btn-submit {
+        font-size: 1rem;
+        padding: 0.8rem;
+    }
+
+    .custom-input-group .input-group-text {
+        padding: 0.5rem 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo-wrapper {
+        gap: 6px;
+    }
+
+    .logo-text {
+        font-size: 1.4rem;
+    }
+
+    .small-link {
+        font-size: 0.75rem;
+    }
+
+    h3 {
+        font-size: 1.6rem;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+    }
+}
+
+.form-group {
+    margin-bottom: 1.4rem;
+}
+
+::placeholder {
+    color: #9aaeb6;
+    font-weight: 400;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.custom-input-group:focus-within .input-group-text i {
+    color: #2b8c4a;
+    transition: color 0.15s;
 }
