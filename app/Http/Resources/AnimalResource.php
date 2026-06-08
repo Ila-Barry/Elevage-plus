@@ -1,67 +1,43 @@
 <?php
-// app/Http/Resources/AnimalResource.php
+// app/Http/Resources/AnimalResource.php (version simplifiée)
 
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * Resource AnimalResource
- * 
- * Transforme les données de l'animal pour l'API
- */
 class AnimalResource extends JsonResource
 {
-    /**
-     * Transforme la ressource en tableau
-     */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
+            'elevage_id' => $this->elevage_id,
             'nom' => $this->nom,
-            'race' => $this->race,
             'espece' => $this->espece,
             'espece_label' => $this->espece_label,
-            'poids' => [
-                'valeur' => $this->poids,
-                'unite' => 'kg',
-                'texte' => $this->poids . ' kg',
-            ],
-            'statut_sanitaire' => [
-                'code' => $this->statut_sanitaire,
-                'label' => $this->statut_sanitaire_label,
-                'color' => $this->statut_sanitaire_color,
-            ],
-            'age' => $this->age,
+            'race' => $this->race,
             'date_naissance' => $this->date_naissance?->format('Y-m-d'),
-            'date_naissance_formatee' => $this->date_naissance?->format('d/m/Y'),
-            'description' => $this->description,
-            'image_url' => $this->image_url,
-            'image_thumbnail' => $this->getThumbnailUrl(),
-            
-            // Relations
-            'elevage' => new ElevageResource($this->whenLoaded('elevage')),
-            
-            // Métadonnées
-            'created_at' => $this->created_at?->format('d/m/Y H:i'),
-            'updated_at' => $this->updated_at?->format('d/m/Y H:i'),
-            'is_owner' => $this->when($request->user(), function() use ($request) {
-                return $this->elevage && $this->elevage->user_id === $request->user()?->id;
-            }),
+            'age' => $this->age,
+            'poids' => (float) $this->poids,
+            'statut_sanitaire' => $this->statut_sanitaire,
+            'statut_sanitaire_label' => $this->statut_sanitaire_label,
+            'statut' => $this->statut,
+            'statut_label' => $this->statut_label,
+            'sexe' => $this->sexe,
+            'sexe_label' => $this->sexe_label,
+            'couleur' => $this->couleur,
+            'signes_particuliers' => $this->signes_particuliers,
+            'numero_identification' => $this->numero_identification,
+            'img_url' => $this->img_url,
+            'date_deces' => $this->date_deces?->format('Y-m-d'),
+            'motif_deces' => $this->motif_deces,
+            'elevage' => [
+                'id' => $this->elevage->id,
+                'nom' => $this->elevage->nom,
+            ],
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];
-    }
-
-    /**
-     * Obtient l'URL de la miniature
-     */
-    private function getThumbnailUrl(): ?string
-    {
-        if (!$this->img_url) {
-            return $this->resource->image_url;
-        }
-        
-        return asset('storage/' . $this->img_url);
     }
 }

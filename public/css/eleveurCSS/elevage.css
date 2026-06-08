@@ -15,9 +15,8 @@
 }
 
 /* Flex gap fallback pour les anciennes versions de navigateurs */
-.gap-2 { gap: 0.5rem; }
+.gap-2 { gap: 0.5rem; }  
 .gap-3 { gap: 1rem; }
-
 
 /* Wrapper principal */
 .dashboard-wrapper {
@@ -337,4 +336,78 @@
     font-size: 0.9rem;
     color: #1e293b;
 }
+ 
+
+/* Force la ligne de la carte à supprimer les marges internes pour coller l'image au bord */
+.elevage-card .row.no-gutters {
+    margin-right: 0;
+    margin-left: 0;
+}
+.elevage-card .row.no-gutters > [class*='col-'] {
+    padding-right: 0;
+    padding-left: 0;
+}
+
+/* Conteneur d'image qui remplit 100% de la hauteur et de la largeur disponible */
+.col-image-container {
+    position: relative;
+    min-height: 200px; /* Évite que l'image s'écrase */
+}
+
+.img-container-full {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+}
+
+/* L'image prend tout l'espace disponible de son conteneur sans se déformer */
+.img-container-full img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Repositionnement du texte blanc sur l'image */
+.img-overlay-text {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #000000;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 5px 10px;
+    border-radius: 6px;
+    width: 85%;
+    border: 1px solid #333;
+    z-index: 2;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Alignement des infos */
+.info-item-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Rendu Responsive Mobile (< 768px) */
+@media (max-width: 767.98px) {
+    .col-image-container {
+        height: 220px; /* Fixe une belle hauteur d'image sur mobile */
+    }
+    .img-container-full img {
+        position: relative; /* Repasse en position fluide pour le mobile */
+    }
+    .btn-action span {
+        display: none !important; /* Ne laisse que les icônes sur mobile */
+    }
+}
+
+
 

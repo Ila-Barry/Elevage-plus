@@ -252,8 +252,15 @@
                 <i class="fas fa-angle-left"></i>
             </button>
             <button class="active">1</button>
+
                             <button>2</button>
                             <button>3</button>
+                            <button>2</button>
+                            <button>3</button>
+                            <button>4</button>
+                            <button>5</button>
+                            <button>6</button>
+                            <button>...</button>
 
             <button>
                 <i class="fas fa-angle-right"></i>
@@ -404,7 +411,7 @@
 <!-- MODALE AJOUTER UN ANIMAL -->
 <div id="addAnimalModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header mt-3">
             <h2>
                 <i class="fas fa-paw" style="color: #198754; margin-right: 10px;"></i>
                 AJOUTER UN ANIMAL
@@ -493,7 +500,7 @@
 <!-- MODALE MODIFIER L'ANIMAL -->
 <div id="editAnimalModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header mt-3">
             <h2>
                 <i class="fas fa-edit" style="color: #198754; margin-right: 10px;"></i>
                 MODIFIER L'ANIMAL

@@ -5,389 +5,463 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 /**
  * Modèle Animal
  * 
- * Représente un animal appartenant à un élevage
+ * Représente un animal dans un élevage
  * 
  * @property int $id
  * @property int $elevage_id
  * @property string $nom
- * @property string $race
  * @property string $espece
+ * @property string|null $race
+ * @property \Carbon\Carbon $date_naissance
  * @property float $poids
  * @property string $statut_sanitaire
  * @property string|null $img_url
- * @property string|null $description
- * @property string $date_naissance
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
- * 
- * @property-read Elevage $elevage
- * @property-read \Illuminate\Database\Eloquent\Collection|AnimalHistorique[] $historiques
+ * @property string|null $numero_identification
+ * @property string $sexe
+ * @property string|null $couleur
+ * @property string|null $signes_particuliers
+ * @property string $statut
+ * @property \Carbon\Carbon|null $date_deces
+ * @property string|null $motif_deces
+ * @property int|null $pere_id
+ * @property int|null $mere_id
  */
 class Animal extends Model
 {
     use HasFactory;
 
     /**
-     * Statuts sanitaires autorisés
-     */
-    public const STATUTS_SANITAIRES = [
-        'sain' => 'Sain',
-        'sous_traitement' => 'Sous traitement',
-        'en_quarantaine' => 'En quarantaine',
-        'malade' => 'Malade',
-    ];
-
-    /**
-     * Espèces autorisées
+     * Espèces disponibles
      */
     public const ESPECES = [
         'bovin' => 'Bovin',
         'ovin' => 'Ovin',
         'caprin' => 'Caprin',
         'volaille' => 'Volaille',
+        'porcin' => 'Porcin',
+        'equin' => 'Équin',
         'autre' => 'Autre',
     ];
 
     /**
-     * Attributs assignables en masse
+     * Statuts sanitaires disponibles
+     */
+    public const STATUTS_SANITAIRES = [
+        'bon' => 'Bon',
+        'a_surveiller' => 'À surveiller',
+        'malade' => 'Malade',
+        'critique' => 'Critique',
+    ];
+
+    /**
+     * Statuts de l'animal disponibles
+     */
+    public const STATUTS = [
+        'actif' => 'Actif',
+        'vendu' => 'Vendu',
+        'decede' => 'Décédé',
+        'transfere' => 'Transféré',
+    ];
+
+    /**
+     * Sexes disponibles
+     */
+    public const SEXES = [
+        'male' => 'Mâle',
+        'femelle' => 'Femelle',
+    ];
+
+    /**
+     * La table associée au modèle.
+     */
+    protected $table = 'animaux';
+
+    /**
+     * Les attributs assignables en masse.
      */
     protected $fillable = [
         'elevage_id',
         'nom',
-        'race',
         'espece',
+        'race',
+        'date_naissance',
         'poids',
         'statut_sanitaire',
         'img_url',
-        'description',
-        'date_naissance',
+        'numero_identification',
+        'sexe',
+        'couleur',
+        'signes_particuliers',
+        'statut',
+        'date_deces',
+        'motif_deces',
+        'pere_id',
+        'mere_id',
     ];
 
     /**
-     * Attributs à cacher pour la sérialisation
-     */
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
-
-    /**
-     * Attributs à convertir
+     * Les attributs qui doivent être castés.
      */
     protected $casts = [
-        'poids' => 'decimal:2',
         'date_naissance' => 'date',
+        'date_deces' => 'date',
+        'poids' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
 
     /**
-     * Relation avec l'élevage
-     * Un animal appartient à un élevage
-     * 
-     * @return BelongsTo
+     * Les valeurs par défaut des attributs.
      */
-    public function elevage(): BelongsTo
+    protected $attributes = [
+        'statut_sanitaire' => 'bon',
+        'statut' => 'actif',
+        'sexe' => 'male',
+    ];
+
+    // ========== RELATIONS ==========
+
+    /**
+     * Relation avec l'élevage
+     */
+    public function elevage()
     {
         return $this->belongsTo(Elevage::class);
     }
 
     /**
-     * Relation avec l'historique des modifications
-     * 
-     * @return HasMany
+     * Relation avec le père
      */
-    public function historiques(): HasMany
+    public function pere()
     {
-        return $this->hasMany(AnimalHistorique::class);
+        return $this->belongsTo(Animal::class, 'pere_id');
+    }
+
+    /**
+     * Relation avec la mère
+     */
+    public function mere()
+    {
+        return $this->belongsTo(Animal::class, 'mere_id');
+    }
+
+    /**
+     * Relation avec les enfants
+     */
+    public function enfants()
+    {
+        return $this->hasMany(Animal::class, 'pere_id')
+            ->orWhere('mere_id', $this->id);
+    }
+
+    /**
+     * Relation avec les tâches
+     */
+    public function taches()
+    {
+        return $this->hasMany(Tache::class);
+    }
+
+    /**
+     * Relation avec l'historique des modifications
+     */
+    public function historiques()
+    {
+        return $this->hasMany(AnimalHistory::class);
+    }
+
+    // ========== ACCESSORS ==========
+
+    /**
+     * Accesseur pour l'URL complète de l'image
+     */
+    protected function imgUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value) {
+                if (!$value) {
+                    return $this->getDefaultImage();
+                }
+                if (filter_var($value, FILTER_VALIDATE_URL)) {
+                    return $value;
+                }
+                return asset('storage/' . $value);
+            }
+        );
     }
 
     /**
      * Accesseur pour l'âge calculé automatiquement
-     * Calcule l'âge en années, mois ou jours selon la date de naissance
-     * 
-     * @return Attribute
      */
     protected function age(): Attribute
     {
         return Attribute::make(
-            get: function ($value, $attributes) {
-                if (empty($attributes['date_naissance'])) {
+            get: function () {
+                if (!$this->date_naissance) {
                     return null;
                 }
                 
-                $birthDate = Carbon::parse($attributes['date_naissance']);
-                $now = Carbon::now();
+                $age = $this->date_naissance->diff(Carbon::now());
                 
-                $years = $birthDate->diffInYears($now);
-                
-                if ($years > 0) {
-                    return [
-                        'valeur' => $years,
-                        'unite' => $years > 1 ? 'ans' : 'an',
-                        'texte' => $years . ' ' . ($years > 1 ? 'ans' : 'an'),
-                        'en_mois' => $birthDate->diffInMonths($now),
-                        'en_jours' => $birthDate->diffInDays($now),
-                    ];
-                }
-                
-                $months = $birthDate->diffInMonths($now);
-                if ($months > 0) {
-                    return [
-                        'valeur' => $months,
-                        'unite' => 'mois',
-                        'texte' => $months . ' mois',
-                        'en_mois' => $months,
-                        'en_jours' => $birthDate->diffInDays($now),
-                    ];
-                }
-                
-                $days = $birthDate->diffInDays($now);
                 return [
-                    'valeur' => $days,
-                    'unite' => 'jours',
-                    'texte' => $days . ' ' . ($days > 1 ? 'jours' : 'jour'),
-                    'en_mois' => 0,
-                    'en_jours' => $days,
+                    'annees' => $age->y,
+                    'mois' => $age->m,
+                    'jours' => $age->d,
+                    'total_mois' => $this->date_naissance->diffInMonths(Carbon::now()),
+                    'total_jours' => $this->date_naissance->diffInDays(Carbon::now()),
+                    'formatted' => $this->formatAge($age),
                 ];
             }
         );
     }
 
     /**
-     * Accesseur pour l'âge en années (simple)
-     * 
-     * @return int|null
+     * Accesseur pour le libellé de l'espèce
      */
-    public function getAgeEnAnneesAttribute(): ?int
-    {
-        if (!$this->date_naissance) {
-            return null;
-        }
-        return $this->date_naissance->diffInYears(now());
-    }
-
-    /**
-     * Accesseur pour l'âge en mois
-     * 
-     * @return int|null
-     */
-    public function getAgeEnMoisAttribute(): ?int
-    {
-        if (!$this->date_naissance) {
-            return null;
-        }
-        return $this->date_naissance->diffInMonths(now());
-    }
-
-    /**
-     * Accesseur pour l'URL complète de l'image
-     * 
-     * @return Attribute
-     */
-    protected function imageUrl(): Attribute
+    protected function especeLabel(): Attribute
     {
         return Attribute::make(
-            get: function ($value, $attributes) {
-                if (empty($attributes['img_url'])) {
-                    return $this->getDefaultImageUrl();
-                }
-                if (str_starts_with($attributes['img_url'], 'http')) {
-                    return $attributes['img_url'];
-                }
-                return asset('storage/' . $attributes['img_url']);
-            }
+            get: fn() => self::ESPECES[$this->espece] ?? $this->espece
         );
     }
 
     /**
-     * Obtient l'URL de l'image par défaut selon l'espèce
-     * 
-     * @return string
-     */
-    private function getDefaultImageUrl(): string
-    {
-        $defaultImages = [
-            'bovin' => '/images/defaults/cow-default.png',
-            'ovin' => '/images/defaults/sheep-default.png',
-            'caprin' => '/images/defaults/goat-default.png',
-            'volaille' => '/images/defaults/chicken-default.png',
-            'autre' => '/images/defaults/animal-default.png',
-        ];
-        
-        return asset($defaultImages[$this->espece] ?? $defaultImages['autre']);
-    }
-
-    /**
      * Accesseur pour le libellé du statut sanitaire
-     * 
-     * @return string
      */
-    public function getStatutSanitaireLabelAttribute(): string
+    protected function statutSanitaireLabel(): Attribute
     {
-        return self::STATUTS_SANITAIRES[$this->statut_sanitaire] ?? $this->statut_sanitaire;
+        return Attribute::make(
+            get: fn() => self::STATUTS_SANITAIRES[$this->statut_sanitaire] ?? $this->statut_sanitaire
+        );
     }
 
     /**
-     * Accesseur pour la classe CSS du statut sanitaire
-     * 
-     * @return string
+     * Accesseur pour le libellé du statut
      */
-    public function getStatutSanitaireColorAttribute(): string
+    protected function statutLabel(): Attribute
     {
-        $colors = [
-            'sain' => 'success',
-            'sous_traitement' => 'warning',
-            'en_quarantaine' => 'info',
-            'malade' => 'danger',
-        ];
-        
-        return $colors[$this->statut_sanitaire] ?? 'secondary';
+        return Attribute::make(
+            get: fn() => self::STATUTS[$this->statut] ?? $this->statut
+        );
     }
 
     /**
-     * Accesseur pour le libellé de l'espèce
-     * 
-     * @return string
+     * Accesseur pour le libellé du sexe
      */
-    public function getEspeceLabelAttribute(): string
+    protected function sexeLabel(): Attribute
     {
-        return self::ESPECES[$this->espece] ?? $this->espece;
+        return Attribute::make(
+            get: fn() => self::SEXES[$this->sexe] ?? $this->sexe
+        );
     }
 
     /**
-     * Vérifie si l'animal est en bonne santé
-     * 
-     * @return bool
+     * Accesseur pour la couleur du statut sanitaire (badge)
      */
-    public function isHealthy(): bool
+    protected function statutSanitaireCouleur(): Attribute
     {
-        return $this->statut_sanitaire === 'sain';
+        return Attribute::make(
+            get: function () {
+                return match($this->statut_sanitaire) {
+                    'bon' => 'success',
+                    'a_surveiller' => 'warning',
+                    'malade' => 'danger',
+                    'critique' => 'dark',
+                    default => 'secondary',
+                };
+            }
+        );
+    }
+
+    // ========== SCOPES ==========
+
+    /**
+     * Scope pour les animaux actifs
+     */
+    public function scopeActif($query)
+    {
+        return $query->where('statut', 'actif');
     }
 
     /**
-     * Vérifie si l'animal est malade
-     * 
-     * @return bool
+     * Scope pour les animaux par espèce
      */
-    public function isSick(): bool
-    {
-        return $this->statut_sanitaire === 'malade';
-    }
-
-    /**
-     * Vérifie si l'animal appartient à un utilisateur donné
-     * 
-     * @param int $userId
-     * @return bool
-     */
-    public function belongsToUser(int $userId): bool
-    {
-        return $this->elevage && $this->elevage->user_id === $userId;
-    }
-
-    /**
-     * Scope pour filtrer par espèce
-     * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $espece
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function scopeOfEspece($query, string $espece)
+    public function scopeByEspece($query, string $espece)
     {
         return $query->where('espece', $espece);
     }
 
     /**
-     * Scope pour filtrer par statut sanitaire
-     * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $statut
-     * @return \Illuminate\Database\Eloquent\Builder
+     * Scope pour les animaux par statut sanitaire
      */
-    public function scopeWithStatut($query, string $statut)
+    public function scopeByStatutSanitaire($query, string $statut)
     {
         return $query->where('statut_sanitaire', $statut);
     }
 
     /**
-     * Scope pour filtrer par âge (en années)
-     * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param int $minAge
-     * @param int|null $maxAge
-     * @return \Illuminate\Database\Eloquent\Builder
+     * Scope pour les animaux par âge (mois)
      */
-    public function scopeAgeBetween($query, int $minAge, ?int $maxAge = null)
+    public function scopeByAge($query, int $moisMin, int $moisMax = null)
     {
-        $dateMin = now()->subYears($maxAge ?? 100);
-        $dateMax = now()->subYears($minAge);
+        $dateMin = Carbon::now()->subMonths($moisMax ?? $moisMin);
+        $dateMax = Carbon::now()->subMonths($moisMin);
         
-        $query->whereBetween('date_naissance', [$dateMin, $dateMax]);
+        if ($moisMax) {
+            return $query->whereBetween('date_naissance', [$dateMin, $dateMax]);
+        }
+        
+        return $query->where('date_naissance', '<=', $dateMin);
     }
 
     /**
-     * Scope pour les animaux jeunes (moins d'1 an)
-     * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * Scope pour les animaux en bonne santé
      */
-    public function scopeYoung($query)
+    public function scopeEnBonneSante($query)
     {
-        return $query->where('date_naissance', '>=', now()->subYear());
+        return $query->where('statut_sanitaire', 'bon');
     }
 
     /**
-     * Scope pour les animaux adultes (plus d'1 an)
-     * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * Scope pour les animaux malades
      */
-    public function scopeAdult($query)
+    public function scopeMalades($query)
     {
-        return $query->where('date_naissance', '<', now()->subYear());
+        return $query->whereIn('statut_sanitaire', ['malade', 'critique']);
     }
 
     /**
-     * Scope pour recherche par nom
-     * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $search
-     * @return \Illuminate\Database\Eloquent\Builder
+     * Scope pour la recherche textuelle
      */
     public function scopeSearch($query, string $search)
     {
-        return $query->where('nom', 'LIKE', '%' . $search . '%')
-                     ->orWhere('race', 'LIKE', '%' . $search . '%');
+        return $query->where(function ($q) use ($search) {
+            $q->where('nom', 'LIKE', "%{$search}%")
+              ->orWhere('race', 'LIKE', "%{$search}%")
+              ->orWhere('numero_identification', 'LIKE', "%{$search}%")
+              ->orWhere('couleur', 'LIKE', "%{$search}%");
+        });
+    }
+
+    // ========== MÉTHODES UTILITAIRES ==========
+
+    /**
+     * Formatage de l'âge pour affichage
+     */
+    protected function formatAge($age): string
+    {
+        $parts = [];
+        
+        if ($age->y > 0) {
+            $parts[] = $age->y . ' ' . ($age->y > 1 ? 'ans' : 'an');
+        }
+        if ($age->m > 0) {
+            $parts[] = $age->m . ' mois';
+        }
+        if ($age->y == 0 && $age->m == 0 && $age->d > 0) {
+            $parts[] = $age->d . ' ' . ($age->d > 1 ? 'jours' : 'jour');
+        }
+        
+        return !empty($parts) ? implode(' ', $parts) : 'Nouveau-né';
     }
 
     /**
-     * Valide si l'espèce est autorisée
-     * 
-     * @param string $espece
-     * @return bool
+     * Vérifie si l'animal est en vie
      */
-    public static function isValidEspece(string $espece): bool
+    public function isAlive(): bool
     {
-        return array_key_exists($espece, self::ESPECES);
+        return $this->statut === 'actif';
     }
 
     /**
-     * Valide si le statut sanitaire est autorisé
-     * 
-     * @param string $statut
-     * @return bool
+     * Marque l'animal comme décédé
      */
-    public static function isValidStatut(string $statut): bool
+    public function markAsDeceased(string $motif, ?string $date = null): void
     {
-        return array_key_exists($statut, self::STATUTS_SANITAIRES);
+        $this->update([
+            'statut' => 'decede',
+            'motif_deces' => $motif,
+            'date_deces' => $date ?? now(),
+        ]);
+    }
+
+    /**
+     * Marque l'animal comme vendu
+     */
+    public function markAsSold(): void
+    {
+        $this->update(['statut' => 'vendu']);
+    }
+
+    /**
+     * Met à jour le statut sanitaire
+     */
+    public function updateHealthStatus(string $statut, ?string $notes = null): void
+    {
+        $this->update([
+            'statut_sanitaire' => $statut,
+            'signes_particuliers' => $notes ?? $this->signes_particuliers,
+        ]);
+    }
+
+    /**
+     * Calcule le poids moyen par espèce
+     */
+    public static function poidsMoyenParEspece(int $elevageId): array
+    {
+        return self::where('elevage_id', $elevageId)
+            ->where('statut', 'actif')
+            ->select('espece', \DB::raw('AVG(poids) as poids_moyen'))
+            ->groupBy('espece')
+            ->get()
+            ->map(fn($item) => [
+                'espece' => $item->espece,
+                'espece_label' => self::ESPECES[$item->espece] ?? $item->espece,
+                'poids_moyen' => round($item->poids_moyen, 2),
+            ])
+            ->toArray();
+    }
+
+    /**
+     * Retourne l'image par défaut selon l'espèce
+     */
+    protected function getDefaultImage(): string
+    {
+        $images = [
+            'bovin' => '/images/default-cow.jpg',
+            'ovin' => '/images/default-sheep.jpg',
+            'caprin' => '/images/default-goat.jpg',
+            'volaille' => '/images/default-chicken.jpg',
+            'porcin' => '/images/default-pig.jpg',
+            'equin' => '/images/default-horse.jpg',
+            'autre' => '/images/default-animal.jpg',
+        ];
+        
+        return asset($images[$this->espece] ?? '/images/default-animal.jpg');
+    }
+
+    /**
+     * Calcule le poids moyen par espèce pour plusieurs élevages
+     */
+    public static function poidsMoyenParEspeceMultiple($elevageIds): array
+    {
+        return self::whereIn('elevage_id', $elevageIds)
+            ->where('statut', 'actif')
+            ->select('espece', \DB::raw('AVG(poids) as poids_moyen'))
+            ->groupBy('espece')
+            ->get()
+            ->map(fn($item) => [
+                'espece' => $item->espece,
+                'espece_label' => self::ESPECES[$item->espece] ?? $item->espece,
+                'poids_moyen' => round($item->poids_moyen, 2),
+            ])
+            ->toArray();
     }
 }
