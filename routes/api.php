@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\PublicationController;
 use App\Http\Controllers\Api\ProduitController;
 use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\ElevageController;
+use App\Http\Controllers\Api\AnimalController;
 
 
 
@@ -158,4 +159,21 @@ Route::middleware(['auth:api'])->prefix('elevages')->group(function () {
     
     // Actions spécifiques
     Route::patch('/{id}/statut', [ElevageController::class, 'changeStatut']);
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Animaux
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api'])->prefix('animaux')->group(function () {
+    // CRUD de base
+    Route::get('/', [AnimalController::class, 'index']);
+    Route::post('/', [AnimalController::class, 'store']);
+    Route::get('/statistiques', [AnimalController::class, 'statistiques']);
+    Route::get('/{id}', [AnimalController::class, 'show']);
+    Route::put('/{id}', [AnimalController::class, 'update']);
+    Route::delete('/{id}', [AnimalController::class, 'destroy']);
 });

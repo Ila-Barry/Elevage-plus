@@ -4,391 +4,416 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\AnimalRequest;
-use App\Http\Requests\Api\UpdateAnimalRequest;
+use App\Http\Requests\Api\Animal\CreateAnimalRequest;
+use App\Http\Requests\Api\Animal\UpdateAnimalRequest;
+use App\Http\Requests\Api\Animal\AnimalFilterRequest;
 use App\Http\Resources\AnimalResource;
 use App\Models\Animal;
 use App\Models\Elevage;
-use App\Services\AnimalService;
 use App\Traits\ApiResponseTrait;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 /**
  * Contrôleur AnimalController
  * 
- * Gère toutes les opérations CRUD pour les animaux
- * Conforme au cahier des charges:
- * - CRUD complet
+ * Gère toutes les opérations liées aux animaux :
+ * - CRUD des animaux
  * - Calcul automatique de l'âge
- * - Filtres par espèce, âge et santé
+ * - Filtres par espèce, âge, santé
  * - Pagination
  * - Historique des modifications
- * - Sécurisation des accès
- * 
- * @package App\Http\Controllers\Api
+ * - Upload de photos
  */
 class AnimalController extends Controller
 {
     use ApiResponseTrait;
 
     /**
-     * Service de gestion des animaux
+     * Constructeur avec middleware
      */
-    protected AnimalService $animalService;
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+    }
 
     /**
-     * Constructeur
+     * Liste des animaux
+     *
+     * @param AnimalFilterRequest $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function __construct(AnimalService $animalService)
+    public function index(AnimalFilterRequest $request)
     {
-        $this->animalService = $animalService;
+        $user = $request->user();
         
-        // Middlewares de sécurité
-        $this->middleware('auth:api')->except(['index', 'show']);
-    }
-
-    /**
-     * Liste des animaux avec pagination et filtres
-     * GET /api/animaux
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function index(Request $request): JsonResponse
-    {
-        try {
-            // Pagination (10 par page par défaut)
-            $perPage = min($request->input('per_page', 10), 50);
-            
-            // Filtres (conforme cahier des charges: espèce, âge, santé)
-            $filters = [
-                'espece' => $request->input('espece'),
-                'statut_sanitaire' => $request->input('statut_sanitaire'),
-                'age_min' => $request->input('age_min'),
-                'age_max' => $request->input('age_max'),
-                'elevage_id' => $request->input('elevage_id'),
-                'search' => $request->input('search'),
-            ];
-            
-            // Récupération des animaux
-            $animaux = $this->animalService->getAllPaginated($perPage, array_filter($filters));
-            
-            // Transformation des données
-            $data = [
-                'data' => AnimalResource::collection($animaux),
-                'meta' => [
-                    'current_page' => $animaux->currentPage(),
-                    'last_page' => $animaux->lastPage(),
-                    'per_page' => $animaux->perPage(),
-                    'total' => $animaux->total(),
-                    'from' => $animaux->firstItem(),
-                    'to' => $animaux->lastItem(),
-                ],
-            ];
-            
-            // Ajout des filtres actifs
-            if (!empty(array_filter($filters))) {
-                $data['filters'] = array_filter($filters);
-            }
-            
-            // Liste des valeurs possibles pour les filtres
-            $data['available_filters'] = [
-                'especes' => Animal::ESPECES,
-                'statuts_sanitaires' => Animal::STATUTS_SANITAIRES,
-            ];
-            
-            return $this->successResponse($data, 'Liste des animaux récupérée avec succès.');
-            
-        } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération des animaux: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération des animaux.', 500);
+        // Récupérer tous les élevages de l'utilisateur
+        $elevageIds = $user->elevages()->pluck('id');
+        
+        if ($elevageIds->isEmpty()) {
+            return $this->successResponse([
+                'data' => [],
+                'meta' => $this->getEmptyMeta(),
+            ]);
         }
+        
+        $query = Animal::whereIn('elevage_id', $elevageIds)
+            ->with(['elevage', 'pere', 'mere']);
+        
+        // Filtre par élevage
+        if ($request->filled('elevage_id')) {
+            $elevage = Elevage::where('id', $request->elevage_id)
+                ->where('user_id', $user->id)
+                ->firstOrFail();
+            $query->where('elevage_id', $elevage->id);
+        }
+        
+        // Filtre par espèce
+        if ($request->filled('espece')) {
+            $query->byEspece($request->espece);
+        }
+        
+        // Filtre par statut sanitaire
+        if ($request->filled('statut_sanitaire')) {
+            $query->byStatutSanitaire($request->statut_sanitaire);
+        }
+        
+        // Filtre par statut
+        if ($request->filled('statut')) {
+            $query->where('statut', $request->statut);
+        }
+        
+        // Filtre par sexe
+        if ($request->filled('sexe')) {
+            $query->where('sexe', $request->sexe);
+        }
+        
+        // Filtre par âge (en mois)
+        if ($request->filled('age_min') || $request->filled('age_max')) {
+            $ageMin = $request->input('age_min', 0);
+            $ageMax = $request->input('age_max');
+            $query->byAge($ageMin, $ageMax);
+        }
+        
+        // Filtre par poids
+        if ($request->filled('poids_min')) {
+            $query->where('poids', '>=', $request->poids_min);
+        }
+        if ($request->filled('poids_max')) {
+            $query->where('poids', '<=', $request->poids_max);
+        }
+        
+        // Recherche textuelle
+        if ($request->filled('search')) {
+            $query->search($request->search);
+        }
+        
+        // Tri
+        $sort = $request->get('sort', 'created_at');
+        $direction = $request->get('direction', 'desc');
+        
+        if ($sort === 'date_naissance') {
+            $query->orderBy('date_naissance', $direction);
+        } else {
+            $query->orderBy($sort, $direction);
+        }
+        
+        $perPage = $request->get('per_page', 15);
+        $animaux = $query->paginate($perPage);
+        
+        // Calcul du nombre total d'animaux
+        $totalAnimaux = Animal::whereIn('elevage_id', $elevageIds)->count();
+        
+        return $this->successResponse([
+            'data' => AnimalResource::collection($animaux),
+            'meta' => [
+                'current_page' => $animaux->currentPage(),
+                'last_page' => $animaux->lastPage(),
+                'per_page' => $animaux->perPage(),
+                'total' => $animaux->total(),
+                'total_animaux' => $totalAnimaux,
+            ],
+        ]);
     }
 
     /**
-     * Création d'un nouvel animal
-     * POST /api/animaux
-     * 
-     * @param AnimalRequest $request
-     * @return JsonResponse
+     * Créer un nouvel animal
+     *
+     * @param CreateAnimalRequest $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(AnimalRequest $request): JsonResponse
+    public function store(CreateAnimalRequest $request)
     {
+        DB::beginTransaction();
+        
         try {
-            // Autorisation
-            $elevage = Elevage::find($request->elevage_id);
-            $this->authorize('create', [Animal::class, $elevage]);
-            
-            // Préparation des données
             $data = $request->validated();
             
-            // Création de l'animal
-            $animal = $this->animalService->createAnimal(
-                $data,
-                $request->file('photo')
-            );
+            // Vérifier que l'élevage appartient à l'utilisateur
+            $elevage = Elevage::where('id', $data['elevage_id'])
+                ->where('user_id', $request->user()->id)
+                ->firstOrFail();
+            
+            // Upload de l'image
+            if ($request->hasFile('image')) {
+                $data['img_url'] = $this->uploadImage($request->file('image'));
+            }
+            
+            $animal = Animal::create($data);
+            
+            DB::commit();
             
             return $this->successResponse(
-                new AnimalResource($animal),
+                new AnimalResource($animal->load(['elevage', 'pere', 'mere'])),
                 'Animal créé avec succès.',
                 201
             );
             
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Vous n\'êtes pas autorisé à ajouter un animal dans cet élevage.');
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de la création de l\'animal: ' . $e->getMessage());
+            DB::rollBack();
+            \Log::error('Erreur création animal: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la création de l\'animal.', 500);
         }
     }
 
     /**
-     * Détails d'un animal spécifique
-     * GET /api/animaux/{id}
-     * 
+     * Afficher un animal spécifique
+     *
+     * @param Request $request
      * @param int $id
-     * @return JsonResponse
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show(int $id): JsonResponse
+    public function show(Request $request, $id)
     {
-        try {
-            // Recherche de l'animal
-            $animal = Animal::with(['elevage.proprietaire'])->findOrFail($id);
-            
-            // Vérification des droits d'accès
-            if (auth()->check()) {
-                $this->authorize('view', $animal);
-            } else {
-                // Non authentifié: seulement si profil public
-                $proprietaire = $animal->elevage?->proprietaire;
-                if (!$proprietaire || $proprietaire->profile_visibility !== 'public') {
-                    return $this->forbiddenResponse('Ce profil est privé.');
-                }
-            }
-            
-            // Récupération des détails complets
-            $details = $this->animalService->getAnimalDetails($animal);
-            
-            return $this->successResponse(
-                new AnimalResource($details),
-                'Détails de l\'animal récupérés avec succès.'
-            );
-            
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFoundResponse('Animal non trouvé.');
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Vous n\'avez pas accès à cet animal.');
-        } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération de l\'animal: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération des détails.', 500);
-        }
+        $user = $request->user();
+        
+        $animal = Animal::whereHas('elevage', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->with(['elevage', 'pere', 'mere', 'taches'])
+            ->findOrFail($id);
+        
+        return $this->successResponse(
+            AnimalResource::make($animal, true)
+        );
     }
 
     /**
-     * Mise à jour d'un animal
-     * PUT/PATCH /api/animaux/{id}
-     * 
+     * Mettre à jour un animal
+     *
      * @param UpdateAnimalRequest $request
      * @param int $id
-     * @return JsonResponse
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(UpdateAnimalRequest $request, int $id): JsonResponse
+    public function update(UpdateAnimalRequest $request, $id)
     {
+        $user = $request->user();
+        
+        $animal = Animal::whereHas('elevage', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->findOrFail($id);
+        
+        DB::beginTransaction();
+        
         try {
-            // Recherche de l'animal
-            $animal = Animal::findOrFail($id);
+            $data = $request->validated();
             
-            // Vérification du propriétaire
-            $this->authorize('update', $animal);
+            // Gestion de l'image
+            if ($request->hasFile('image')) {
+                // Supprimer l'ancienne image
+                if ($animal->img_url && !str_contains($animal->img_url, 'default-')) {
+                    $this->deleteImage($animal->img_url);
+                }
+                $data['img_url'] = $this->uploadImage($request->file('image'));
+            } elseif ($request->input('delete_image')) {
+                if ($animal->img_url && !str_contains($animal->img_url, 'default-')) {
+                    $this->deleteImage($animal->img_url);
+                }
+                $data['img_url'] = null;
+            }
             
-            // Préparation des données (ne garder que les champs modifiés)
-            $data = array_filter($request->validated(), function($value) {
-                return !is_null($value);
-            });
+            // Si l'animal est marqué comme décédé, s'assurer que les dates sont définies
+            if (isset($data['statut']) && $data['statut'] === 'decede') {
+                if (empty($data['date_deces'])) {
+                    $data['date_deces'] = now();
+                }
+                if (empty($data['motif_deces'])) {
+                    $data['motif_deces'] = 'Non spécifié';
+                }
+            }
             
-            // Mise à jour
-            $updatedAnimal = $this->animalService->updateAnimal(
-                $animal,
-                $data,
-                $request->file('photo')
-            );
+            $animal->update($data);
+            
+            DB::commit();
             
             return $this->successResponse(
-                new AnimalResource($updatedAnimal),
+                new AnimalResource($animal->load(['elevage', 'pere', 'mere'])),
                 'Animal mis à jour avec succès.'
             );
             
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFoundResponse('Animal non trouvé.');
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Vous n\'êtes pas autorisé à modifier cet animal.');
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de la mise à jour de l\'animal: ' . $e->getMessage());
+            DB::rollBack();
+            \Log::error('Erreur mise à jour animal: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la mise à jour de l\'animal.', 500);
         }
     }
 
     /**
-     * Suppression d'un animal
-     * DELETE /api/animaux/{id}
-     * 
+     * Supprimer un animal
+     *
+     * @param Request $request
      * @param int $id
-     * @return JsonResponse
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, $id)
     {
+        $user = $request->user();
+        
+        $animal = Animal::whereHas('elevage', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->findOrFail($id);
+        
+        DB::beginTransaction();
+        
         try {
-            // Recherche de l'animal
-            $animal = Animal::findOrFail($id);
+            // Supprimer l'image
+            if ($animal->img_url && !str_contains($animal->img_url, 'default-')) {
+                $this->deleteImage($animal->img_url);
+            }
             
-            // Vérification du propriétaire
-            $this->authorize('delete', $animal);
+            // Les tâches seront supprimées automatiquement (cascade)
+            $animal->delete();
             
-            // Suppression
-            $this->animalService->deleteAnimal($animal);
+            DB::commit();
             
             return $this->successResponse(null, 'Animal supprimé avec succès.');
             
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFoundResponse('Animal non trouvé.');
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Vous n\'êtes pas autorisé à supprimer cet animal.');
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de la suppression de l\'animal: ' . $e->getMessage());
+            DB::rollBack();
+            \Log::error('Erreur suppression animal: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la suppression de l\'animal.', 500);
         }
     }
 
     /**
-     * Récupération des animaux d'un élevage spécifique
-     * GET /api/elevages/{elevageId}/animaux
-     * 
-     * @param int $elevageId
+     * Statistiques des animaux
+     *
      * @param Request $request
-     * @return JsonResponse
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function getByElevage(int $elevageId, Request $request): JsonResponse
+    public function statistiques(Request $request)
     {
-        try {
-            // Vérification de l'existence de l'élevage
-            $elevage = Elevage::findOrFail($elevageId);
-            
-            // Vérification des droits d'accès
-            if (!auth()->check() && $elevage->proprietaire->profile_visibility !== 'public') {
-                return $this->forbiddenResponse('Cet élevage est privé.');
+        $user = $request->user();
+        
+        $elevageIds = $user->elevages()->pluck('id');
+        
+        if ($elevageIds->isEmpty()) {
+            return $this->successResponse($this->getEmptyStats());
+        }
+        
+        $query = Animal::whereIn('elevage_id', $elevageIds);
+        
+        $stats = [
+            'total_animaux' => $query->count(),
+            'total_actifs' => (clone $query)->where('statut', 'actif')->count(),
+            'total_males' => (clone $query)->where('sexe', 'male')->count(),
+            'total_femelles' => (clone $query)->where('sexe', 'femelle')->count(),
+            'poids_moyen' => (float) (clone $query)->avg('poids'),
+            'repartition_par_espece' => [],
+            'repartition_par_statut_sanitaire' => [],
+            'repartition_par_age' => [
+                'moins_1_an' => (clone $query)->byAge(0, 12)->count(),
+                '1_a_3_ans' => (clone $query)->byAge(12, 36)->count(),
+                '3_a_5_ans' => (clone $query)->byAge(36, 60)->count(),
+                'plus_5_ans' => (clone $query)->byAge(60)->count(),
+            ],
+        ];
+        
+        // Répartition par espèce
+        foreach (array_keys(Animal::ESPECES) as $espece) {
+            $count = (clone $query)->byEspece($espece)->count();
+            if ($count > 0) {
+                $stats['repartition_par_espece'][$espece] = [
+                    'label' => Animal::ESPECES[$espece],
+                    'count' => $count,
+                ];
             }
-            
-            // Filtres
-            $filters = [
-                'espece' => $request->input('espece'),
-                'statut_sanitaire' => $request->input('statut_sanitaire'),
+        }
+        
+        // Répartition par statut sanitaire
+        foreach (array_keys(Animal::STATUTS_SANITAIRES) as $statut) {
+            $count = (clone $query)->byStatutSanitaire($statut)->count();
+            $stats['repartition_par_statut_sanitaire'][$statut] = [
+                'label' => Animal::STATUTS_SANITAIRES[$statut],
+                'count' => $count,
             ];
-            
-            // Récupération des animaux
-            $animaux = $this->animalService->getElevageAnimals($elevageId, array_filter($filters));
-            
-            // Statistiques
-            $stats = $this->animalService->getElevageStats($elevageId);
-            
-            return $this->successResponse([
-                'data' => AnimalResource::collection($animaux),
-                'stats' => $stats,
-                'elevage' => [
-                    'id' => $elevage->id,
-                    'nom' => $elevage->nom,
-                ],
-            ], 'Animaux de l\'élevage récupérés avec succès.');
-            
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFoundResponse('Élevage non trouvé.');
-        } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération des animaux par élevage: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération des animaux.', 500);
+        }
+        
+        // Poids moyen par espèce
+        $stats['poids_moyen_par_espece'] = Animal::poidsMoyenParEspeceMultiple($elevageIds);
+        
+        return $this->successResponse($stats);
+    }
+
+    /**
+     * Upload de l'image
+     */
+    private function uploadImage($image): string
+    {
+        $filename = 'animal_' . time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+        $path = $image->storeAs('animaux', $filename, 'public');
+        return $path;
+    }
+
+    /**
+     * Suppression de l'image
+     */
+    private function deleteImage(string $path): void
+    {
+        if (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
         }
     }
 
     /**
-     * Statistiques des animaux pour l'utilisateur connecté
-     * GET /api/user/animaux/stats
-     * 
-     * @return JsonResponse
+     * Métadonnées vides pour pagination
      */
-    public function userStats(): JsonResponse
+    private function getEmptyMeta(): array
     {
-        try {
-            $userId = auth()->id();
-            
-            $stats = [
-                'total' => $this->animalService->getTotalAnimalsCount('user', $userId),
-                'by_espece' => Animal::whereHas('elevage', function($q) use ($userId) {
-                    $q->where('user_id', $userId);
-                })->selectRaw('espece, count(*) as count')
-                  ->groupBy('espece')
-                  ->get(),
-                'by_statut' => Animal::whereHas('elevage', function($q) use ($userId) {
-                    $q->where('user_id', $userId);
-                })->selectRaw('statut_sanitaire, count(*) as count')
-                  ->groupBy('statut_sanitaire')
-                  ->get(),
-                'poids_moyen' => Animal::whereHas('elevage', function($q) use ($userId) {
-                    $q->where('user_id', $userId);
-                })->avg('poids'),
-            ];
-            
-            return $this->successResponse($stats, 'Statistiques récupérées avec succès.');
-            
-        } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération des statistiques: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération des statistiques.', 500);
-        }
+        return [
+            'current_page' => 1,
+            'last_page' => 1,
+            'per_page' => 15,
+            'total' => 0,
+            'total_animaux' => 0,
+        ];
     }
 
     /**
-     * Historique des modifications d'un animal
-     * GET /api/animaux/{id}/historique
-     * 
-     * @param int $id
-     * @return JsonResponse
+     * Statistiques vides
      */
-    public function historique(int $id): JsonResponse
+    private function getEmptyStats(): array
     {
-        try {
-            $animal = Animal::findOrFail($id);
-            
-            // Vérification du propriétaire
-            $this->authorize('view', $animal);
-            
-            $historique = $animal->historiques()
-                ->with('user')
-                ->latest()
-                ->get()
-                ->map(function($item) {
-                    return [
-                        'id' => $item->id,
-                        'action' => $item->action,
-                        'date' => $item->created_at->format('d/m/Y H:i:s'),
-                        'user' => $item->user?->name ?? 'Système',
-                        'changed_fields' => $item->formatted_changes,
-                        'ip_address' => $item->ip_address,
-                    ];
-                });
-            
-            return $this->successResponse([
-                'animal' => [
-                    'id' => $animal->id,
-                    'nom' => $animal->nom,
-                ],
-                'historique' => $historique,
-            ], 'Historique récupéré avec succès.');
-            
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFoundResponse('Animal non trouvé.');
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Vous n\'avez pas accès à l\'historique de cet animal.');
-        } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération de l\'historique: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération de l\'historique.', 500);
-        }
+        return [
+            'total_animaux' => 0,
+            'total_actifs' => 0,
+            'total_males' => 0,
+            'total_femelles' => 0,
+            'poids_moyen' => 0,
+            'repartition_par_espece' => [],
+            'repartition_par_statut_sanitaire' => [],
+            'repartition_par_age' => [
+                'moins_1_an' => 0,
+                '1_a_3_ans' => 0,
+                '3_a_5_ans' => 0,
+                'plus_5_ans' => 0,
+            ],
+            'poids_moyen_par_espece' => [],
+        ];
     }
 }
