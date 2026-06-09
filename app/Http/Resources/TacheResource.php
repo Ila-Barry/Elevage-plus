@@ -8,9 +8,14 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Resource TacheResource
+ * 
+ * Formate la réponse API pour une tâche
  */
 class TacheResource extends JsonResource
 {
+    /**
+     * Transforme le resource en tableau.
+     */
     public function toArray(Request $request): array
     {
         return [
@@ -18,53 +23,48 @@ class TacheResource extends JsonResource
             'titre' => $this->titre,
             'type' => $this->type,
             'type_label' => $this->type_label,
-            'couleur' => $this->couleur,
-            'date_planifiee' => $this->date_planifiee?->format('Y-m-d'),
-            'date_planifiee_formatee' => $this->date_planifiee?->format('d/m/Y'),
-            'date_realisee' => $this->date_realisee?->format('Y-m-d'),
-            'date_realisee_formatee' => $this->date_realisee?->format('d/m/Y'),
-            'terminee' => $this->terminee,
-            'statut' => $this->statut,
+            'type_icone' => $this->type_icone,
             'description' => $this->description,
+            'date_planifiee' => $this->date_planifiee->format('Y-m-d H:i:s'),
+            'date_planifiee_humain' => $this->date_planifiee->diffForHumans(),
+            'date_realisee' => $this->date_realisee?->format('Y-m-d H:i:s'),
+            'terminee' => $this->terminee,
+            'priorite' => $this->priorite,
+            'priorite_label' => $this->priorite_label,
+            'priorite_couleur' => $this->priorite_couleur,
+            'rappel' => $this->rappel,
+            'rappel_label' => $this->rappel_label,
             'notes' => $this->notes,
+            'is_late' => $this->is_late,
+            'is_today' => $this->is_today,
+            'temps_restant' => $this->temps_restant,
             
-            // Relations
-            'animal' => $this->whenLoaded('animal', function() {
-                return [
-                    'id' => $this->animal->id,
-                    'nom' => $this->animal->nom,
-                    'espece' => $this->animal->espece,
-                    'espece_label' => $this->animal->espece_label,
-                ];
-            }),
-            'elevage' => $this->whenLoaded('elevage', function() {
-                return [
-                    'id' => $this->elevage->id,
-                    'nom' => $this->elevage->nom,
-                ];
-            }),
+            // Entité associée
+            'entite' => [
+                'type' => $this->animal_id ? 'animal' : 'elevage',
+                'id' => $this->animal_id ?? $this->elevage_id,
+                'nom' => $this->animal_id ? $this->animal?->nom : $this->elevage?->nom,
+            ],
             
-            // Informations additionnelles
-            'est_pour_elevage' => $this->estPourElevage,
-            'entite_concernee' => $this->entite_concernee,
+            'elevage' => [
+                'id' => $this->elevage->id,
+                'nom' => $this->elevage->nom,
+            ],
             
-            // Rappels
-            'rappels' => $this->whenLoaded('rappels', function() {
-                return $this->rappels->map(function($rappel) {
-                    return [
-                        'type' => $rappel->type_rappel,
-                        'statut' => $rappel->statut,
-                        'heure_prevue' => $rappel->heure_envoi_prevue?->format('d/m/Y H:i'),
-                    ];
-                });
-            }),
+            'animal' => $this->animal ? [
+                'id' => $this->animal->id,
+                'nom' => $this->animal->nom,
+                'espece' => $this->animal->espece,
+                'espece_label' => $this->animal->espece_label,
+            ] : null,
             
-            // Métadonnées
-            'created_at' => $this->created_at?->format('d/m/Y H:i'),
-            'updated_at' => $this->updated_at?->format('d/m/Y H:i'),
-            'is_owner' => $this->when($request->user(), function() use ($request) {
-                return $this->elevage && $this->elevage->user_id === $request->user()?->id;
-            }),
+            'user' => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+            ],
+            
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];
     }
 }

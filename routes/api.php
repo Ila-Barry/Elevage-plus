@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\ProduitController;
 use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\ElevageController;
 use App\Http\Controllers\Api\AnimalController;
-
+use App\Http\Controllers\Api\TacheController;
 
 
 /*
@@ -176,4 +176,25 @@ Route::middleware(['auth:api'])->prefix('animaux')->group(function () {
     Route::get('/{id}', [AnimalController::class, 'show']);
     Route::put('/{id}', [AnimalController::class, 'update']);
     Route::delete('/{id}', [AnimalController::class, 'destroy']);
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Tâches
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api'])->prefix('taches')->group(function () {
+    // CRUD de base
+    Route::get('/', [TacheController::class, 'index']);
+    Route::get('/calendar', [TacheController::class, 'calendar']);
+    Route::get('/statistiques', [TacheController::class, 'statistiques']);
+    Route::post('/', [TacheController::class, 'store']);
+    Route::get('/{id}', [TacheController::class, 'show']);
+    Route::put('/{id}', [TacheController::class, 'update']);
+    Route::delete('/{id}', [TacheController::class, 'destroy']);
+    
+    // Actions spécifiques
+    Route::patch('/{id}/complete', [TacheController::class, 'complete']);
 });

@@ -4,355 +4,417 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\TacheRequest;
-use App\Http\Requests\Api\UpdateTacheRequest;
+use App\Http\Requests\Api\Tache\CreateTacheRequest;
+use App\Http\Requests\Api\Tache\UpdateTacheRequest;
+use App\Http\Requests\Api\Tache\TacheFilterRequest;
 use App\Http\Resources\TacheResource;
+use App\Http\Resources\CalendarEventResource;
 use App\Models\Tache;
 use App\Models\Elevage;
-use App\Services\TacheService;
+use App\Models\Animal;
 use App\Traits\ApiResponseTrait;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 /**
  * Contrôleur TacheController
  * 
- * Gère toutes les opérations CRUD pour les tâches
- * Conforme au cahier des charges:
- * - CRUD complet
+ * Gère toutes les opérations liées aux tâches :
+ * - CRUD des tâches
  * - Filtrage par date
- * - Marquer comme terminée
- * - Vue calendrier (FullCalendar)
- * - Tâches liées à un animal ou un élevage
- * - Calcul du nombre total de tâches
+ * - Marquage comme terminée
+ * - Gestion des rappels automatiques
+ * - Vue calendrier FullCalendar
  */
 class TacheController extends Controller
 {
     use ApiResponseTrait;
 
-    protected TacheService $tacheService;
-
-    public function __construct(TacheService $tacheService)
+    /**
+     * Constructeur avec middleware
+     */
+    public function __construct()
     {
-        $this->tacheService = $tacheService;
-        
-        $this->middleware('auth:api')->except(['index', 'show', 'calendar']);
+        $this->middleware('auth:api');
     }
 
     /**
-     * Liste des tâches avec pagination et filtres
-     * GET /api/taches
+     * Liste des tâches
+     *
+     * @param TacheFilterRequest $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function index(TacheFilterRequest $request)
     {
-        try {
-            $perPage = min($request->input('per_page', 10), 50);
-            
-            $filters = [
-                'elevage_id' => $request->input('elevage_id'),
-                'animal_id' => $request->input('animal_id'),
-                'type' => $request->input('type'),
-                'statut' => $request->input('statut'),
-                'date_debut' => $request->input('date_debut'),
-                'date_fin' => $request->input('date_fin'),
-                'search' => $request->input('search'),
-            ];
-            
-            $taches = $this->tacheService->getAllPaginated($perPage, array_filter($filters));
-            
-            $data = [
-                'data' => TacheResource::collection($taches),
-                'meta' => [
-                    'current_page' => $taches->currentPage(),
-                    'last_page' => $taches->lastPage(),
-                    'per_page' => $taches->perPage(),
-                    'total' => $taches->total(),
-                    'from' => $taches->firstItem(),
-                    'to' => $taches->lastItem(),
-                ],
-            ];
-            
-            if (!empty(array_filter($filters))) {
-                $data['filters'] = array_filter($filters);
-            }
-            
-            $data['available_filters'] = [
-                'types' => Tache::TYPES,
-                'statuts' => ['terminee', 'en_attente', 'en_retard', 'aujourdhui', 'a_venir'],
-            ];
-            
-            return $this->successResponse($data, 'Liste des tâches récupérée avec succès.');
-            
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de la récupération des tâches: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération des tâches.', 500);
+        $user = $request->user();
+        
+        // Récupérer tous les élevages de l'utilisateur
+        $elevageIds = $user->elevages()->pluck('id');
+        
+        if ($elevageIds->isEmpty()) {
+            return $this->successResponse([
+                'data' => [],
+                'meta' => $this->getEmptyMeta(),
+            ]);
         }
+        
+        $query = Tache::whereIn('elevage_id', $elevageIds)
+            ->with(['animal', 'elevage', 'user']);
+        
+        // Filtre par élevage
+        if ($request->filled('elevage_id')) {
+            $elevage = Elevage::where('id', $request->elevage_id)
+                ->where('user_id', $user->id)
+                ->firstOrFail();
+            $query->where('elevage_id', $elevage->id);
+        }
+        
+        // Filtre par animal
+        if ($request->filled('animal_id')) {
+            $animal = Animal::where('id', $request->animal_id)
+                ->whereHas('elevage', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                })
+                ->firstOrFail();
+            $query->where('animal_id', $animal->id);
+        }
+        
+        // Filtre par type
+        if ($request->filled('type')) {
+            $query->byType($request->type);
+        }
+        
+        // Filtre par priorité
+        if ($request->filled('priorite')) {
+            $query->byPriorite($request->priorite);
+        }
+        
+        // Filtre par statut
+        if ($request->filled('statut')) {
+            switch ($request->statut) {
+                case 'terminees':
+                    $query->terminees();
+                    break;
+                case 'a_venir':
+                    $query->avenir();
+                    break;
+                case 'retard':
+                    $query->retard();
+                    break;
+            }
+        }
+        
+        // Filtre par période
+        if ($request->filled('date_debut') && $request->filled('date_fin')) {
+            $query->entreDates($request->date_debut, $request->date_fin);
+        } elseif ($request->filled('date_debut')) {
+            $query->whereDate('date_planifiee', '>=', $request->date_debut);
+        } elseif ($request->filled('date_fin')) {
+            $query->whereDate('date_planifiee', '<=', $request->date_fin);
+        }
+        
+        // Recherche textuelle
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('titre', 'LIKE', "%{$search}%")
+                  ->orWhere('description', 'LIKE', "%{$search}%");
+            });
+        }
+        
+        // Tri
+        $sort = $request->get('sort', 'date_planifiee');
+        $direction = $request->get('direction', 'asc');
+        $query->orderBy($sort, $direction);
+        
+        $perPage = $request->get('per_page', 15);
+        $taches = $query->paginate($perPage);
+        
+        // Calcul du nombre total de tâches
+        $totalTaches = Tache::whereIn('elevage_id', $elevageIds)->count();
+        $totalAvenir = Tache::whereIn('elevage_id', $elevageIds)->avenir()->count();
+        $totalRetard = Tache::whereIn('elevage_id', $elevageIds)->retard()->count();
+        
+        return $this->successResponse([
+            'data' => TacheResource::collection($taches),
+            'meta' => [
+                'current_page' => $taches->currentPage(),
+                'last_page' => $taches->lastPage(),
+                'per_page' => $taches->perPage(),
+                'total' => $taches->total(),
+                'total_taches' => $totalTaches,
+                'total_a_venir' => $totalAvenir,
+                'total_retard' => $totalRetard,
+            ],
+        ]);
     }
 
     /**
      * Vue calendrier pour FullCalendar
-     * GET /api/taches/calendar
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function calendar(Request $request): JsonResponse
+    public function calendar(Request $request)
     {
-        try {
-            $request->validate([
-                'elevage_id' => 'required|exists:elevages,id',
-                'start' => 'required|date',
-                'end' => 'required|date',
-            ]);
-            
-            $elevageId = $request->input('elevage_id');
-            
-            // Vérification des droits
-            $elevage = Elevage::findOrFail($elevageId);
-            if (!auth()->check() && $elevage->proprietaire->profile_visibility !== 'public') {
-                return $this->forbiddenResponse('Cet élevage est privé.');
-            }
-            
-            if (auth()->check()) {
-                $this->authorize('view', $elevage);
-            }
-            
-            $events = $this->tacheService->getForCalendar(
-                $elevageId,
-                $request->input('start'),
-                $request->input('end')
-            );
-            
-            return $this->successResponse($events, 'Événements calendrier récupérés avec succès.');
-            
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Accès non autorisé à cet élevage.');
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de la récupération du calendrier: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération du calendrier.', 500);
+        $user = $request->user();
+        
+        $request->validate([
+            'start' => 'required|date',
+            'end' => 'required|date|after:start',
+        ]);
+        
+        $elevageIds = $user->elevages()->pluck('id');
+        
+        if ($elevageIds->isEmpty()) {
+            return $this->successResponse([]);
         }
+        
+        $taches = Tache::whereIn('elevage_id', $elevageIds)
+            ->with(['animal', 'elevage'])
+            ->entreDates($request->start, $request->end)
+            ->orderBy('date_planifiee')
+            ->get();
+        
+        return $this->successResponse(CalendarEventResource::collection($taches));
     }
 
     /**
-     * Création d'une nouvelle tâche
-     * POST /api/taches
+     * Créer une nouvelle tâche
+     *
+     * @param CreateTacheRequest $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(TacheRequest $request): JsonResponse
+    public function store(CreateTacheRequest $request)
     {
+        DB::beginTransaction();
+        
         try {
-            $elevage = Elevage::find($request->elevage_id);
-            $this->authorize('create', [Tache::class, $elevage]);
-            
+            $user = $request->user();
             $data = $request->validated();
             
-            $genererRappels = $request->input('generer_rappels', true);
-            $typesRappels = $request->input('rappels', ['48h', '24h', '1h', '30min']);
+            // Vérifier que l'élevage appartient à l'utilisateur
+            $elevage = Elevage::where('id', $data['elevage_id'])
+                ->where('user_id', $user->id)
+                ->firstOrFail();
             
-            $tache = $this->tacheService->createTache($data, $genererRappels, $typesRappels);
+            $data['user_id'] = $user->id;
+            $data['elevage_id'] = $elevage->id;
+            
+            $tache = Tache::create($data);
+            
+            DB::commit();
             
             return $this->successResponse(
-                new TacheResource($tache),
+                new TacheResource($tache->load(['animal', 'elevage', 'user'])),
                 'Tâche créée avec succès.',
                 201
             );
             
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Vous n\'êtes pas autorisé à créer une tâche dans cet élevage.');
         } catch (\Exception $e) {
-            Log::error('Erreur lors de la création de la tâche: ' . $e->getMessage());
+            DB::rollBack();
+            \Log::error('Erreur création tâche: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la création de la tâche.', 500);
         }
     }
 
     /**
-     * Détails d'une tâche
-     * GET /api/taches/{id}
+     * Afficher une tâche spécifique
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show(int $id): JsonResponse
+    public function show(Request $request, $id)
     {
-        try {
-            $tache = Tache::with(['animal', 'elevage.proprietaire', 'rappels'])->findOrFail($id);
-            
-            if (auth()->check()) {
-                $this->authorize('view', $tache);
-            } else {
-                $proprietaire = $tache->elevage?->proprietaire;
-                if (!$proprietaire || $proprietaire->profile_visibility !== 'public') {
-                    return $this->forbiddenResponse('Ce profil est privé.');
-                }
-            }
-            
-            $details = $this->tacheService->getTacheDetails($tache);
-            
-            return $this->successResponse(
-                new TacheResource($details),
-                'Détails de la tâche récupérés avec succès.'
-            );
-            
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFoundResponse('Tâche non trouvée.');
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Vous n\'avez pas accès à cette tâche.');
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de la récupération de la tâche: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération des détails.', 500);
-        }
+        $user = $request->user();
+        
+        $tache = Tache::whereHas('elevage', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->with(['animal', 'elevage', 'user'])
+            ->findOrFail($id);
+        
+        return $this->successResponse(new TacheResource($tache));
     }
 
     /**
-     * Mise à jour d'une tâche
-     * PUT/PATCH /api/taches/{id}
+     * Mettre à jour une tâche
+     *
+     * @param UpdateTacheRequest $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(UpdateTacheRequest $request, int $id): JsonResponse
+    public function update(UpdateTacheRequest $request, $id)
     {
+        $user = $request->user();
+        
+        $tache = Tache::whereHas('elevage', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->findOrFail($id);
+        
+        DB::beginTransaction();
+        
         try {
-            $tache = Tache::findOrFail($id);
-            $this->authorize('update', $tache);
+            $data = $request->validated();
             
-            $data = array_filter($request->validated(), fn($v) => !is_null($v));
+            // Si la tâche est marquée comme terminée, enregistrer la date
+            if (isset($data['terminee']) && $data['terminee'] && !$tache->terminee) {
+                $data['date_realisee'] = now();
+            }
             
-            $updatedTache = $this->tacheService->updateTache($tache, $data);
+            $tache->update($data);
+            
+            DB::commit();
             
             return $this->successResponse(
-                new TacheResource($updatedTache),
+                new TacheResource($tache->load(['animal', 'elevage', 'user'])),
                 'Tâche mise à jour avec succès.'
             );
             
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFoundResponse('Tâche non trouvée.');
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Vous n\'êtes pas autorisé à modifier cette tâche.');
         } catch (\Exception $e) {
-            Log::error('Erreur lors de la mise à jour de la tâche: ' . $e->getMessage());
+            DB::rollBack();
+            \Log::error('Erreur mise à jour tâche: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la mise à jour de la tâche.', 500);
         }
     }
 
     /**
      * Marquer une tâche comme terminée
-     * POST /api/taches/{id}/complete
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function complete(Request $request, int $id): JsonResponse
+    public function complete(Request $request, $id)
     {
-        try {
-            $tache = Tache::findOrFail($id);
-            $this->authorize('complete', $tache);
-            
-            $dateRealisee = $request->input('date_realisee');
-            
-            $completedTache = $this->tacheService->completeTache($tache, $dateRealisee);
-            
-            return $this->successResponse(
-                new TacheResource($completedTache),
-                'Tâche marquée comme terminée avec succès.'
-            );
-            
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFoundResponse('Tâche non trouvée.');
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Vous n\'êtes pas autorisé à modifier cette tâche.');
-        } catch (\Exception $e) {
-            Log::error('Erreur lors du marquage de la tâche: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors du marquage de la tâche.', 500);
+        $user = $request->user();
+        
+        $tache = Tache::whereHas('elevage', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->findOrFail($id);
+        
+        if ($tache->terminee) {
+            return $this->errorResponse('Cette tâche est déjà terminée.', 422);
         }
+        
+        $tache->markAsCompleted();
+        
+        return $this->successResponse(
+            new TacheResource($tache->load(['animal', 'elevage', 'user'])),
+            'Tâche marquée comme terminée.'
+        );
     }
 
     /**
-     * Suppression d'une tâche
-     * DELETE /api/taches/{id}
+     * Supprimer une tâche
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, $id)
     {
-        try {
-            $tache = Tache::findOrFail($id);
-            $this->authorize('delete', $tache);
-            
-            $this->tacheService->deleteTache($tache);
-            
-            return $this->successResponse(null, 'Tâche supprimée avec succès.');
-            
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFoundResponse('Tâche non trouvée.');
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return $this->forbiddenResponse('Vous n\'êtes pas autorisé à supprimer cette tâche.');
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de la suppression de la tâche: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la suppression de la tâche.', 500);
-        }
+        $user = $request->user();
+        
+        $tache = Tache::whereHas('elevage', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->findOrFail($id);
+        
+        $tache->delete();
+        
+        return $this->successResponse(null, 'Tâche supprimée avec succès.');
     }
 
     /**
-     * Statistiques des tâches pour un élevage
-     * GET /api/elevages/{elevageId}/taches/stats
+     * Statistiques des tâches
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function stats(int $elevageId): JsonResponse
+    public function statistiques(Request $request)
     {
-        try {
-            $elevage = Elevage::findOrFail($elevageId);
-            
-            if (!auth()->check() && $elevage->proprietaire->profile_visibility !== 'public') {
-                return $this->forbiddenResponse('Cet élevage est privé.');
+        $user = $request->user();
+        
+        $elevageIds = $user->elevages()->pluck('id');
+        
+        if ($elevageIds->isEmpty()) {
+            return $this->successResponse($this->getEmptyStats());
+        }
+        
+        $query = Tache::whereIn('elevage_id', $elevageIds);
+        
+        $stats = [
+            'total_taches' => $query->count(),
+            'taches_terminees' => (clone $query)->terminees()->count(),
+            'taches_a_venir' => (clone $query)->avenir()->count(),
+            'taches_en_retard' => (clone $query)->retard()->count(),
+            'taches_aujourdhui' => (clone $query)->aujourdhui()->count(),
+            'taches_cette_semaine' => (clone $query)->cetteSemaine()->count(),
+            'taches_ce_mois' => (clone $query)->ceMois()->count(),
+            'repartition_par_type' => [],
+            'repartition_par_priorite' => [],
+        ];
+        
+        // Répartition par type
+        foreach (array_keys(Tache::TYPES) as $type) {
+            $count = (clone $query)->byType($type)->count();
+            if ($count > 0) {
+                $stats['repartition_par_type'][$type] = [
+                    'label' => Tache::TYPES[$type],
+                    'icone' => Tache::ICONES[$type],
+                    'count' => $count,
+                ];
             }
-            
-            $stats = $this->tacheService->getTotalTachesCount($elevageId);
-            $byType = $this->tacheService->getStatsByType($elevageId);
-            
-            return $this->successResponse([
-                'resume' => $stats,
-                'par_type' => $byType,
-            ], 'Statistiques récupérées avec succès.');
-            
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFoundResponse('Élevage non trouvé.');
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de la récupération des statistiques: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération des statistiques.', 500);
         }
+        
+        // Répartition par priorité
+        foreach (array_keys(Tache::PRIORITES) as $priorite) {
+            $stats['repartition_par_priorite'][$priorite] = [
+                'label' => Tache::PRIORITES[$priorite],
+                'couleur' => Tache::COULEURS_PRIORITE[$priorite],
+                'count' => (clone $query)->byPriorite($priorite)->count(),
+            ];
+        }
+        
+        return $this->successResponse($stats);
     }
 
     /**
-     * Tâches de l'utilisateur connecté
-     * GET /api/user/taches
+     * Métadonnées vides pour pagination
      */
-    public function userTaches(Request $request): JsonResponse
+    private function getEmptyMeta(): array
     {
-        try {
-            $userId = auth()->id();
-            
-            $query = Tache::whereHas('elevage', function($q) use ($userId) {
-                $q->where('user_id', $userId);
-            });
-            
-            // Filtre par statut
-            if ($request->has('statut')) {
-                if ($request->statut === 'terminee') {
-                    $query->completed();
-                } elseif ($request->statut === 'en_retard') {
-                    $query->late();
-                } elseif ($request->statut === 'aujourdhui') {
-                    $query->today()->notCompleted();
-                } elseif ($request->statut === 'a_venir') {
-                    $query->notCompleted()->where('date_planifiee', '>', today());
-                }
-            }
-            
-            $taches = $query->with(['animal', 'elevage'])
-                ->orderBy('date_planifiee')
-                ->paginate(15);
-            
-            $stats = $this->tacheService->getTotalTachesCountForUser($userId);
-            
-            return $this->successResponse([
-                'data' => TacheResource::collection($taches),
-                'stats' => $stats,
-                'meta' => [
-                    'current_page' => $taches->currentPage(),
-                    'last_page' => $taches->lastPage(),
-                    'total' => $taches->total(),
-                ],
-            ], 'Vos tâches récupérées avec succès.');
-            
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de la récupération des tâches utilisateur: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération de vos tâches.', 500);
-        }
+        return [
+            'current_page' => 1,
+            'last_page' => 1,
+            'per_page' => 15,
+            'total' => 0,
+            'total_taches' => 0,
+            'total_a_venir' => 0,
+            'total_retard' => 0,
+        ];
+    }
+
+    /**
+     * Statistiques vides
+     */
+    private function getEmptyStats(): array
+    {
+        return [
+            'total_taches' => 0,
+            'taches_terminees' => 0,
+            'taches_a_venir' => 0,
+            'taches_en_retard' => 0,
+            'taches_aujourdhui' => 0,
+            'taches_cette_semaine' => 0,
+            'taches_ce_mois' => 0,
+            'repartition_par_type' => [],
+            'repartition_par_priorite' => [],
+        ];
     }
 }
