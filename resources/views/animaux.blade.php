@@ -261,7 +261,6 @@
                             <button>5</button>
                             <button>6</button>
                             <button>...</button>
-
             <button>
                 <i class="fas fa-angle-right"></i>
             </button>
