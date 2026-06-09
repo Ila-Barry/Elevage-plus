@@ -177,3 +177,24 @@ Route::middleware(['auth:api'])->prefix('animaux')->group(function () {
     Route::put('/{id}', [AnimalController::class, 'update']);
     Route::delete('/{id}', [AnimalController::class, 'destroy']);
 });
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Messagerie
+|--------------------------------------------------------------------------
+*/
+
+// Routes pour la messagerie (authentification requise)
+Route::middleware(['auth:api'])->prefix('messaging')->group(function () {
+    // Conversations
+    Route::get('/conversations', [App\Http\Controllers\Api\MessageController::class, 'getConversations']);
+    Route::get('/conversations/{conversationId}/messages', [App\Http\Controllers\Api\MessageController::class, 'getMessages']);
+    Route::post('/conversations/{conversationId}/read', [App\Http\Controllers\Api\MessageController::class, 'markConversationAsRead']);
+    
+    // Messages
+    Route::post('/send', [App\Http\Controllers\Api\MessageController::class, 'sendMessage']);
+    Route::delete('/messages/{messageId}', [App\Http\Controllers\Api\MessageController::class, 'deleteMessage']);
+    
+    // Utilitaires
+    Route::get('/unread-count', [App\Http\Controllers\Api\MessageController::class, 'getUnreadCount']);
+});

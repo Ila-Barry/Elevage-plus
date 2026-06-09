@@ -55,6 +55,21 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
         ],
+            'messages' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/messages'),
+            'url' => env('APP_URL') . '/storage/messages',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+    
+        'messages_thumbnails' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/messages/thumbnails'),
+            'url' => env('APP_URL') . '/storage/messages/thumbnails',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
 
     ],
 
