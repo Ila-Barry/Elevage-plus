@@ -481,6 +481,58 @@
             }
         });
     });
+
+    // Gestion de l'upload et de l'aperçu
+document.getElementById('photoInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const preview = document.getElementById('imagePreview');
+            const placeholder = document.querySelector('.image-preview-placeholder');
+            
+            preview.src = event.target.result;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Gestion de la suppression
+document.getElementById('deletePhotoBtn').addEventListener('click', function() {
+    const fileInput = document.getElementById('photoInput');
+    const preview = document.getElementById('imagePreview');
+    const placeholder = document.querySelector('.image-preview-placeholder');
+    
+    // Reset du formulaire
+    fileInput.value = '';
+    
+    // Reset de l'aperçu
+    preview.src = '';
+    preview.style.display = 'none';
+    placeholder.style.display = 'flex';
+    
+    // Optionnel : Message de confirmation
+    showTemporaryMessage('Photo supprimée avec succès');
+});
+
+// Fonction utilitaire pour afficher un message temporaire
+function showTemporaryMessage(message) {
+    const infoDiv = document.querySelector('.photo-info');
+    const originalContent = infoDiv.innerHTML;
+    
+    infoDiv.innerHTML = `
+        <small class="text-success">
+            <i class="fas fa-check-circle mr-1"></i> 
+            ${message}
+        </small>
+    `;
+    
+    setTimeout(() => {
+        infoDiv.innerHTML = originalContent;
+    }, 2000);
+}
     </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
