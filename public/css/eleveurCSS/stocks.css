@@ -3,3 +3,362 @@ h1 {
     font-size: 2.5rem;
     font-weight: 900;
 }
+
+:root {
+  --green: #28a745;
+  --green-light: #d4edda;
+  --orange: #ffc107;
+  --red: #dc3545;
+  --blue: #17a2b8;
+  --border: #dee2e6;
+  --text: #000; /* Écriture noir */
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+  font-family: 'Segoe UI', Arial, sans-serif; 
+  background: #f5f5f5; 
+  color: var(--text); /* Tout en noir */
+}
+
+.container { 
+  max-width: 1000px; 
+  margin: 30px auto; 
+  padding: 0 20px; 
+}
+
+/* Titre */
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text); /* Noir au lieu de bleu */
+  margin-bottom: 18px;
+}
+
+/* Toolbar recherche + filtre */
+.stocks-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-box i {
+  position: absolute;
+  left: 12px;
+  top: 11px;
+  color: #555;
+  font-size: 13px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 9px 12px 9px 35px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 14px;
+  background: white;
+  color: var(--text); /* Texte noir dans input */
+}
+
+.search-box input::placeholder {
+  color: #666;
+}
+
+.filter-cat {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 14px;
+  background: white;
+  color: var(--text); /* Texte noir select */
+  cursor: pointer;
+  min-width: 130px;
+}
+
+/* Tableau */
+.table-wrapper {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  margin-bottom: 25px;
+}
+
+.stocks-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.stocks-table thead {
+  background: var(--green-light);
+}
+
+.stocks-table th {
+  padding: 12px 15px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text); /* Noir */
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--border);
+}
+
+.stocks-table td {
+  padding: 12px 15px;
+  font-size: 14px;
+  color: var(--text); /* Noir */
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.stocks-table tbody tr:hover {
+  background: #fafafa;
+}
+
+/* Cellule produit */
+.prod-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.prod-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--green);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Statut stock */
+.stock-status {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+  font-weight: 600;
+}
+
+.status-good { color: var(--green); }
+.status-medium { color: var(--orange); }
+.status-low { color: var(--orange); }
+.status-critical { color: var(--red); }
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-action {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  transition: 0.2s;
+}
+
+.btn-plus { color: var(--green); }
+.btn-eye { color: var(--blue); }
+.btn-edit { color: var(--orange); }
+.btn-del { color: var(--red); }
+
+.btn-action:hover {
+  background: #f8f9fa;
+  transform: scale(1.05);
+}
+
+/* Boutons bas */
+.stocks-bottom-actions {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0 25px 0;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 10px 18px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  color: var(--text); /* Texte noir */
+  transition: 0.2s;
+}
+
+.btn-add {
+  background: var(--green);
+  color: white;
+  border-color: var(--green);
+}
+
+.btn-report {
+  background: white;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+/* Historique */
+.historique {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 18px 20px;
+}
+
+.historique h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text); /* Noir */
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hist-list {
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.hist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--text); /* Noir */
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.hist-item:last-child { border-bottom: none; }
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-green { background: var(--green); }
+.dot-red { background: var(--red); }
+
+/* ===== RESPONSIVE MOBILE ===== */
+@media(max-width: 768px) {
+  .container { 
+    padding: 0 12px; 
+    margin: 20px auto;
+  }
+  
+  .page-title {
+    font-size: 18px;
+  }
+
+  .stocks-toolbar { 
+    flex-direction: column; 
+    gap: 10px;
+  }
+  
+  .search-box {
+    min-width: 100%;
+  }
+
+  .filter-cat {
+    width: 100%;
+  }
+
+  .table-wrapper { 
+    overflow-x: auto; 
+    border-radius: 5px;
+  }
+  
+  .stocks-table { 
+    min-width: 650px; 
+    font-size: 13px;
+  }
+  
+  .stocks-table th,
+  .stocks-table td {
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  .prod-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .btn-action {
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
+  }
+
+  .stocks-bottom-actions { 
+    flex-direction: column; 
+    gap: 8px;
+  }
+  
+  .btn { 
+    justify-content: center; 
+    width: 100%;
+    font-size: 14px;
+  }
+
+  .historique {
+    padding: 14px 12px;
+  }
+
+  .historique h3 {
+    font-size: 13px;
+  }
+
+  .hist-item {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+}
+
+/* Très petits écrans */
+@media(max-width: 480px) {
+  .page-title {
+    font-size: 16px;
+  }
+  
+  .stocks-table {
+    min-width: 550px;
+  }
+}
