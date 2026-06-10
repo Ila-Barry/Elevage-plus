@@ -35,21 +35,21 @@
                 <ul class="navbar-nav mx-auto navbar-menu">
 
                     <li class="nav-item">
-                        <a href="{{ url('dashboard') }}" class="nav-link active">
+                        <a href="<?php echo e(url('dashboard')); ?>" class="nav-link active">
                             <i class="fas fa-home"></i>
                             <span>Dashboard</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a href="{{ url('/messages') }}" class="nav-link">
+                        <a href="<?php echo e(url('/messages')); ?>" class="nav-link">
                             <i class="fas fa-comment"></i>
                             <span>Messages</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a href="{{ url('/notification') }}" class="nav-link">
+                        <a href="<?php echo e(url('/notification')); ?>" class="nav-link">
                             <i class="fas fa-bell"></i>
                             <span>Notification</span>
                         </a>
@@ -89,12 +89,12 @@
 
                         <div class="dropdown-menu dropdown-menu-right shadow border-0">
 
-                            <a class="dropdown-item" href="{{ url('/auth/profile') }}">
+                            <a class="dropdown-item" href="<?php echo e(url('/auth/profile')); ?>">
                                 <i class="fas fa-user mr-2"></i>
                                 Profil
                             </a>
 
-                            <a class="dropdown-item" href="{{ url('/auth/parametre') }}">
+                            <a class="dropdown-item" href="<?php echo e(url('/auth/parametre')); ?>">
                                 <i class="fas fa-cog mr-2"></i>
                                 Paramètres
                             </a>
@@ -120,7 +120,7 @@
 
 </header>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 
     $(document).ready(function () {
@@ -134,4 +134,4 @@
     });
 
 </script>
-@endpush
+<?php $__env->stopPush(); ?><?php /**PATH C:\Users\USER\Desktop\Projet\Elevage-plus\resources\views/layouts/navbar.blade.php ENDPATH**/ ?>

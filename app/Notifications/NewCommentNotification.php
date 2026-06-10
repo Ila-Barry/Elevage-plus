@@ -1,0 +1,28 @@
+<?php
+// notification de nouveau commentaire, déclenchée par l'envoi d'un commentaire sur une publication
+
+namespace App\Notifications;
+
+use App\Models\User;
+use App\Models\Commentaire;
+use App\Models\Publication;
+
+class NewCommentNotification extends BaseNotification
+{
+    protected User $auteur;
+    protected Commentaire $commentaire;
+    protected Publication $publication;
+
+    public function __construct(User $auteur, Commentaire $commentaire, Publication $publication)
+    {
+        $this->auteur = $auteur;
+        $this->commentaire = $commentaire;
+        $this->publication = $publication;
+        
+        $this->title = '💬 Nouveau commentaire';
+        $this->message = "{$auteur->name} a commenté votre publication '{$publication->titre}' : " .
+                         substr($commentaire->contenu, 0, 50) . (strlen($commentaire->contenu) > 50 ? '...' : '');
+        $this->type = 'info';
+        $this->url = "/publications/{$publication->id}#comment-{$commentaire->id}";
+    }
+}

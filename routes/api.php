@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\ElevageController;
 use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\TacheController;
+use App\Http\Controllers\Api\NotificationController;
 
 
 /*
@@ -197,4 +198,21 @@ Route::middleware(['auth:api'])->prefix('taches')->group(function () {
     
     // Actions spécifiques
     Route::patch('/{id}/complete', [TacheController::class, 'complete']);
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Notifications
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api'])->prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::get('/unread', [NotificationController::class, 'unread']);
+    Route::get('/stats', [NotificationController::class, 'stats']);
+    Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/{id}', [NotificationController::class, 'destroy']);
+    Route::delete('/', [NotificationController::class, 'destroyAll']);
 });
