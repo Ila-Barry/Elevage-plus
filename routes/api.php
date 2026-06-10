@@ -7,7 +7,8 @@ use App\Http\Controllers\Api\ProduitController;
 use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\ElevageController;
 use App\Http\Controllers\Api\AnimalController;
-
+use App\Http\Controllers\Api\TacheController;
+use App\Http\Controllers\Api\MessageController;
 
 
 /*
@@ -15,7 +16,6 @@ use App\Http\Controllers\Api\AnimalController;
 | API Routes - Authentification
 |--------------------------------------------------------------------------
 */
-
 // gere la redirection vers la route de login pour les utilisateurs non authentifiés
 Route::get('/login', function () {
     return response()->json([
@@ -177,6 +177,26 @@ Route::middleware(['auth:api'])->prefix('animaux')->group(function () {
     Route::put('/{id}', [AnimalController::class, 'update']);
     Route::delete('/{id}', [AnimalController::class, 'destroy']);
 });
+/*
+|--------------------------------------------------------------------------
+| API Routes - Tâches
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api'])->prefix('taches')->group(function () {
+    // CRUD de base
+    Route::get('/', [TacheController::class, 'index']);
+    Route::get('/calendar', [TacheController::class, 'calendar']);
+    Route::get('/statistiques', [TacheController::class, 'statistiques']);
+    Route::post('/', [TacheController::class, 'store']);
+    Route::get('/{id}', [TacheController::class, 'show']);
+    Route::put('/{id}', [TacheController::class, 'update']);
+    Route::delete('/{id}', [TacheController::class, 'destroy']);
+    
+    // Actions spécifiques
+    Route::patch('/{id}/complete', [TacheController::class, 'complete']);
+
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -184,16 +204,19 @@ Route::middleware(['auth:api'])->prefix('animaux')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-// Routes pour la messagerie (authentification requise)
 Route::middleware(['auth:api'])->prefix('messaging')->group(function () {
     // Conversations
     Route::get('/conversations', [App\Http\Controllers\Api\MessageController::class, 'getConversations']);
-    Route::get('/conversations/{conversationId}/messages', [App\Http\Controllers\Api\MessageController::class, 'getMessages']);
+    Route::get('/conversations/{conversationId}/messages', [MessageController::class, 'getConversations']);
     Route::post('/conversations/{conversationId}/read', [App\Http\Controllers\Api\MessageController::class, 'markConversationAsRead']);
     
     // Messages
     Route::post('/send', [App\Http\Controllers\Api\MessageController::class, 'sendMessage']);
     Route::delete('/messages/{messageId}', [App\Http\Controllers\Api\MessageController::class, 'deleteMessage']);
+    
+    // Médias
+    Route::post('/upload-media', [App\Http\Controllers\Api\MessageController::class, 'uploadMedia']);
+    Route::get('/stickers', [App\Http\Controllers\Api\MessageController::class, 'getAvailableStickers']);
     
     // Utilitaires
     Route::get('/unread-count', [App\Http\Controllers\Api\MessageController::class, 'getUnreadCount']);

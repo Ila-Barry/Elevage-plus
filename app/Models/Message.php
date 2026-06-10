@@ -1,5 +1,5 @@
 <?php
-// app/Models/Message.php
+// app/Models/Message.php (Ajouter les attributs pour les médias)
 
 namespace App\Models;
 
@@ -7,109 +7,110 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * Modèle Message
- * 
- * Représente un message dans une conversation
- * 
- * @property int $id
- * @property int $conversation_id
- * @property int $expediteur_id
- * @property int $destinataire_id
- * @property string $contenu
- * @property bool $lu
- * @property \Carbon\Carbon|null $lu_at
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
- */
 class Message extends Model
 {
     use HasFactory;
 
-    /**
-     * Les attributs qui sont assignables en masse.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'conversation_id',
         'expediteur_id',
         'destinataire_id',
         'contenu',
+        'type',
+        'media_url',
+        'media_type',
+        'media_size',
+        'thumbnail_url',
+        'file_name',
+        'duration',
         'lu',
         'lu_at',
+        'is_deleted',
+        'deleted_for_everyone',
     ];
 
-    /**
-     * Les attributs qui doivent être castés.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'lu' => 'boolean',
+        'is_deleted' => 'boolean',
+        'deleted_for_everyone' => 'boolean',
         'lu_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'media_size' => 'integer',
+        'duration' => 'integer',
     ];
 
+    // ... (autres relations et méthodes)
+    
     /**
-     * Relation avec la conversation
+     * Vérifie si le message contient un média
      */
-    public function conversation(): BelongsTo
+    public function hasMedia(): bool
     {
-        return $this->belongsTo(Conversation::class);
+        return !is_null($this->media_url) && $this->type !== 'text';
     }
-
+    
     /**
-     * Relation avec l'expéditeur
+     * Vérifie si le message est une image
      */
-    public function expediteur(): BelongsTo
+    public function isImage(): bool
     {
-        return $this->belongsTo(User::class, 'expediteur_id');
+        return $this->type === 'image';
     }
-
+    
     /**
-     * Relation avec le destinataire
+     * Vérifie si le message est une vidéo
      */
-    public function destinataire(): BelongsTo
+    public function isVideo(): bool
     {
-        return $this->belongsTo(User::class, 'destinataire_id');
+        return $this->type === 'video';
     }
-
+    
     /**
-     * Marque le message comme lu
-     *
-     * @return void
+     * Vérifie si le message est un fichier
      */
-    public function markAsRead(): void
+    public function isFile(): bool
     {
-        if (!$this->lu) {
-            $this->update([
-                'lu' => true,
-                'lu_at' => now(),
-            ]);
+        return $this->type === 'file';
+    }
+    
+    /**
+     * Vérifie si le message est un sticker
+     */
+    public function isSticker(): bool
+    {
+        return $this->type === 'sticker';
+    }
+    
+    /**
+     * Récupère l'URL complète du média
+     */
+    public function getMediaUrlAttribute($value): ?string
+    {
+        if (!$value) {
+            return null;
         }
+        
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            return $value;
+        }
+        
+        return asset('storage/' . $value);
     }
-
+    
     /**
-     * Vérifie si l'utilisateur est l'expéditeur du message
-     *
-     * @param int $userId
-     * @return bool
+     * Récupère l'URL complète de la miniature
      */
-    public function isSentBy(int $userId): bool
+    public function getThumbnailUrlAttribute($value): ?string
     {
-        return $this->expediteur_id === $userId;
-    }
-
-    /**
-     * Vérifie si l'utilisateur est le destinataire du message
-     *
-     * @param int $userId
-     * @return bool
-     */
-    public function isReceivedBy(int $userId): bool
-    {
-        return $this->destinataire_id === $userId;
+        if (!$value) {
+            return null;
+        }
+        
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            return $value;
+        }
+        
+        return asset('storage/' . $value);
     }
 }
