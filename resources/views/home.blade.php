@@ -7,7 +7,7 @@
     <!-- style_css -->
     <link rel="stylesheet" href="{{ asset('css/eleveurCSS/home.css') }}">
 
-<main>
+ <main>
   <!-- HERO : 4 images en grille + carte centrée -->
   <section class="hero">
     <div class="hero-bg">
@@ -18,34 +18,40 @@
     </div>
     <div class="hero-card">
       <h1>Gérez votre élevage<br><span class="text-green">facilement</span></h1>
-      <p class="hero-subtitle">Rejoignez la communauté éleveurs</p>
+      <p class="hero-subtitle"><i class="fas fa-users"></i> Rejoignez la communauté éleveurs</p>
       <p>La plateforme tout-en-un pour gérer vos animaux, vos tâches, vos stocks<br>et échanger avec d'autres éleveurs.</p>
-      <a href="#" class="btn btn-success">Commencez gratuitement <i class="fas fa-arrow-right"></i></a>
+      <a href="#" class="btn btn-success"><i class="fas fa-rocket"></i> Commencez gratuitement <i class="fas fa-arrow-right"></i></a>
     </div>
   </section>
 
   <!-- CONTENU -->
   <div class="container content-wrapper">
-    <!-- Publications -->
+    <!-- Colonne gauche : Publications -->
     <section class="posts">
       <div class="section-header">
-        <h2>DERNIÈRES PUBLICATIONS</h2>
+        <h2><i class="fas fa-newspaper"></i> DERNIÈRES PUBLICATIONS</h2>
+      </div>
+
+       <!-- TABS EN BAS -->
+      <div class="bottom-tabs">
+        <h3><i class="fas fa-filter"></i> Filtrer les publications</h3>
         <div class="tabs">
           <button class="tab active"><i class="fas fa-lightbulb"></i> Conseils</button>
           <button class="tab"><i class="fas fa-user-edit"></i> Expériences</button>
           <button class="tab"><i class="fas fa-bell"></i> Alertes</button>
           <button class="tab"><i class="fas fa-fire"></i> Tendances</button>
         </div>
-      </div>
+      </div> <br>
+
 
       <!-- Post 1 -->
       <article class="post-card">
         <div class="post-top">
           <img src="https://i.pravatar.cc/40?u=jean1" class="avatar" alt="Jean Dupont">
           <div class="post-info">
-           <a href="{{ url('/profilEleveur') }}"> <h4>Jean Dupont - Éleveur bovin <i class="fas fa-circle-check text-info"></i> • 2 jours ago</h4></a>
+           <a href="{{ url('/profilEleveur') }}"> <h4>Jean Dupont - Éleveur bovin <i class="fas fa-circle-check text-info"></i> • 2 jours</h4></a>
             <div class="post-meta">
-              <span><i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="far fa-star"></i> (45 likes)</span>
+              <span><i class="fas fa-star text-warning"></i> 4.0 (45 likes)</span>
               <span><i class="far fa-comment-dots"></i> 12 commentaires</span>
               <span><i class="far fa-eye"></i> 230 vues</span>
             </div>
@@ -71,9 +77,9 @@
         <div class="post-top">
           <img src="https://i.pravatar.cc/40?u=jean2" class="avatar" alt="Jean Dupont">
           <div class="post-info">
-            <h4>Jean Dupont - Éleveur bovin <i class="fas fa-circle-check text-info"></i> • 2 jours ago</h4>
+            <h4>Jean Dupont - Éleveur bovin <i class="fas fa-circle-check text-info"></i> • 2 jours</h4>
             <div class="post-meta">
-              <span><i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="far fa-star"></i> (45 likes)</span>
+              <span><i class="fas fa-star text-warning"></i> 4.0 (45 likes)</span>
               <span><i class="far fa-comment-dots"></i> 12 commentaires</span>
               <span><i class="far fa-eye"></i> 230 vues</span>
             </div>
@@ -94,21 +100,21 @@
         </div>
       </article>
 
-      <!-- Post 3 -->
+       <!-- Post 3 -->
       <article class="post-card">
         <div class="post-top">
-          <img src="https://i.pravatar.cc/40?u=jean3" class="avatar" alt="Jean Dupont">
+          <img src="https://i.pravatar.cc/40?u=jean1" class="avatar" alt="Jean Dupont">
           <div class="post-info">
-            <h4>Jean Dupont - Éleveur bovin <i class="fas fa-circle-check text-info"></i> • 2 jours ago</h4>
+           <a href="{{ url('/profilEleveur') }}"> <h4>Jean Dupont - Éleveur bovin <i class="fas fa-circle-check text-info"></i> • 2 jours</h4></a>
             <div class="post-meta">
-              <span><i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="far fa-star"></i> (45 likes)</span>
+              <span><i class="fas fa-star text-warning"></i> 4.0 (45 likes)</span>
               <span><i class="far fa-comment-dots"></i> 12 commentaires</span>
               <span><i class="far fa-eye"></i> 230 vues</span>
             </div>
           </div>
         </div>
         <div class="post-content">
-          <img src="https://images.unsplash.com/photo-1589923188651-268a9765e432?q=80&w=250" alt="Éleveuse">
+          <img src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?q=80&w=250" alt="Vaches">
           <div class="post-text">
             <h3>COMMENT J'AI AUGMENTÉ MA PRODUCTION LAITIÈRE DE 30%</h3>
             <p>Le mois dernier, j'ai appliqué une nouvelle méthode d'alimentation à mon troupeau de 45 vaches...</p>
@@ -122,57 +128,103 @@
         </div>
       </article>
 
+        <!-- Post 4 -->
+      <article class="post-card">
+        <div class="post-top">
+          <img src="https://i.pravatar.cc/40?u=jean2" class="avatar" alt="Jean Dupont">
+          <div class="post-info">
+            <h4>Jean Dupont - Éleveur bovin <i class="fas fa-circle-check text-info"></i> • 2 jours</h4>
+            <div class="post-meta">
+              <span><i class="fas fa-star text-warning"></i> 4.0 (45 likes)</span>
+              <span><i class="far fa-comment-dots"></i> 12 commentaires</span>
+              <span><i class="far fa-eye"></i> 230 vues</span>
+            </div>
+          </div>
+        </div>
+        <div class="post-content">
+          <img src="https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?q=80&w=250" alt="Moutons">
+          <div class="post-text">
+            <h3>COMMENT J'AI AUGMENTÉ MA PRODUCTION LAITIÈRE DE 30%</h3>
+            <p>Le mois dernier, j'ai appliqué une nouvelle méthode d'alimentation à mon troupeau de 45 vaches...</p>
+            <div class="post-actions">
+              <button><i class="far fa-thumbs-up"></i> Liker 45</button>
+              <button><i class="far fa-comment-dots"></i> Commenter 12</button>
+              <button><i class="fas fa-share-alt"></i> Partager</button>
+              <a href="#" class="read-more">Lire la suite <i class="fas fa-arrow-right"></i></a>
+            </div>
+          </div>
+        </div>
+      </article>
+
+
+
       <!-- Pagination -->
       <div class="pagination">
         <button disabled><i class="fas fa-chevron-left"></i> précédente</button>
         <button class="active">1</button>
         <button>2</button>
         <button>3</button>
-        <button>4</button>
         <button>suivante <i class="fas fa-chevron-right"></i></button>
       </div>
+
+     
     </section>
 
-    <!-- Sidebar -->
+    <!-- Sidebar droite -->
     <aside class="sidebar">
-      <h3>STATISTIQUES DE LA COMMUNAUTÉ</h3>
-      <div class="stats-grid">
-        <div class="stat-box stat-green">
-          <div class="stat-num">127</div>
-          <div>éleveurs</div>
+      
+      <!-- STATS EN BAS AVEC ICÔNES -->
+      <div class="bottom-stats">
+        <h3><i class="fas fa-chart-pie"></i> STATISTIQUES DE LA COMMUNAUTÉ</h3>
+        <div class="stats-grid">
+          <div class="stat-box stat-green">
+            <i class="fas fa-user-friends stat-icon"></i>
+            <div class="stat-num">127</div>
+            <div>éleveurs</div>
+          </div>
+          <div class="stat-box stat-blue">
+            <i class="fas fa-file-alt stat-icon"></i>
+            <div class="stat-num">345</div>
+            <div>articles</div>
+          </div>
+          <div class="stat-box stat-pink">
+            <i class="fas fa-heart stat-icon"></i>
+            <div class="stat-num">2.5k</div>
+            <div>likes</div>
+          </div>
+          <div class="stat-box stat-mint">
+            <i class="fas fa-comments stat-icon"></i>
+            <div class="stat-num">890</div>
+            <div>coms</div>
+          </div>
         </div>
-        <div class="stat-box stat-blue">
-          <div class="stat-num">345</div>
-          <div>articles</div>
-        </div>
-        <div class="stat-box stat-pink">
-          <div class="stat-num">2.5k</div>
-          <div>likes</div>
-        </div>
-        <div class="stat-box stat-mint">
-          <div class="stat-num">890</div>
-          <div>coms</div>
-        </div>
-      </div>
+      </div> <br>
 
-      <h3>POURQUOI REJOINDRE ÉLEVAGE+ ?</h3>
+      <!-- POURQUOI REJOINDRE AVEC ICÔNES -->
+      <h3><i class="fas fa-question-circle"></i> POURQUOI REJOINDRE ÉLEVAGE+?</h3>
       <div class="why-list">
         <div class="why-item">
-          <i class="fas fa-chart-bar text-green"></i>
+          <div class="why-icon-box icon-green">
+            <i class="fas fa-chart-bar"></i>
+          </div>
           <div>
             <strong>Suivi professionnel</strong>
             <p>Gérez vos animaux, vos tâches, vos stocks et toutes vos activités d'élevage facilement.</p>
           </div>
         </div>
         <div class="why-item">
-          <i class="fas fa-users text-blue"></i>
+          <div class="why-icon-box icon-blue">
+            <i class="fas fa-users"></i>
+          </div>
           <div>
             <strong>Communauté d'entraide</strong>
             <p>Échangez avec d'autres éleveurs, partagez vos expériences et apprenez ensemble.</p>
           </div>
         </div>
         <div class="why-item">
-          <i class="fas fa-bell text-orange"></i>
+          <div class="why-icon-box icon-orange">
+            <i class="fas fa-bell"></i>
+          </div>
           <div>
             <strong>Alertes intelligentes</strong>
             <p>Recevez des rappels et des alertes pour ne rien oublier et prendre les bonnes décisions.</p>
@@ -181,9 +233,9 @@
       </div>
 
       <div class="cta-box">
-        <h4>Prête améliorer votre élevage ?</h4>
-        <p>rejoignez les centaines d'éleveurs qui nous font déjà confiance !</p>
-        <a href="#" class="btn btn-success w-100">Créez votre compte gratuitement</a>
+        <h4><i class="fas fa-rocket"></i> Prête à améliorer votre élevage?</h4>
+        <p>rejoignez les centaines d'éleveurs qui nous font déjà confiance!</p>
+        <a href="#" class="btn btn-success w-100"><i class="fas fa-user-plus"></i> Créez votre compte gratuitement</a>
       </div>
 
       <div class="sidebar-imgs">
@@ -193,4 +245,5 @@
     </aside>
   </div>
 </main>
+
 @endsection
