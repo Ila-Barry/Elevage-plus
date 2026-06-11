@@ -763,7 +763,7 @@ textarea.form-control {
 }
 
 /* Section Applications mobiles */
-.mobile-apps-section {
+/* .mobile-apps-section {
     margin-top: 25px;
     padding-top: 20px;
     border-top: 1px solid #f0f0f0;
@@ -812,6 +812,39 @@ textarea.form-control {
     text-align: center;
     font-size: 13px;
     opacity: 0.9;
+} */
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.action-btn {
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-modify {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.btn-delete {
+    background: #f8d7da;
+    color: #dc3545;
+}
+
+.btn-add-task {
+    background: #d4edda;
+    color: #198754;
 }
 
 /* Responsive detail modal */
