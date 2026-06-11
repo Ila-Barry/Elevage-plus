@@ -65,7 +65,6 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
     });
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | API Routes - Publications

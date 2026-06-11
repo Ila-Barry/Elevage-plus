@@ -1,5 +1,4 @@
 <?php
-// app/Models/Message.php (Ajouter les attributs pour les médias)
 
 namespace App\Models;
 
@@ -30,87 +29,79 @@ class Message extends Model
     ];
 
     protected $casts = [
-        'lu' => 'boolean',
-        'is_deleted' => 'boolean',
+        'lu'                   => 'boolean',
+        'is_deleted'           => 'boolean',
         'deleted_for_everyone' => 'boolean',
-        'lu_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'media_size' => 'integer',
-        'duration' => 'integer',
+        'lu_at'                => 'datetime',
+        'created_at'           => 'datetime',
+        'updated_at'           => 'datetime',
+        'media_size'           => 'integer',
+        'duration'             => 'integer',
     ];
 
-    // ... (autres relations et méthodes)
-    
-    /**
-     * Vérifie si le message contient un média
-     */
+    // ========== RELATIONS ==========
+
+    public function expediteur(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'expediteur_id');
+    }
+
+    public function destinataire(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'destinataire_id');
+    }
+
+    public function conversation(): BelongsTo
+    {
+        return $this->belongsTo(Conversation::class, 'conversation_id');
+    }
+
+    // ========== MÉTHODES ==========
+
     public function hasMedia(): bool
     {
         return !is_null($this->media_url) && $this->type !== 'text';
     }
-    
-    /**
-     * Vérifie si le message est une image
-     */
+
     public function isImage(): bool
     {
         return $this->type === 'image';
     }
-    
-    /**
-     * Vérifie si le message est une vidéo
-     */
+
     public function isVideo(): bool
     {
         return $this->type === 'video';
     }
-    
-    /**
-     * Vérifie si le message est un fichier
-     */
+
     public function isFile(): bool
     {
         return $this->type === 'file';
     }
-    
-    /**
-     * Vérifie si le message est un sticker
-     */
+
     public function isSticker(): bool
     {
         return $this->type === 'sticker';
     }
-    
-    /**
-     * Récupère l'URL complète du média
-     */
+
     public function getMediaUrlAttribute($value): ?string
     {
-        if (!$value) {
-            return null;
-        }
-        
+        if (!$value) return null;
+
         if (filter_var($value, FILTER_VALIDATE_URL)) {
             return $value;
         }
-        
+
         return asset('storage/' . $value);
     }
-    
-    /**
-     * Récupère l'URL complète de la miniature
-     */
+
     public function getThumbnailUrlAttribute($value): ?string
     {
-        if (!$value) {
-            return null;
-        }
-        
+        if (!$value) return null;
+
         if (filter_var($value, FILTER_VALIDATE_URL)) {
             return $value;
         }
-        
+
         return asset('storage/' . $value);
     }
 }

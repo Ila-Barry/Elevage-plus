@@ -11,11 +11,12 @@ return new class extends Migration
         Schema::create('conversations', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user1_id');
-            $table->foreign('user1_id')->references('id')->on('users')->onDelete('cascade');
             $table->unsignedBigInteger('user2_id');
+            $table->foreign('user1_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('user2_id')->references('id')->on('users')->onDelete('cascade');
             $table->text('derniere_message')->nullable();
-            $table->timestamps();  // ← corrigé
+            $table->timestamp('last_message_at')->nullable();
+            $table->timestamps();
         });
     }
 
