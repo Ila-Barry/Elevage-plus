@@ -10,7 +10,7 @@
 <div class="dashboard-wrapper container-fluid py-4">
     
 
-    <!-- En-tête avec bouton de création -->
+ <!-- En-tête avec bouton de création -->
     
     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
         <button type="button" class="btn btn-create d-flex align-items-center" data-toggle="modal" data-target="#createElevageModal">
