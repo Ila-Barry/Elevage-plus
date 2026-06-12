@@ -20,8 +20,14 @@ return new class extends Migration
             $table->text('contenu')->nullable();
             $table->string('media_url')->nullable();
             $table->string('media_type')->nullable();
+            $table->integer('media_size')->nullable();
+            $table->string('thumbnail_url')->nullable();
+            $table->string('file_name')->nullable();
+            $table->integer('duration')->nullable();
             $table->boolean('lu')->default(false);
             $table->timestamp('lu_at')->nullable();
+            $table->boolean('is_deleted')->default(false);
+            $table->boolean('deleted_for_everyone')->default(false);
             $table->timestamps();
         });
     }

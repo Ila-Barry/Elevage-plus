@@ -206,7 +206,7 @@ Route::middleware(['auth:api'])->prefix('taches')->group(function () {
 Route::middleware(['auth:api'])->prefix('messaging')->group(function () {
     // Conversations
     Route::get('/conversations', [App\Http\Controllers\Api\MessageController::class, 'getConversations']);
-    Route::get('/conversations/{conversationId}/messages', [MessageController::class, 'getConversations']);
+    Route::get('/conversations/{conversationId}/messages', [MessageController::class, 'getMessages']);
     Route::post('/conversations/{conversationId}/read', [App\Http\Controllers\Api\MessageController::class, 'markConversationAsRead']);
     
     // Messages
@@ -219,4 +219,28 @@ Route::middleware(['auth:api'])->prefix('messaging')->group(function () {
     
     // Utilitaires
     Route::get('/unread-count', [App\Http\Controllers\Api\MessageController::class, 'getUnreadCount']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Dashboard et Statistiques
+|--------------------------------------------------------------------------
+*/
+
+// Routes protégées (authentification requise)
+Route::middleware(['auth:api'])->prefix('dashboard')->group(function () {
+    // Dashboard principal
+    Route::get('/', [App\Http\Controllers\Api\DashboardController::class, 'index']);
+    
+    // Données pour les graphiques
+    Route::get('/charts', [App\Http\Controllers\Api\DashboardController::class, 'chartData']);
+    
+    // Rafraîchir le cache
+    Route::post('/refresh-cache', [App\Http\Controllers\Api\DashboardController::class, 'refreshCache']);
+    
+});
+
+// Routes admin pour les statistiques globales
+Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard/stats', [App\Http\Controllers\Api\DashboardController::class, 'adminStats']);
 });
