@@ -109,6 +109,36 @@
         <div class="pub-badge">27j</div>
       </article>
 
+       <!-- Post 3 -->
+      <article class="pub-card">
+        <img src="https://images.unsplash.com/photo-1589923188651-268a9765e432?q=80&w=200" alt="Bovins">
+        <div class="pub-content">
+          <h3>5 ASTUCES POUR L'HIVERNAGE DES BOVINS</h3>
+          <p>Le mois dernier j'ai appliqué une nouvelle méthode d'alimentation à mon troupeau de 45 vaches...</p>
+          <div class="pub-meta">
+            <span><i class="fas fa-heart text-red"></i> 45 likes</span>
+            <span><i class="far fa-comment-dots"></i> 12 commentaires</span>
+            <span><i class="far fa-eye"></i> 230 vues</span>
+          </div>
+        </div>
+        <div class="pub-badge">27j</div>
+      </article>
+
+       <!-- Post 3 -->
+      <article class="pub-card">
+        <img src="https://images.unsplash.com/photo-1589923188651-268a9765e432?q=80&w=200" alt="Bovins">
+        <div class="pub-content">
+          <h3>5 ASTUCES POUR L'HIVERNAGE DES BOVINS</h3>
+          <p>Le mois dernier j'ai appliqué une nouvelle méthode d'alimentation à mon troupeau de 45 vaches...</p>
+          <div class="pub-meta">
+            <span><i class="fas fa-heart text-red"></i> 45 likes</span>
+            <span><i class="far fa-comment-dots"></i> 12 commentaires</span>
+            <span><i class="far fa-eye"></i> 230 vues</span>
+          </div>
+        </div>
+        <div class="pub-badge">27j</div>
+      </article>
+
       <button class="btn-more">Afficher plus de publications <i class="fas fa-plus"></i></button>
     </section>
   </div>
