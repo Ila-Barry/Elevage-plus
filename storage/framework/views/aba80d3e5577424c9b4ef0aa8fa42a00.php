@@ -49,9 +49,9 @@
                     </li>
 
                     <li class="nav-item">
-                        <a href="<?php echo e(url('/auth/profile')); ?>" class="nav-link">
-                            <i class="fas fa-user"></i>
-                            <span>Profil</span>
+                        <a href="<?php echo e(url('/notification')); ?>" class="nav-link">
+                            <i class="fas fa-bell"></i>
+                            <span>Notification</span>
                         </a>
                     </li>
 
