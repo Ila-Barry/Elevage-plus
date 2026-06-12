@@ -378,19 +378,19 @@
 
                 <!-- Section des boutons -->
                 <div class="action-buttons">
-    <button class="action-btn btn-modify">
-        <i class="fas fa-edit"></i>
-        Modifier l'animal
-    </button>
-    <button class="action-btn btn-delete">
-        <i class="fas fa-trash-alt"></i>
-        Supprimer
-    </button>
-    <button class="action-btn btn-add-task">
-        <i class="fas fa-plus-circle"></i>
-        Ajouter une tâche
-    </button>
-</div>
+                                    <button class="action-btn btn-modify">
+                                        <i class="fas fa-edit"></i>
+                                        Modifier l'animal
+                                    </button>
+                                    <button class="action-btn btn-delete">
+                                        <i class="fas fa-trash-alt"></i>
+                                        Supprimer
+                                    </button>
+                                    <button class="action-btn btn-add-task">
+                                        <i class="fas fa-plus-circle"></i>
+                                        Ajouter un animal
+                                    </button>
+                </div>
             </div>
         </div>
     </div>
