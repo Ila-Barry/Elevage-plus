@@ -49,6 +49,10 @@ Route::get('/messages', function () {
     return view('messages');
 });
 
+Route::get('/notification', function () {
+    return view('notification');
+});
+
 
 Route::get('/auth/parametre', function () {
     return view('auth/parametre');

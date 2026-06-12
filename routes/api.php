@@ -8,7 +8,11 @@ use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\ElevageController;
 use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\TacheController;
+
 use App\Http\Controllers\Api\MessageController;
+
+use App\Http\Controllers\Api\NotificationController;
+
 
 
 /*
@@ -193,8 +197,7 @@ Route::middleware(['auth:api'])->prefix('taches')->group(function () {
     Route::delete('/{id}', [TacheController::class, 'destroy']);
     
     // Actions spécifiques
-    Route::patch('/{id}/complete', [TacheController::class, 'complete']);
-
+  Route::patch('/{id}/complete', [TacheController::class, 'complete']);
 });
 
 /*
@@ -204,21 +207,30 @@ Route::middleware(['auth:api'])->prefix('taches')->group(function () {
 */
 
 Route::middleware(['auth:api'])->prefix('messaging')->group(function () {
-    // Conversations
-    Route::get('/conversations', [App\Http\Controllers\Api\MessageController::class, 'getConversations']);
+    Route::get('/conversations', [MessageController::class, 'getConversations']);
     Route::get('/conversations/{conversationId}/messages', [MessageController::class, 'getMessages']);
-    Route::post('/conversations/{conversationId}/read', [App\Http\Controllers\Api\MessageController::class, 'markConversationAsRead']);
-    
-    // Messages
-    Route::post('/send', [App\Http\Controllers\Api\MessageController::class, 'sendMessage']);
-    Route::delete('/messages/{messageId}', [App\Http\Controllers\Api\MessageController::class, 'deleteMessage']);
-    
-    // Médias
-    Route::post('/upload-media', [App\Http\Controllers\Api\MessageController::class, 'uploadMedia']);
-    Route::get('/stickers', [App\Http\Controllers\Api\MessageController::class, 'getAvailableStickers']);
-    
-    // Utilitaires
-    Route::get('/unread-count', [App\Http\Controllers\Api\MessageController::class, 'getUnreadCount']);
+    Route::post('/conversations/{conversationId}/read', [MessageController::class, 'markConversationAsRead']);
+    Route::post('/send', [MessageController::class, 'sendMessage']);
+    Route::delete('/messages/{messageId}', [MessageController::class, 'deleteMessage']);
+    Route::post('/upload-media', [MessageController::class, 'uploadMedia']);
+    Route::get('/stickers', [MessageController::class, 'getAvailableStickers']);
+    Route::get('/unread-count', [MessageController::class, 'getUnreadCount']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Notifications
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api'])->prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::get('/unread', [NotificationController::class, 'unread']);
+    Route::get('/stats', [NotificationController::class, 'stats']);
+    Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/{id}', [NotificationController::class, 'destroy']);
+    Route::delete('/', [NotificationController::class, 'destroyAll']);
 });
 
 /*
@@ -227,20 +239,12 @@ Route::middleware(['auth:api'])->prefix('messaging')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-// Routes protégées (authentification requise)
 Route::middleware(['auth:api'])->prefix('dashboard')->group(function () {
-    // Dashboard principal
     Route::get('/', [App\Http\Controllers\Api\DashboardController::class, 'index']);
-    
-    // Données pour les graphiques
     Route::get('/charts', [App\Http\Controllers\Api\DashboardController::class, 'chartData']);
-    
-    // Rafraîchir le cache
     Route::post('/refresh-cache', [App\Http\Controllers\Api\DashboardController::class, 'refreshCache']);
-    
 });
 
-// Routes admin pour les statistiques globales
 Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard/stats', [App\Http\Controllers\Api\DashboardController::class, 'adminStats']);
 });

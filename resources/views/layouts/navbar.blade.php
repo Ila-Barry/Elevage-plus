@@ -49,9 +49,9 @@
                     </li>
 
                     <li class="nav-item">
-                        <a href="{{ url('/auth/profile') }}" class="nav-link">
-                            <i class="fas fa-user"></i>
-                            <span>Profil</span>
+                        <a href="{{ url('/notification') }}" class="nav-link">
+                            <i class="fas fa-bell"></i>
+                            <span>Notification</span>
                         </a>
                     </li>
 
