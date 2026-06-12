@@ -77,7 +77,7 @@
         <div class="post-top">
           <img src="https://i.pravatar.cc/40?u=jean2" class="avatar" alt="Jean Dupont">
           <div class="post-info">
-            <h4>Jean Dupont - Éleveur bovin <i class="fas fa-circle-check text-info"></i> • 2 jours</h4>
+            <h8>Jean Dupont - Éleveur bovin <i class="fas fa-circle-check text-info"></i> • 2 jours</h8>
             <div class="post-meta">
               <span><i class="fas fa-star text-warning"></i> 4.0 (45 likes)</span>
               <span><i class="far fa-comment-dots"></i> 12 commentaires</span>
