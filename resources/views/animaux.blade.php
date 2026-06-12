@@ -376,32 +376,21 @@
                     </div>
                 </div>
 
-                <!-- Section Applications mobiles -->
-                <div class="mobile-apps-section">
-                    <div class="mobile-apps-content">
-                        <div class="apps-icons">
-                            <div class="app-icon">
-                                <i class="fas fa-mobile-alt"></i>
-                                <span>Début solitaire</span>
-                            </div>
-                            <div class="app-icon">
-                                <i class="fas fa-chart-simple"></i>
-                                <span>Perturbation</span>
-                            </div>
-                            <div class="app-icon">
-                                <i class="fas fa-shield-alt"></i>
-                                <span>Sécurité</span>
-                            </div>
-                            <div class="app-icon">
-                                <i class="fas fa-microchip"></i>
-                                <span>Technologie</span>
-                            </div>
-                        </div>
-                        <div class="app-pagination">
-                            <span>Appuyez sur 1 sur 10</span>
-                        </div>
-                    </div>
-                </div>
+                <!-- Section des boutons -->
+                <div class="action-buttons">
+    <button class="action-btn btn-modify">
+        <i class="fas fa-edit"></i>
+        Modifier l'animal
+    </button>
+    <button class="action-btn btn-delete">
+        <i class="fas fa-trash-alt"></i>
+        Supprimer
+    </button>
+    <button class="action-btn btn-add-task">
+        <i class="fas fa-plus-circle"></i>
+        Ajouter une tâche
+    </button>
+</div>
             </div>
         </div>
     </div>
