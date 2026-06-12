@@ -52,8 +52,8 @@
           <tr>
             <td>
               <div class="prod-cell">
-              <a href=""> <span class="prod-icon"><i class="fas fa-cow"></i></span>
-                Aliment vache premium</a> 
+               <span class="prod-icon"><i class="fas fa-cow"></i></span>
+                Aliment vache premium
               </div>
             </td>
             <td>Aliments</td>
