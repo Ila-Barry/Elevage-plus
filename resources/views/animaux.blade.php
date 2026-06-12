@@ -39,22 +39,30 @@
 
         <select>
             <option>Tous</option>
+        </select>
+
+        <select class="filter-espece-detail">
+            <option>Espèce</option>
             <option>Bovin</option>
             <option>Ovin</option>
             <option>Caprin</option>
         </select>
 
-        <select>
-            <option>Espèce</option>
-        </select>
-
-        <select>
+        <select id="filterAge">
             <option>Âge</option>
+            <option>-6 mois</option>
+            <option>6-9 mois</option>
+            <option>9-12 mois</option>
+            <option>12 mois +</option>
         </select>
 
-        <select>
+        <select class="filter-sante">
             <option>Santé</option>
-        </select>
+            <option>Bonne</option>
+            <option>Moyenne</option>
+            <option>Critique</option>
+    </select>
+        
 
     </div>
 
