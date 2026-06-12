@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="{{ asset('css/authCSS/login.css') }}">
 </head>
 <body>
-<div class="login-container">
+<div class="login-container ">
         <!-- Logo et en-tête -->
         <div class="login-header">
             <div class="logo">
@@ -28,9 +28,8 @@
             </p>
         </div>
 
-        <!-- <img src="{{asset('images/img-elevage.jpeg')}}" > -->
 
-        <div class="login-card">
+        <div class="login-card mx-auto">
             <!-- Titre du formulaire -->
             <div class="form-title">
                 <i class="fas fa-sign-in-alt"></i>
