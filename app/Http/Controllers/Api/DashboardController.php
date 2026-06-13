@@ -229,7 +229,7 @@ class DashboardController extends Controller
         // Évolution mensuelle des élevages (dernier 12 mois)
         $evolution = DB::table('elevages')
             ->where('user_id', $user->id)
-            ->where('created_at', '>=', now()->subMonths(12))
+            ->where('elevages.created_at', '>=', now()->subMonths(12))
             ->select([
                 DB::raw('DATE_FORMAT(created_at, "%Y-%m") as mois'),
                 DB::raw('COUNT(*) as nombre'),
@@ -312,7 +312,7 @@ class DashboardController extends Controller
         $evolutionNaissances = DB::table('animaux')
             ->join('elevages', 'animaux.elevage_id', '=', 'elevages.id')
             ->where('elevages.user_id', $user->id)
-            ->where('created_at', '>=', now()->subMonths(12))
+            ->where('elevages.created_at', '>=', now()->subMonths(12))
             ->select([
                 DB::raw('DATE_FORMAT(animaux.created_at, "%Y-%m") as mois'),
                 DB::raw('COUNT(*) as nombre'),
@@ -477,7 +477,7 @@ class DashboardController extends Controller
         // Publications par catégorie
         $publicationsParCategorie = DB::table('publications')
             ->where('user_id', $user->id)
-            ->where('etat', 'publiee')
+            ->where('statut', 'publiee')
             ->groupBy('categorie')
             ->select([
                 'categorie',
@@ -505,7 +505,7 @@ class DashboardController extends Controller
         // Top publications
         $topPublications = DB::table('publications')
             ->where('user_id', $user->id)
-            ->where('etat', 'publiee')
+            ->where('statut', 'publiee')
             ->orderByDesc('nbr_likes')
             ->limit(5)
             ->select([
@@ -539,7 +539,7 @@ class DashboardController extends Controller
     {
         $stats = DB::table('publications')
             ->where('user_id', $user->id)
-            ->where('etat', 'publiee')
+            ->where('statut', 'publiee')
             ->select([
                 DB::raw('SUM(nbr_likes) as total_likes'),
                 DB::raw('SUM(nbr_vues) as total_vues'),
@@ -565,7 +565,7 @@ class DashboardController extends Controller
         // Dernières publications
         $dernieresPublications = DB::table('publications')
             ->where('user_id', $user->id)
-            ->where('etat', 'publiee')
+            ->where('statut', 'publiee')
             ->orderByDesc('created_at')
             ->limit(5)
             ->select([
@@ -602,7 +602,7 @@ class DashboardController extends Controller
             ->limit(5)
             ->select([
                 'taches.type',
-                'taches.date_realisation',
+                'taches.date_realisee',
                 'animaux.nom as animal_nom',
             ])
             ->get();
@@ -663,7 +663,7 @@ class DashboardController extends Controller
         
         // Nouveaux utilisateurs par mois
         $nouveauxParMois = DB::table('users')
-            ->where('created_at', '>=', now()->subMonths(12))
+            ->where('elevages.created_at', '>=', now()->subMonths(12))
             ->select([
                 DB::raw('DATE_FORMAT(created_at, "%Y-%m") as mois'),
                 DB::raw('COUNT(*) as nombre'),
@@ -741,7 +741,7 @@ class DashboardController extends Controller
         $totalVues = DB::table('publications')->sum('nbr_vues');
         
         $publicationsParMois = DB::table('publications')
-            ->where('created_at', '>=', now()->subMonths(12))
+            ->where('elevages.created_at', '>=', now()->subMonths(12))
             ->select([
                 DB::raw('DATE_FORMAT(created_at, "%Y-%m") as mois'),
                 DB::raw('COUNT(*) as nombre'),
