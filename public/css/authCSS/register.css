@@ -10,6 +10,8 @@ body {
     background-image: url("/images/elel.jpeg");
     background-size: cover;
     background-position: center;
+    position: relative;
+
     
 }
 
