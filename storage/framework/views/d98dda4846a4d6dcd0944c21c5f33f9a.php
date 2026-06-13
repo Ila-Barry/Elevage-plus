@@ -87,14 +87,16 @@
                     <div class="conversation-time">
                         <span>1 ja</span>
                     </div>
+
                 </div> 
-</br></br></br>
+            </div> <br> <br> <br>
+
                 <div class="app-banner-buttons">
                 <button class="btn-new-conversation">
                     <i class="fas fa-plus mr-2"></i> Nouvelle conversation
                 </button>
             </div>
-            </div>
+        </div>
 
             <!-- Bouton Nouvelle conversation (mobile) -->
             <button class="btn-new-conversation-mobile">
@@ -202,22 +204,6 @@
         </div>
         
     </div>
-
-    <!-- Bannière application mobile (conforme à l'image) -->
-   <!-- <div class="app-banner">
-        <div class="app-banner-content">
-            <div class="app-banner-text">
-                <h4><i class="fas fa-mobile-alt mr-2"></i> Application mobile</h4>
-                <p>Gérez votre élevage <br>partout, à tout moment</p>
-            </div>
-            <div class="app-banner-buttons">
-                <button class="btn-new-conversation">
-                    <i class="fas fa-plus mr-2"></i> Nouvelle conversation
-                </button>
-            </div>
-        </div>
-    </div> -->
-
 </div>
 
 <?php $__env->stopSection(); ?>
