@@ -9,17 +9,12 @@
 @section('content')
 <div class="dashboard-wrapper container-fluid py-4">
     
-
- <!-- En-tête avec bouton de création -->
-    
     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
         <button type="button" class="btn btn-create d-flex align-items-center" data-toggle="modal" data-target="#createElevageModal">
             <i class="fas fa-plus mr-2"></i> Créer un nouvel élevage
         </button>
     </div>
 
-    <div class="elevages-list d-flex flex-column gap-2 mb-4">
-    <!-- Liste des élevages -->
     <div class="elevages-list d-flex flex-column gap-3 mb-4">
         @forelse($elevages ?? [
             ['id' => 1, 'titre' => 'ÉLEVAGE BOVIN - THIÈS', 'type' => 'bovins', 'local' => 'Thiès, Sénégal', 'surface' => '5 hectares', 'animaux' => '45 bovins', 'date' => '15/03/2025'],
@@ -27,26 +22,6 @@
             ['id' => 3, 'titre' => 'ÉLEVAGE BOVIN - SAINT-LOUIS', 'type' => 'bovins', 'local' => 'Saint-Louis, Sénégal', 'surface' => '8 hectares', 'animaux' => '60 bovins', 'date' => '22/04/2025']
         ] as $elevage)
 
-    <div class="elevage-card bg-white rounded shadow-sm border mb-3">
-       <div class="elevage-card bg-white rounded shadow-sm border mb-3">
-    <div class="row no-gutters align-items-stretch">
-            <div class="elevage-card bg-white p-3 rounded shadow-sm border">
-                <div class="row align-items-center">
-
-                    <!-- Image de l'élevage -->
-                    <div class="col-12 col-md-3 col-lg-2 text-center text-md-left mb-3 mb-md-0">
-                        <div class="img-container">
-                            <img src="{{ asset('images/img-elevage.jpeg') }}" alt="Ferme Intégrée" class="img-fluid rounded border">
-                            <div class="img-overlay-text text-uppercase text-center">Ferme Intégrée<br><small>"Union" - Dakar / Sénégal</small></div>
-       <div class="elevage-card bg-white rounded shadow-sm border mb-3">
-    <div class="row no-gutters align-items-stretch">
-
-        <div class="col-12 col-md-4 col-lg-3 col-image-container">
-            <div class="img-container-full">
-                <img src="{{ asset('images/img-elevage.jpeg') }}" alt="Ferme Intégrée">
-                <div class="img-overlay-text text-uppercase text-center">
-                    Ferme Intégrée<br>
-                    <small>"Union" - Dakar / Sénégal</small>
         <div class="elevage-card bg-white rounded shadow-sm border mb-3">
             <div class="row no-gutters align-items-stretch">
                 
@@ -58,29 +33,8 @@
                             <small>"Union" - Dakar / Sénégal</small>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Informations textuelles de l'élevage -->
-                    <div class="col-12 col-sm-8 col-md-6 col-lg-7">
-                        <h2 class="elevage-card-title text-uppercase mb-3">{{ $elevage['titre'] }}</h2>
-
-                        <div class="elevage-info-grid">
-                            <div class="info-item d-flex align-items-center mb-2">
-                                <i class="fas fa-map-marker-alt text-danger mr-3 info-icon"></i>
-                                <span><strong>Localisation :</strong> {{ $elevage['local'] }}</span>
-                            </div>
-                            <div class="info-item d-flex align-items-center mb-2">
-                                <i class="fas fa-layer-group text-secondary mr-3 info-icon"></i>
-                                <span><strong>Superficie :</strong> {{ $elevage['surface'] }}</span>
-                            </div>
-                            <div class="info-item d-flex align-items-center mb-2">
-                                <i class="fas fa-cow text-secondary mr-3 info-icon"></i>
-                                <span><strong>Animaux :</strong> {{ $elevage['animaux'] }}</span>
-                            </div>
-                            <div class="info-item d-flex align-items-center mb-0">
-                                <i class="far fa-calendar-alt text-danger mr-3 info-icon"></i>
-                                <span><strong>Créé le :</strong> {{ $elevage['date'] }}</span>
-                            </div>
-                        </div>
                 <div class="col-12 col-md-5 col-lg-6 p-4 d-flex flex-column justify-content-center">
                     <h2 class="elevage-card-title text-uppercase mb-3" style="font-size: 1.25rem; font-weight: 700;">{{ $elevage['titre'] }}</h2>
 
@@ -137,101 +91,10 @@
                             <span>Supprimer</span>
                         </button>
                     </div>
-
-                    <!-- Colonne des Boutons d'action -->
-                    <div class="col-12 col-sm-4 col-md-3 col-lg-3 text-center text-sm-right mt-3 mt-sm-0">
-                        <div class="action-buttons-group d-flex flex-column align-items-stretch align-items-sm-end gap-2">
-                            
-                            <!-- Bouton Voir -->
-                           <button type="button" class="btn d-flex align-items-center justify-content-center gap-2"
-        style="background-color: rgba(25, 135, 84, 0.15); color: #198754; border: 1px solid rgba(25, 135, 84, 0.2); font-weight: 500; padding: 4px 15px; border-radius: 6px; min-width: 95px;"
-        data-toggle="modal" data-target="#voirElevageModal">
-    <i class="far fa-eye"></i>
-    <span>voir</span>
-</button>
-                            
-                            <!-- Bouton Modifier -->
-                            <button type="button" class="btn btn-action btn-edit d-flex align-items-center justify-content-center" data-toggle="modal" data-target="#createElevageModal">
-                                <i class="fas fa-pencil-alt mr-2"></i> modifier
-                            </button>
-                            
-                            <!-- Bouton Supprimer -->
-                            <button type="button" class="btn btn-action btn-delete d-flex align-items-center justify-content-center">
-                                <i class="far fa-trash-alt mr-2"></i> Supprimer
-                            </button>
-                            
-                        </div>
-                    </div>
-
-        <div class="col-12 col-md-4 col-lg-3 col-image-container">
-            <div class="img-container-full">
-                <img src="{{ asset('images/img-elevage.jpeg') }}" alt="Ferme Intégrée">
-                <div class="img-overlay-text text-uppercase text-center">
-                    Ferme Intégrée<br>
-                    <small>"Union" - Dakar / Sénégal</small>
                 </div>
+
             </div>
         </div>
-
-        <div class="col-12 col-md-5 col-lg-6 p-4 d-flex flex-column justify-content-center">
-            <h2 class="elevage-card-title text-uppercase mb-3">{{ $elevage['titre'] }}</h2>
-
-            <div class="elevage-info-grid d-flex flex-column gap-2">
-                <div class="info-item-row pb-1">
-                    <div class="info-label-side">
-                        <i class="fas fa-map-marker-alt text-danger info-icon"></i>
-                        <strong>Localisation :</strong>
-                    </div>
-                    <span class="text-muted">{{ $elevage['local'] }}</span>
-                </div>
-
-                <div class="info-item-row pb-1">
-                    <div class="info-label-side">
-                        <i class="fas fa-layer-group text-secondary info-icon"></i>
-                        <strong>Superficie :</strong>
-                    </div>
-                    <span class="text-muted">{{ $elevage['surface'] }}</span>
-                </div>
-
-                <div class="info-item-row pb-1">
-                    <div class="info-label-side">
-                        <i class="fas fa-cow text-secondary info-icon"></i>
-                        <strong>Animaux :</strong>
-                    </div>
-                    <span class="text-muted">{{ $elevage['animaux'] }}</span>
-                </div>
-
-                <div class="info-item-row pb-1">
-                    <div class="info-label-side">
-                        <i class="far fa-calendar-alt text-danger info-icon"></i>
-                        <strong>Créé le :</strong>
-                    </div>
-                    <span class="text-muted">{{ $elevage['date'] }}</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-md-3 col-lg-3 p-4 border-top border-md-top-0 d-flex align-items-center justify-content-center">
-            <div class="action-buttons-group d-flex flex-row flex-md-column align-items-stretch justify-content-center gap-2 w-100">
-                <button type="button" class="btn btn-action btn-view d-flex align-items-center justify-content-center gap-2" data-toggle="modal" data-target="#voirElevageModal">
-                    <i class="far fa-eye"></i>
-                    <span>voir</span>
-                </button>
-
-                <button type="button" class="btn btn-action btn-edit d-flex align-items-center justify-content-center gap-2" data-toggle="modal" data-target="#voirElevageModal">
-                    <i class="fas fa-pencil-alt"></i>
-                    <span>modifier</span>
-                </button>
-
-                <button type="button" class="btn btn-action btn-delete d-flex align-items-center justify-content-center gap-2">
-                    <i class="far fa-trash-alt"></i>
-                    <span>Supprimer</span>
-                </button>
-            </div>
-        </div>
-
-    </div>
-</div>
 
         @empty
         <div class="alert alert-info text-center">Aucun élevage enregistré pour le moment.</div>
@@ -266,7 +129,6 @@
                 <form action="#" method="POST" enctype="multipart/form-data">
                     @csrf
 
-                    <div class="form-section-box p-3 mb-3 rounded">
                     <div class="form-section-box p-3 mb-3 rounded border" style="background-color: #fafafa;">
                         <label class="form-label font-weight-bold mb-2">
                             <i class="far fa-image text-success mr-1"></i> Photo <span class="font-weight-normal text-muted text-lowercase">(optionnelle)</span>
@@ -342,15 +204,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="voirElevageModal" tabindex="-1" role="dialog" aria-labelledby="voirElevageModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
-        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-
-            <div class="modal-header border-0 align-items-center pt-4 px-4 pb-2 d-flex justify-content-between">
-                <h5 class="modal-title font-weight-bold d-flex align-items-center" id="voirElevageModalLabel" style="font-size: 16px; color: #1a1a1a;">
-            <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
-                <h5 class="modal-title fw-bold text-uppercase" id="voirElevageModalLabel" style="font-size: 16px; color: #1a1a1a;">
-                    🐄 CRÉER UN ÉLEVAGE
 <div class="modal fade" id="modifierElevageModal" tabindex="-1" role="dialog" aria-labelledby="modifierElevageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-md" role="document">
         <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
@@ -430,18 +283,11 @@
         </div>
     </div>
 </div>
-          
-        </div>
-    </div>
-</div>
 
 <div class="modal fade" id="voirElevageModal" tabindex="-1" role="dialog" aria-labelledby="voirElevageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
             
-            <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
-                <h5 class="modal-title fw-bold text-uppercase" id="voirElevageModalLabel" style="font-size: 16px; color: #1a1a1a;">
-                    🐄 CRÉER UN ÉLEVAGE
             <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center pt-4 px-4">
                 <h5 class="modal-title fw-bold text-uppercase" id="voirElevageModalLabel" style="font-size: 16px; color: #1a1a1a;">
                     <i class="fas fa-eye mr-2 text-dark"></i> DÉTAILS DE L'ÉLEVAGE
@@ -451,62 +297,6 @@
                 </button>
             </div>
 
-<<<<<<< HEAD
-            <div class="modal-body">
-                <form>
-                    <div class="p-3 mb-3 border rounded" style="background-color: #fafafa;">
-                        <label class="form-label fw-bold small text-muted">🖼️ Photo <span class="text-muted font-weight-normal">(optionnelle)</span></label>
-                        <div class="d-flex align-items-center gap-3 mt-1">
-                            <div class="border rounded d-flex align-items-center justify-content-center bg-white" style="width: 70px; height: 70px; border-style: dashed !important;">
-                                🖼️
-                            </div>
-                            <button type="button" class="btn btn-sm btn-outline-success d-flex align-items-center gap-1" style="border-radius: 6px;">
-                                🖼️ Choisir une image
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1" style="border-radius: 6px;">
-                                ❌ Supprimer
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">🏷️ Nom de l'élevage <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" value="Élevage bovin de Thiès" style="border-radius: 6px; font-size: 14px;">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">🐄 Type d'élevage <span class="text-danger">*</span></label>
-                        <select class="form-control form-select" style="border-radius: 6px; font-size: 14px;">
-                            <option selected>Bovins</option>
-                            <option>Caprins</option>
-                            <option>Ovins</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">📍 Localisation</label>
-                        <input type="text" class="form-control" value="Thiès, Sénégal" style="border-radius: 6px; font-size: 14px;">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">Superficie (hectares)</label>
-                        <input type="number" class="form-control" value="5" style="border-radius: 6px; font-size: 14px;">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">📝 Description <span class="text-muted font-weight-normal">(optionnelle)</span></label>
-                        <textarea class="form-control" rows="3" style="border-radius: 6px; font-size: 14px;">Élevage spécialisé dans la production laitière</textarea>
-                    </div>
-
-                    <div class="d-flex justify-content-between mt-4">
-                        <button type="button" class="btn btn-outline-secondary d-flex align-items-center gap-1" data-dismiss="modal" style="border-radius: 6px; min-width: 100px; justify-content: center;">
-                            ❎ Annuler
-                        </button>
-                        <button type="submit" class="btn btn-success d-flex align-items-center gap-1" style="background-color: #198754; border-radius: 6px; min-width: 100px; justify-content: center;">
-                            ✅ Valider
-                        </button>
-                    </div>
-                </form>
             <div class="modal-body px-4 pb-4">
                 <div class="text-center mb-3">
                     <img src="{{ asset('images/img-elevage.jpeg') }}" class="img-fluid rounded border mb-2" style="max-height: 180px; object-fit: cover; width: 100%;">
@@ -543,5 +333,4 @@
         </div>
     </div>
 </div>
-@endsection
 @endsection
