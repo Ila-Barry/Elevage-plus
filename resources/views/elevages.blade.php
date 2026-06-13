@@ -9,7 +9,8 @@
 @section('content')
 <div class="dashboard-wrapper container-fluid py-4">
     
-    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
+   <div class="d-flex flex-column align-items-start mb-4 gap-2">
+        <h2 class="text-uppercase font-weight-bold mb-2" style="font-size: 1.5rem; letter-spacing: 0.5px; color: #000;">Mes Élevages</h2>
         <button type="button" class="btn btn-create d-flex align-items-center" data-toggle="modal" data-target="#createElevageModal">
             <i class="fas fa-plus mr-2"></i> Créer un nouvel élevage
         </button>
