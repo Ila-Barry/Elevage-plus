@@ -34,6 +34,8 @@
             --}}
             {{-- @foreach($posts as $post) --}}
             
+
+            <!-- Article 1 : Expérience -->
             <article class="post-card">
                 <div class="post-admin-actions">
                     <button class="btn-edit-post" title="Modifier"><i class="fas fa-pencil-alt"></i></button>
@@ -58,6 +60,9 @@
                         <span class="status-indicator"></span> EXPERIENCE : NOUVELLE MÉTHODE D'ALIMENTATION
                     </h3>
                     
+                    <h3 class="post-category type-experience">
+                        <span class="status-indicator"></span> EXPERIENCE : NOUVELLE MÉTHODE D'ALIMENTATION
+                    </h3>
                     <p class="post-excerpt">
                         Je viens de tester une nouvelle méthode d'alimentation pour mes vaches et les résultats sont encourageants...
                     </p>
@@ -67,6 +72,10 @@
                         <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Média 2"></div>
                         <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Média 3"></div>
                         <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Média 4"></div>
+                        <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Élevage 1"></div>
+                        <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Élevage 2"></div>
+                        <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Élevage 3"></div>
+                        <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Élevage 4"></div>
                     </div>
                 </div>
 
@@ -85,6 +94,87 @@
             </article>
 
             {{-- @endforeach --}}
+            <!-- Article 2 : Alerte -->
+            <article class="post-card">
+                <div class="post-header">
+                    <img src="https://via.placeholder.com/50" alt="Avatar" class="author-avatar">
+                    <div class="author-info">
+                        <span class="author-name">JEAN DUPONT</span>
+                        <span class="author-role">• Éleveur bovin</span>
+                        <span class="post-date">• 2 jours ago</span>
+                    </div>
+                </div>
+
+                <div class="post-body">
+                    <h3 class="post-category type-alerte">
+                        <i class="fas fa-exclamation-triangle"></i> ALERTE : CAS DE FIÈVRE APHTEUSE À DAKAR
+                    </h3>
+                    <p class="post-excerpt">
+                        Je viens de tester une nouvelle méthode d'alimentation pour mes vaches et les résultats sont encourageants...
+                    </p>
+                    
+                    <div class="post-media-grid">
+                        <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Alerte 1"></div>
+                        <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Alerte 2"></div>
+                        <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Alerte 3"></div>
+                        <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Alerte 4"></div>
+                    </div>
+                </div>
+
+                <div class="post-footer">
+                    <div class="post-stats">
+                        <span><i class="far fa-thumbs-up"></i> 0</span>
+                        <span><i class="far fa-comment"></i> 0</span>
+                        <span><i class="far fa-share-square"></i> 0</span>
+                    </div>
+                    <div class="post-interactions">
+                        <button class="interaction-btn"><i class="far fa-thumbs-up"></i> Liker</button>
+                        <button class="interaction-btn"><i class="far fa-comment"></i> Commenter</button>
+                        <button class="interaction-btn"><i class="fas fa-share"></i> Partager</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Article 3 : Conseil -->
+            <article class="post-card">
+                <div class="post-header">
+                    <img src="https://via.placeholder.com/50" alt="Avatar" class="author-avatar">
+                    <div class="author-info">
+                        <span class="author-name">JEAN DUPONT</span>
+                        <span class="author-role">• Éleveur bovin</span>
+                        <span class="post-date">• 5 mois ago</span>
+                    </div>
+                </div>
+
+                <div class="post-body">
+                    <h3 class="post-category type-conseil">
+                        CONSEIL : NOUVELLE MÉTHODE D'ALIMENTATION
+                    </h3>
+                    <p class="post-excerpt">
+                        Je viens de tester une nouvelle méthode d'alimentation pour mes vaches et les résultats sont encourageants...
+                    </p>
+                    
+                    <div class="post-media-grid">
+                        <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Conseil 1"></div>
+                        <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Conseil 2"></div>
+                        <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Conseil 3"></div>
+                        <div class="media-item"><img src="https://via.placeholder.com/300x200" alt="Conseil 4"></div>
+                    </div>
+                </div>
+
+                <div class="post-footer">
+                    <div class="post-stats">
+                        <span><i class="far fa-thumbs-up"></i> 0</span>
+                        <span><i class="far fa-comment"></i> 0</span>
+                        <span><i class="far fa-share-square"></i> 0</span>
+                    </div>
+                    <div class="post-interactions">
+                        <button class="interaction-btn"><i class="far fa-thumbs-up"></i> Liker</button>
+                        <button class="interaction-btn"><i class="far fa-comment"></i> Commenter</button>
+                        <button class="interaction-btn"><i class="fas fa-share"></i> Partager</button>
+                    </div>
+                </div>
+            </article>
 
         </div>
 
