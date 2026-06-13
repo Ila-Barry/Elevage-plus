@@ -8,8 +8,6 @@
 
 @section('content')
 <div class="dashboard-wrapper container-fluid py-4">
-
-    <!-- En-tête avec bouton de création -->
     
     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
         <button type="button" class="btn btn-create d-flex align-items-center" data-toggle="modal" data-target="#createElevageModal">
@@ -17,24 +15,13 @@
         </button>
     </div>
 
-    <!-- Liste des élevages -->
-    <div class="elevages-list d-flex flex-column gap-2 mb-4">
     <div class="elevages-list d-flex flex-column gap-3 mb-4">
         @forelse($elevages ?? [
-            ['id' => 1, 'titre' => 'ÉLEVAGE BOVIN - THIÈS', 'type' => 'bovins', 'local' => 'Thiès, Sénégal', 'surface' => '5 hectares', 'animaux' => '45 bovins', 'date' => '15/03/2025'],
-            ['id' => 2, 'titre' => 'ÉLEVAGE CAPRIN - DAKAR', 'type' => 'caprins', 'local' => 'Dakar, Sénégal', 'surface' => '3 hectares', 'animaux' => '20 caprins', 'date' => '10/03/2024'],
-            ['id' => 3, 'titre' => 'ÉLEVAGE BOVIN - SAINT-LOUIS', 'type' => 'bovins', 'local' => 'Saint-Louis, Sénégal', 'surface' => '8 hectares', 'animaux' => '60 bovins', 'date' => '22/04/2025']
+            ['id' => 1, 'titre' => 'ÉLEVAGE BOVIN - THIÈS', 'type' => 'bovins', 'local' => 'Thiès, Sénégal', 'surface' => '5 hectares', ' animaux' => '45 bovins', 'date' => '15/03/2025'],
+            ['id' => 2, 'titre' => 'ÉLEVAGE CAPRIN - DAKAR', 'type' => 'caprins', 'local' => 'Dakar, Sénégal', 'surface' => '3 hectares', ' animaux' => '20 caprins', 'date' => '10/03/2024'],
+            ['id' => 3, 'titre' => 'ÉLEVAGE BOVIN - SAINT-LOUIS', 'type' => 'bovins', 'local' => 'Saint-Louis, Sénégal', 'surface' => '8 hectares', ' animaux' => '60 bovins', 'date' => '22/04/2025']
         ] as $elevage)
 
-       <div class="elevage-card bg-white rounded shadow-sm border mb-3">
-    <div class="row no-gutters align-items-stretch">
-
-        <div class="col-12 col-md-4 col-lg-3 col-image-container">
-            <div class="img-container-full">
-                <img src="{{ asset('images/img-elevage.jpeg') }}" alt="Ferme Intégrée">
-                <div class="img-overlay-text text-uppercase text-center">
-                    Ferme Intégrée<br>
-                    <small>"Union" - Dakar / Sénégal</small>
         <div class="elevage-card bg-white rounded shadow-sm border mb-3">
             <div class="row no-gutters align-items-stretch">
                 
@@ -73,7 +60,7 @@
                                 <i class="fas fa-cow text-secondary info-icon mr-2"></i>
                                 <strong>Animaux :</strong>
                             </div>
-                            <span class="text-muted">{{ $elevage['animaux'] }}</span>
+                            <span class="text-muted">{{ $elevage[' animaux'] }}</span>
                         </div>
 
                         <div class="info-item-row pb-1 d-flex align-items-center">
@@ -114,7 +101,6 @@
         @endforelse
     </div>
 
-    <!-- Pagination -->
     <div class="d-flex justify-content-between align-items-center mt-4">
         <a href="#" class="btn btn-outline-dark btn-pagination d-flex align-items-center">
             <i class="fas fa-caret-left mr-2"></i> précédente
@@ -126,28 +112,23 @@
 
 </div>
 
-<!-- MODAL : CRÉER UN ÉLEVAGE -->
 <div class="modal fade" id="createElevageModal" tabindex="-1" aria-labelledby="createElevageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-md">
         <div class="modal-content create-elevage-modal">
 
-            <!-- En-tête du formulaire -->
             <div class="modal-header border-0 align-items-center pt-4 px-4 pb-2">
                 <h5 class="modal-title font-weight-bold d-flex align-items-center" id="createElevageModalLabel">
-                    <i class="fas fa-users-cog mr-2 text-dark"></i> CRÉER UN ÉLEVAGE
+                    <i class="fas fa-plus-circle mr-2 text-dark"></i> CRÉER UN ÉLEVAGE
                 </h5>
                 <button type="button" class="close text-danger border-0 bg-transparent" data-dismiss="modal" aria-label="Close" style="font-size: 24px; line-height: 1;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
 
-            <!-- Corps du formulaire -->
             <div class="modal-body px-4 pb-4">
                 <form action="#" method="POST" enctype="multipart/form-data">
                     @csrf
 
-                    <!-- Section Photo -->
-                    <div class="form-section-box p-3 mb-3 rounded">
                     <div class="form-section-box p-3 mb-3 rounded border" style="background-color: #fafafa;">
                         <label class="form-label font-weight-bold mb-2">
                             <i class="far fa-image text-success mr-1"></i> Photo <span class="font-weight-normal text-muted text-lowercase">(optionnelle)</span>
@@ -168,7 +149,6 @@
                         </div>
                     </div>
 
-                    <!-- Champ : Nom de l'élevage -->
                     <div class="form-group mb-3">
                         <label class="form-label font-weight-bold">
                             <i class="far fa-sticky-note text-warning mr-1"></i> Nom de l'élevage <span class="text-danger">*</span>
@@ -176,7 +156,6 @@
                         <input type="text" name="nom_elevage" class="form-control custom-input" placeholder="Élevage bovin de Thiès" required style="border-radius: 6px; font-size: 14px;">
                     </div>
 
-                    <!-- Champ : Type d'élevage -->
                     <div class="form-group mb-3">
                         <label class="form-label font-weight-bold">
                             <i class="fas fa-cow text-secondary mr-1"></i> Type d'élevage <span class="text-danger">*</span>
@@ -191,7 +170,6 @@
                         </div>
                     </div>
 
-                    <!-- Champ : Localisation -->
                     <div class="form-group mb-3">
                         <label class="form-label font-weight-bold">
                             <i class="fas fa-map-marker-alt text-danger mr-1"></i> Localisation
@@ -199,13 +177,11 @@
                         <input type="text" name="localisation" class="form-control custom-input" placeholder="Thiès, Sénégal" style="border-radius: 6px; font-size: 14px;">
                     </div>
 
-                    <!-- Champ : Superficie -->
                     <div class="form-group mb-3">
                         <label class="form-label font-weight-bold">Superficie (hectares)</label>
                         <input type="number" name="superficie" class="form-control custom-input" placeholder="5" min="0" step="any" style="border-radius: 6px; font-size: 14px;">
                     </div>
 
-                    <!-- Champ : Description -->
                     <div class="form-group mb-4">
                         <label class="form-label font-weight-bold">
                             <i class="fas fa-feather-alt text-secondary mr-1"></i> Description <span class="font-weight-normal text-muted text-lowercase">(optionnelle)</span>
@@ -213,7 +189,6 @@
                         <textarea name="description" class="form-control custom-textarea" rows="3" placeholder="Élevage spécialisé dans la production laitière" style="border-radius: 6px; font-size: 14px;"></textarea>
                     </div>
 
-                    <!-- Boutons de fermeture inférieurs -->
                     <div class="d-flex justify-content-between align-items-center pt-2">
                         <button type="button" class="btn btn-outline-secondary d-flex align-items-center" data-dismiss="modal" style="border-radius: 6px; min-width: 100px; justify-content: center;">
                             <i class="fas fa-times-circle mr-2 text-danger"></i> Annuler
@@ -222,7 +197,6 @@
                             <i class="fas fa-check-square mr-2 text-white"></i> Valider
                         </button>
                     </div>
-
                 </form>
             </div>
 
@@ -230,13 +204,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="voirElevageModal" tabindex="-1" role="dialog" aria-labelledby="voirElevageModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-
-            <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
-                <h5 class="modal-title fw-bold text-uppercase" id="voirElevageModalLabel" style="font-size: 16px; color: #1a1a1a;">
-                    🐄 CRÉER UN ÉLEVAGE
 <div class="modal fade" id="modifierElevageModal" tabindex="-1" role="dialog" aria-labelledby="modifierElevageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-md" role="document">
         <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
@@ -249,8 +216,8 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-
-            <div class="modal-body">
+            
+            <div class="modal-body px-4 pb-4">
                 <form action="#" method="POST" enctype="multipart/form-data">
                     @csrf
 
@@ -278,13 +245,12 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold small">🐄 Type d'élevage <span class="text-danger">*</span></label>
                         <div class="select-wrapper">
-                            <select name="type_elevage" class="form-control form-select appearance-none" style="border-radius: 6px; font-size: 14px;" required>
-                                <option value="bovins" {{ (isset($elevage) && $elevage['type'] == 'bovins') ? 'selected' : '' }}>Bovins</option>
-                                <option value="caprins" {{ (isset($elevage) && $elevage['type'] == 'caprins') ? 'selected' : '' }}>Caprins</option>
-                                <option value="ovins" {{ (isset($elevage) && $elevage['type'] == 'ovins') ? 'selected' : '' }}>Ovins</option>
-                                <option value="volailles" {{ (isset($elevage) && $elevage['type'] == 'volailles') ? 'selected' : '' }}>Volailles</option>
+                            <select name="type_elevage" class="form-control form-select" style="border-radius: 6px; font-size: 14px;" required>
+                                <option value="bovins" selected>Bovins</option>
+                                <option value="caprins">Caprins</option>
+                                <option value="ovins">Ovins</option>
+                                <option value="volailles">Volailles</option>
                             </select>
-                            <i class="fas fa-caret-down select-arrow"></i>
                         </div>
                     </div>
 
@@ -314,7 +280,6 @@
                 </form>
             </div>
 
-          
         </div>
     </div>
 </div>
