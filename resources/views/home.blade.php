@@ -12,10 +12,11 @@
   <section class="hero-carousel">
     <div class="carousel-wrapper">
       <div class="carousel-slide active" style="background-image: url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?q=80&w=1600');"></div>
-      <div class="carousel-slide" style="background-image: url('https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?q=80&w=1600');"></div>
-      <div class="carousel-slide" style="background-image: url('https://images.unsplash.com/photo-1566892615599-8e38c5a2f50a?q=80&w=1600');"></div>
+      <div class="carousel-slide" style="background-image: url('{{ asset('images/imageacceuill3.jpg') }}')"></div>
+      <div class="carousel-slide" style="background-image: url('{{ asset('images/imageacceuil1.jpg') }}')"></div>
       <div class="carousel-slide" style="background-image: url('https://images.unsplash.com/photo-1589923188651-268a9765e432?q=80&w=1600');"></div>
-      <div class="carousel-slide" style="background-image: url('https://images.unsplash.com/photo-1516467508483-a099d2fc6b43?q=80&w=1600');"></div>
+      <div class="carousel-slide" style="background-image: url('{{ asset('images/imageacceuil4.jpg') }}')"></div>
+
     </div>
 
     <!-- Dots -->
