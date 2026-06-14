@@ -1,14 +1,15 @@
 :root {
+  --text: #000; /* Noir partout */
   --green: #28a745;
   --light-bg: #f8f9fa;
   --border: #e0e0e0;
-  --text-muted: #6c757d;
+  --text-muted: #000; /* Forcé en noir */
   --red: #dc3545;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); color: #333; }
-.container { max-width: 100%; margin: 0 auto; padding: 0 50px 0 50px;  }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); color: var(--text); }
+.container { max-width: 100%; margin: 0 auto; padding: 0 50px 0 50px; }
 .text-green { color: var(--green); }
 .text-red { color: var(--red); }
 
@@ -16,12 +17,13 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
 .profile-cover {
   position: relative;
   width: 100%;
-  height: 320px;
+  height: 400px; /* Plus haut pour voir le background */
   background-image: url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?q=80&w=1600');
   background-size: cover;
   background-position: center;
-  margin-bottom: 80px;
+  padding-bottom: 140px; /* Espace pour que la carte descende */
 }
+
 
 .profile-cover::after {
   content: '';
@@ -35,11 +37,9 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
 
 /* Carte profil qui chevauche le cover */
 .profile-card {
-  position: absolute;
-  bottom: -70px;
-  left: 50%;
-  top: 60%;
-  transform: translateX(-50%);
+  position: relative;
+  margin: 0 auto; /* Plus de margin négatif */
+  top: 180px; /* Descend la carte de 180px */
   background: white;
   width: 93%;
   max-width: 100%;
@@ -49,10 +49,19 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
   z-index: 10;
 }
 
+.profile-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
 .profile-left {
   display: flex;
   gap: 18px;
-  margin-bottom: 18px;
+  flex: 1;
+  min-width: 300px;
 }
 
 .profile-avatar {
@@ -84,24 +93,28 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 5px;
+  color: var(--text);
 }
 
 .profile-info p {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--text);
   margin-bottom: 3px;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.profile-info i { font-size: 12px; }
+.profile-info i { 
+  font-size: 12px; 
+  width: 14px;
+  color: #555;
+}
 
 /* Stats */
 .profile-stats {
   display: flex;
   gap: 10px;
-  margin-bottom: 18px;
 }
 
 .stat-item {
@@ -111,6 +124,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
   border: 1px solid var(--border);
   border-radius: 6px;
   background: #fafafa;
+  min-width: 90px;
 }
 
 .stat-item strong {
@@ -118,27 +132,41 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 2px;
+  color: var(--text);
 }
 
 .stat-item span {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--text);
 }
 
 .stat-heart strong { color: var(--red); }
 
 /* Bio */
+.profile-bio {
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+
 .profile-bio p {
   font-size: 13px;
   margin-bottom: 6px;
   display: flex;
   align-items: flex-start;
   gap: 8px;
+  color: var(--text);
+  word-break: break-word;
 }
 
 .profile-bio i {
   font-size: 8px;
   margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.profile-bio strong {
+  flex-shrink: 0;
 }
 
 .profile-bio a {
@@ -150,7 +178,6 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
 .profile-actions {
   display: flex;
   gap: 10px;
-  margin-top: 18px;
 }
 
 .profile-actions .btn {
@@ -164,6 +191,8 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
   align-items: center;
   gap: 6px;
   background: white;
+  color: var(--text);
+  white-space: nowrap;
 }
 
 .profile-actions .btn-suivre {
@@ -176,12 +205,14 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
   background: #f5f5f5;
 }
 
-/* Publications */
+
+/* PUBLICATIONS */
 .publications {
   background: white;
   border-radius: 8px;
   padding: 25px 30px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  margin-top: 120px; /* Décale les publications pour laisser la place */
 }
 
 .pub-header {
@@ -199,6 +230,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
   display: flex;
   align-items: center;
   gap: 8px;
+  color: var(--text);
 }
 
 .sort-select {
@@ -208,6 +240,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
   font-size: 12px;
   background: white;
   cursor: pointer;
+  color: var(--text);
 }
 
 /* Card publication */
@@ -238,11 +271,13 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
   font-size: 14px;
   font-weight: 700;
   margin-bottom: 5px;
+  color: var(--text);
+  text-transform: uppercase;
 }
 
 .pub-content p {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--text);
   margin-bottom: 8px;
   line-height: 1.4;
 }
@@ -251,7 +286,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
   display: flex;
   gap: 15px;
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--text);
 }
 
 .pub-meta i { margin-right: 3px; }
@@ -286,15 +321,37 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); 
   background: #f5f5f5;
 }
 
-/* Responsive */
+/* RESPONSIVE */
+@media(max-width: 992px) {
+  .profile-top {
+    flex-direction: column;
+  }
+  .profile-stats {
+    width: 100%;
+  }
+}
+
 @media(max-width: 768px) {
-  .profile-cover { height: 250px; margin-bottom: 100px; }
-  .profile-card { bottom: -90px; padding: 20px; }
-  .profile-left { flex-direction: column; align-items: center; text-align: center; }
+  .container { padding: 0 15px; }
+  .profile-cover { height: 250px; padding-bottom: 120px; }
+  .profile-card { 
+    margin: -100px auto 0 auto;
+    padding: 20px 18px; 
+    width: 95%;
+  }
+  .profile-left { 
+    flex-direction: column; 
+    align-items: center; 
+    text-align: center; 
+    min-width: 100%;
+  }
   .profile-avatar img { width: 80px; height: 80px; }
-  .profile-stats { flex-direction: column; }
+  .profile-stats { flex-direction: row; }
+  .stat-item { min-width: auto; }
+  .profile-actions { flex-direction: column; }
+  .btn { justify-content: center; width: 100%; }
   .pub-card { flex-direction: column; }
   .pub-card img { width: 100%; height: 140px; }
-  .profile-actions { flex-direction: column; }
-  .btn { justify-content: center; }
+  .pub-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .sort-select { width: 100%; }
 }

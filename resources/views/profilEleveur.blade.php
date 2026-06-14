@@ -7,47 +7,51 @@
     <!-- style_css -->
     <link rel="stylesheet" href="{{ asset('css/eleveurCSS/profilEleveur.css') }}">
 
-    <main>
+ <main>
   <!-- COVER avec background image -->
   <section class="profile-cover">
-    <div class="profile-card">
-      <div class="profile-left">
-        <div class="profile-avatar">
-          <img src="https://i.pravatar.cc/120?u=jean_dupont" alt="Jean Dupont">
-          <span class="badge-online"></span>
+    <div class="container">
+      <div class="profile-card">
+        <div class="profile-top">
+          <div class="profile-left">
+            <div class="profile-avatar">
+              <img src="https://i.pravatar.cc/120?u=jean_dupont" alt="Jean Dupont">
+              <span class="badge-online"></span>
+            </div>
+            <div class="profile-info">
+              <h1>Jean Dupont</h1>
+              <p class="location"><i class="fas fa-map-marker-alt"></i> Thiès, Sénégal</p>
+              <p class="type"><i class="fas fa-cow"></i> Élevage bovin - 45 animaux</p>
+              <p class="member"><i class="far fa-calendar-alt"></i> Membre depuis mars 2025</p>
+            </div>
+          </div>
+          
+          <div class="profile-stats">
+            <div class="stat-item">
+              <strong>48</strong>
+              <span>Publications</span>
+            </div>
+            <div class="stat-item stat-heart">
+              <strong>2.3k</strong>
+              <span>Likes</span>
+            </div>
+            <div class="stat-item">
+              <strong>127</strong>
+              <span>Commentaires</span>
+            </div>
+          </div>
         </div>
-        <div class="profile-info">
-          <h1>Jean Dupont</h1>
-          <p class="location"><i class="fas fa-map-marker-alt"></i> Thiès, Sénégal</p>
-          <p class="type"><i class="fas fa-cow"></i> Élevage bovin - 45 animaux</p>
-          <p class="member"><i class="far fa-calendar-alt"></i> Membre depuis mars 2025</p>
-        </div>
-      </div>
-      
-      <div class="profile-stats">
-        <div class="stat-item">
-          <strong>48</strong>
-          <span>Publications</span>
-        </div>
-        <div class="stat-item stat-heart">
-          <strong>2.3k</strong>
-          <span>Likes</span>
-        </div>
-        <div class="stat-item">
-          <strong>127</strong>
-          <span>Commentaires</span>
-        </div>
-      </div>
 
-      <div class="profile-bio">
-        <p><i class="fas fa-circle text-green"></i> <strong>Bio :</strong> Éleveur passionné depuis 10 ans, je partage mon expérience pour aider la communauté agricole.</p>
-        <p><i class="fas fa-circle text-green"></i> <strong>Site web :</strong> <a href="http://www.jean-elevage.com" target="_blank">www.jean-elevage.com</a></p>
-      </div>
+        <div class="profile-bio">
+          <p><i class="fas fa-circle text-green"></i> <strong>Bio :</strong> Éleveur passionné depuis 10 ans, je partage mon expérience pour aider la communauté agricole.</p>
+          <p><i class="fas fa-circle text-green"></i> <strong>Site web :</strong> <a href="http://www.jean-elevage.com" target="_blank">www.jean-elevage.com</a></p>
+        </div>
 
-      <div class="profile-actions">
-        <button class="btn btn-suivre">Suivre</button>
-        <button class="btn btn-outline"><i class="far fa-comment-dots"></i> Commenter</button>
-        <button class="btn btn-outline"><i class="fas fa-share-alt"></i> partager</button>
+        <div class="profile-actions">
+          <button class="btn btn-suivre"><i class="fas fa-user-plus"></i> Suivre</button>
+          <button class="btn btn-outline"><i class="far fa-comment-dots"></i> Commenter</button>
+          <button class="btn btn-outline"><i class="fas fa-share-alt"></i> Partager</button>
+        </div>
       </div>
     </div>
   </section>
@@ -58,9 +62,9 @@
       <div class="pub-header">
         <h2><i class="fas fa-file-alt"></i> PUBLICATIONS DE JEAN DUPONT</h2>
         <select class="sort-select">
-          <option>trier par : plus récentes</option>
-          <option>plus anciennes</option>
-          <option>plus likées</option>
+          <option>Trier par : plus récentes</option>
+          <option>Plus anciennes</option>
+          <option>Plus likées</option>
         </select>
       </div>
 
@@ -109,7 +113,7 @@
         <div class="pub-badge">27j</div>
       </article>
 
-       <!-- Post 3 -->
+        <!-- Post 3 -->
       <article class="pub-card">
         <img src="https://images.unsplash.com/photo-1589923188651-268a9765e432?q=80&w=200" alt="Bovins">
         <div class="pub-content">
@@ -124,7 +128,7 @@
         <div class="pub-badge">27j</div>
       </article>
 
-       <!-- Post 3 -->
+        <!-- Post 3 -->
       <article class="pub-card">
         <img src="https://images.unsplash.com/photo-1589923188651-268a9765e432?q=80&w=200" alt="Bovins">
         <div class="pub-content">
@@ -139,7 +143,9 @@
         <div class="pub-badge">27j</div>
       </article>
 
-      <button class="btn-more">Afficher plus de publications <i class="fas fa-plus"></i></button>
+
+
+      <button class="btn-more"><i class="fas fa-plus"></i> Afficher plus de publications</button>
     </section>
   </div>
 </main>
