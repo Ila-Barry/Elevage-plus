@@ -14,6 +14,24 @@
     <link rel="stylesheet" href="{{ asset('css/authCSS/register.css') }}">
 </head>
 <body>
+<div class="login-container">
+     <!-- Logo et en-tête -->
+        <div class="login-header">
+            <div class="logo">
+                <i class="fas fa-tractor"></i>
+                <span>ÉLEVAGE+</span>
+            </div>
+            <p class="login-subtitle">Pas de inscrit ? 
+                <a href="#" class="signup-link">S'inscrire</a>,
+            </p>
+        </div>
+    <div class="row no-gutters">
+        <div class="col-12">
+            <!-- Image d'arrière-plan -->
+            <div class="bg-image" style="background-image: url('/images/elel.jpeg'); height: 100vh; background-size: cover; background-position: center;"></div>
+        </div>
+    </div>
+</div>
 
 <div class="container py-4 py-md-5">
     <div class="row justify-content-center">
@@ -147,7 +165,7 @@
         </div>
     </div>
 </div>
-
+</div>
 <!-- jQuery + Bootstrap JS (nécessaire pour certains composants) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
