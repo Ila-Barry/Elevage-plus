@@ -52,7 +52,7 @@
                     <div class="form-group">
                         <label>Nouveau mot de passe</label>
                         <div class="password-input-wrapper">
-                            <input type="password" class="form-control"  value="12345678"  placeholder="Entrez votre nouveau mot de passe" id="newPassword">
+                            <input type="password" class="form-control" placeholder="Entrez votre nouveau mot de passe" id="newPassword">
                             <i class="fas fa-eye-slash toggle-password" data-target="newPassword"></i>
                         </div>
                     </div>
@@ -60,7 +60,7 @@
                     <div class="form-group">
                         <label>Confirmer le nouveau mot de passe</label>
                         <div class="password-input-wrapper">
-                            <input type="password" class="form-control"   value="12345678" placeholder="Confirmez votre nouveau mot de passe" id="confirmPassword">
+                            <input type="password" class="form-control" placeholder="Confirmez votre nouveau mot de passe" id="confirmPassword">
                             <i class="fas fa-eye-slash toggle-password" data-target="confirmPassword"></i>
                         </div>
                     </div>
