@@ -14,44 +14,27 @@
     <link rel="stylesheet" href="{{ asset('css/authCSS/register.css') }}">
 </head>
 <body>
-<div class="login-container">
-     <!-- Logo et en-tête -->
-        <div class="login-header">
-            <div class="logo">
-                <i class="fas fa-tractor"></i>
-                <span>ÉLEVAGE+</span>
-            </div>
-            <p class="login-subtitle">Pas de inscrit ? 
-                <a href="#" class="signup-link">S'inscrire</a>,
-            </p>
-        </div>
-    <div class="row no-gutters">
-        <div class="col-12">
-            <!-- Image d'arrière-plan -->
-            <div class="bg-image" style="background-image: url('/images/elel.jpeg'); height: 100vh; background-size: cover; background-position: center;"></div>
-        </div>
-    </div>
-</div>
 
-<div class="container py-4 py-md-5">
+<!-- En-tête : Logo + lien connexion (Déja inscrit ?) -->
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 register-container">
+                        <div class="d-flex align-items-center gap-2 logo-wrapper">
+                            <i class="fas fa-paw text-success fs-2"></i>
+                            <span class="logo-text">ÉLEVAGE+</span>
+                        </div>
+                        <div class="mt-2 mt-sm-0">
+                            <p class="register-subtitle">Déja inscrit ?   
+                            <a href="{{('/auth/login') }}" class="text-decoration-none fw-semibold small-link">
+                                <i class="fas fa-sign-in-alt me-1"></i> Se connecter
+                            </a></p>
+                        </div>
+                    </div>
+    <div class="container py-4 py-md-5">
     <div class="row justify-content-center">
         <div class="col-lg-8 col-md-10 col-12">
             <!-- Carte principale (card) identique à la maquette -->
             <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
                 <div class="card-body p-4 p-md-5">
 
-                    <!-- En-tête : Logo + lien connexion (Déja inscrit ?) -->
-                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-                        <div class="d-flex align-items-center gap-2 logo-wrapper">
-                            <i class="fas fa-paw text-success fs-2"></i>
-                            <span class="logo-text">ÉLEVAGE+</span>
-                        </div>
-                        <div class="mt-2 mt-sm-0">
-                            <a href="#" class="text-decoration-none fw-semibold small-link">
-                                <i class="fas fa-sign-in-alt me-1"></i> Déja inscrit ? Se connecter
-                            </a>
-                        </div>
-                    </div>
 
                     <!-- Titre central CRÉER UN COMPTE -->
                     <div class="text-center mb-4 mt-2">

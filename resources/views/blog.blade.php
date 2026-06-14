@@ -30,41 +30,20 @@
 
     <div class="blog-posts-feed">
 
-        <article class="custom-post-card">
-            <div class="custom-post-admin">
-                <button class="action-edit" title="Modifier"><i class="fas fa-pencil-alt"></i></button>
-                <button class="action-delete" title="Supprimer"><i class="fas fa-times"></i></button>
+        <div class="row">
+            <div class="col-ms-12 col-md-6 col-lg-4">
+                <h1>section_1</h1>
+
             </div>
+            <div class="col-ms-12 col-md-6 col-lg-4">
+                <h1>section_2</h1>
 
-            <div class="custom-post-header">
-                <div class="author-avatar-box">
-                    <img src="{{ asset('images/img-elevage.jpeg') }}" alt="Avatar Jean Dupont" class="rounded-circle">
-
-                </div>
-                <div class="author-meta-data">
-                    <span class="user-fullname">JEAN DUPONT</span>
-                    <span class="meta-separator">•</span>
-                    <span class="user-profession">Éleveur bovin</span>
-                    <span class="meta-separator">•</span>
-                    <span class="published-time"><i class="far fa-calendar-alt"></i> Aujourd'hui</span>
-                </div>
             </div>
-
-            <div class="custom-post-body ">
-                <h3 class="post-title-badge color-experience">
-                    <span class="dot-indicator "></span> EXPERIENCE : NOUVELLE MÉTHODE D'ALIMENTATION
-                </h3>
-                <p class="post-text-content">
-                    Je viens de tester une nouvelle méthode d'alimentation<br> pour mes vaches et les résultats sont encourageants...
-                </p>
+            <div class="col-ms-12 col-md-6 col-lg-4">
+                <h1>section_3</h1>
                 
-                <div class="post-images-grid-2x2">
-                    <div class="grid-img-item"><img src="https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=300" alt="Alimentation vaches 1"></div>
-                    <div class="grid-img-item"><img src="https://images.unsplash.com/photo-1546445317-29f4545e9d53?w=300" alt="Alimentation vaches 2"></div>
-                    <div class="grid-img-item"><img src="https://images.unsplash.com/photo-1596733430284-f7437764b1a9?w=300" alt="Alimentation vaches 3"></div>
-                    <div class="grid-img-item"><img src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=300" alt="Alimentation vaches 4"></div>
-                </div>
             </div>
+        </div>
 
             <div class="custom-post-footer">
                 <div class="post-counters">
@@ -96,6 +75,34 @@
 
             <div class="custom-post-body">
                 <h3 class="post-title-badge color-alerte">
+        <article class="custom-post-card">
+            <div class="custom-post-admin">
+                <button class="action-edit" title="Modifier"><i class="fas fa-pencil-alt"></i></button>
+                <button class="action-delete" title="Supprimer"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="custom-post-header">
+                <div class="author-avatar-box">
+                    <img src="{{ asset('images/img-elevage.jpeg') }}" alt="Avatar Jean Dupont" class="rounded-circle">
+
+                </div>
+                <div class="author-meta-data">
+                    <span class="user-fullname">JEAN DUPONT</span>
+                    <span class="meta-separator">•</span>
+                    <span class="user-profession">Éleveur bovin</span>
+                    <span class="meta-separator">•</span>
+                    <span class="published-time"><i class="far fa-calendar-alt"></i> Aujourd'hui</span>
+                </div>
+            </div>
+
+            <div class="custom-post-body ">
+                <h3 class="post-title-badge color-experience">
+                    <span class="dot-indicator "></span> EXPERIENCE : NOUVELLE MÉTHODE D'ALIMENTATION
+                </h3>
+                <p class="post-text-content">
+                    Je viens de tester une nouvelle méthode d'alimentation pour mes vaches et les résultats sont encourageants...
+                </p>
+                
                     <i class="fas fa-exclamation-triangle"></i> ALERTE : CAS DE FIÈVRE APHTEUSE À DAKAR
                 </h3>
                 <p class="post-text-content">
@@ -144,7 +151,7 @@
                      NOUVELLE MÉTHODE D'ALIMENTATION
                 </h3>
                 <p class="post-text-content">
-    Je viens de tester une nouvelle méthode d'alimentation<br>pour mes vaches et les résultats sont encourageants...
+    Je viens de tester une nouvelle méthode d'alimentation pour mes vaches et les résultats pour mes vaches et les résultats sont encourageants...
 </p>
                 
                 <div class="post-images-grid-2x2">

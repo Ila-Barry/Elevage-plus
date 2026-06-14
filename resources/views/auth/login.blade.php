@@ -24,7 +24,7 @@
                 <span>ÉLEVAGE+</span>
             </div>
             <p class="login-subtitle">Pas de inscrit ? 
-                <a href="#" class="signup-link">S'inscrire</a>,
+                <a href="{{('/auth/register') }}" class="signup-link">S'inscrire</a>,
             </p>
         </div>
 
