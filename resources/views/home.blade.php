@@ -33,7 +33,7 @@
       <h1>Gérez votre élevage<br><span class="text-green">facilement</span></h1>
       <p class="hero-subtitle"><i class="fas fa-users"></i> Rejoignez la communauté éleveurs</p>
       <p>La plateforme tout-en-un pour gérer vos animaux, vos tâches, vos stocks<br>et échanger avec d'autres éleveurs.</p>
-      <a href="#" class="btn btn-success"><i class="fas fa-rocket"></i> Commencez gratuitement <i class="fas fa-arrow-right"></i></a>
+      <a href="{{ url('auth/login') }}" class="btn btn-success"><i class="fas fa-rocket"></i> Commencez gratuitement <i class="fas fa-arrow-right"></i></a>
     </div>
   </section>
 
@@ -234,7 +234,7 @@
       <div class="cta-box">
         <h4><i class="fas fa-rocket"></i> Prête à améliorer votre élevage?</h4>
         <p>rejoignez les centaines d'éleveurs qui nous font déjà confiance!</p>
-        <a href="#" class="btn btn-success w-100"><i class="fas fa-user-plus"></i> Créez votre compte gratuitement</a>
+        <a href="{{ url('auth/register') }}" class="btn btn-success w-100"><i class="fas fa-user-plus"></i> Créez votre compte gratuitement</a>
       </div>
 
       <div class="sidebar-imgs">
