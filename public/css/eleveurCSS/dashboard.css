@@ -11,6 +11,7 @@
     --card-bg: #ffffff;
     --text-dark: #2d3436;
     --text-gray: #636e72;
+    --text-black: #000000;
     --border-radius: 16px;
     --shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
     --shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.1);
@@ -54,12 +55,19 @@
 }
 
 .stat-card {
-    background: var(--card-bg);
+    /* background: var(--card-bg); */
     border-radius: var(--border-radius);
     padding: 1.2rem 1rem;
     text-align: center;
     box-shadow: var(--shadow);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.animals-card1{
+    background: rgba(0,128,0, 0.1);
+}
+
+.animals-card2{
+    background: rgba(0,0,255, 0.1);
 }
 
 .stat-card:hover {
@@ -82,7 +90,7 @@
 
 .stat-label {
     font-size: 0.85rem;
-    color: var(--text-gray);
+    color: var(--text-black);
     margin: 0.5rem 0 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;

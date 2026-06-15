@@ -1,69 +1,56 @@
 <?php
+// app/Traits/ApiResponseTrait.php
 
 namespace App\Traits;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 
-/**
- * Trait ApiResponseTrait
- * 
- * Standardise toutes les réponses API de l'application.
- * Fournit une structure cohérente pour les succès et les erreurs.
- */
 trait ApiResponseTrait
 {
     /**
      * Réponse de succès
-     *
-     * @param mixed $data
-     * @param string $message
-     * @param int $code
-     * @return JsonResponse
      */
-    protected function successResponse($data = null, string $message = 'Opération réussie', int $code = 200): JsonResponse
+    protected function successResponse($data = null, string $message = 'Succès', int $statusCode = 200): JsonResponse
     {
         return response()->json([
-            'status' => 'success',
+            'success' => true,
             'message' => $message,
             'data' => $data,
-            'timestamp' => now()->toIso8601String()
-        ], $code);
+        ], $statusCode);
     }
 
     /**
      * Réponse d'erreur
-     *
-     * @param string $message
-     * @param int $code
-     * @param mixed $errors
-     * @return JsonResponse
      */
-    protected function errorResponse(string $message = 'Erreur serveur', int $code = 500, $errors = null): JsonResponse
+    protected function errorResponse(string $message = 'Erreur', int $statusCode = 400, array $errors = []): JsonResponse
+    {
+        $response = [
+            'success' => false,
+            'message' => $message,
+        ];
+
+        if (!empty($errors)) {
+            $response['errors'] = $errors;
+        }
+
+        return response()->json($response, $statusCode);
+    }
+
+    /**
+     * Réponse d'erreur de validation (spécifique)
+     */
+    protected function validationErrorResponse($errors, string $message = 'Erreur de validation des données'): JsonResponse
     {
         return response()->json([
-            'status' => 'error',
+            'success' => false,
             'message' => $message,
             'errors' => $errors,
-            'timestamp' => now()->toIso8601String()
-        ], $code);
+        ], 422);
     }
 
     /**
-     * Réponse de validation échouée
-     *
-     * @param mixed $errors
-     * @return JsonResponse
-     */
-    protected function validationErrorResponse($errors): JsonResponse
-    {
-        return $this->errorResponse('Erreur de validation des données', 422, $errors);
-    }
-
-    /**
-     * Réponse non autorisé
-     *
-     * @param string $message
-     * @return JsonResponse
+     * Réponse non autorisée (401)
      */
     protected function unauthorizedResponse(string $message = 'Non authentifié'): JsonResponse
     {
@@ -71,10 +58,7 @@ trait ApiResponseTrait
     }
 
     /**
-     * Réponse accès interdit
-     *
-     * @param string $message
-     * @return JsonResponse
+     * Réponse interdite (403)
      */
     protected function forbiddenResponse(string $message = 'Accès interdit'): JsonResponse
     {
@@ -82,10 +66,7 @@ trait ApiResponseTrait
     }
 
     /**
-     * Réponse ressource non trouvée
-     *
-     * @param string $message
-     * @return JsonResponse
+     * Réponse non trouvée (404)
      */
     protected function notFoundResponse(string $message = 'Ressource non trouvée'): JsonResponse
     {
@@ -93,24 +74,20 @@ trait ApiResponseTrait
     }
 
     /**
-     * Réponse créé (201)
-     *
-     * @param mixed $data
-     * @param string $message
-     * @return JsonResponse
+     * Réponse avec pagination
      */
-    protected function createdResponse($data = null, string $message = 'Ressource créée avec succès'): JsonResponse
+    protected function paginatedResponse($paginator, string $message = 'Succès'): JsonResponse
     {
-        return $this->successResponse($data, $message, 201);
-    }
-
-    /**
-     * Réponse sans contenu (204)
-     *
-     * @return JsonResponse
-     */
-    protected function noContentResponse(): JsonResponse
-    {
-        return response()->json(null, 204);
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data' => $paginator->items(),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+            ],
+        ]);
     }
 }

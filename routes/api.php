@@ -1,8 +1,15 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PublicationController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ProduitController;
+use App\Http\Controllers\Api\StockController;
+use App\Http\Controllers\Api\ElevageController;
+use App\Http\Controllers\Api\AnimalController;
+use App\Http\Controllers\Api\TacheController;
+use App\Http\Controllers\Api\NotificationController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -10,11 +17,11 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Route factice pour éviter l'erreur de redirection
+// gere la redirection vers la route de login pour les utilisateurs non authentifiés
 Route::get('/login', function () {
     return response()->json([
-        'status' => 'error',
-        'message' => 'Non authentifié. Veuillez fournir un token valide.'
+        'success' => false,
+        'message' => 'Non authentifié. Veuillez vous connecter.'
     ], 401);
 })->name('login');
 
@@ -60,7 +67,6 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
 });
 
 
-
 /*
 |--------------------------------------------------------------------------
 | API Routes - Publications
@@ -101,4 +107,112 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin/publications')->group(fu
     Route::post('/{id}/block', [PublicationController::class, 'adminBlock']);
     Route::post('/{id}/unblock', [PublicationController::class, 'adminUnblock']);
     Route::delete('/reports/{id}', [PublicationController::class, 'adminDeleteReport']);
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Produits et Stocks
+|--------------------------------------------------------------------------
+*/
+
+// Routes protégées (authentification requise)
+Route::middleware(['auth:api'])->prefix('stock')->group(function () {
+    
+    // Produits
+    Route::prefix('produits')->group(function () {
+        Route::get('/', [ProduitController::class, 'index']);
+        Route::post('/', [ProduitController::class, 'store']);
+        Route::get('/critiques', [ProduitController::class, 'produitsCritiques']);
+        Route::get('/rupture', [ProduitController::class, 'produitsRupture']);
+        Route::get('/statistiques', [ProduitController::class, 'statistiques']);
+        Route::get('/{id}', [ProduitController::class, 'show']);
+        Route::put('/{id}', [ProduitController::class, 'update']);
+        Route::delete('/{id}', [ProduitController::class, 'destroy']);
+    });
+    
+    // Mouvements de stock
+    Route::prefix('mouvements')->group(function () {
+        Route::get('/', [StockController::class, 'historique']);
+        Route::post('/{produitId}/entree', [StockController::class, 'addStock']);
+        Route::post('/{produitId}/sortie', [StockController::class, 'removeStock']);
+    });
+    
+    // Rapports
+    Route::get('/rapport', [StockController::class, 'rapport']);
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Élevages
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api'])->prefix('elevages')->group(function () {
+    // CRUD de base
+    Route::get('/', [ElevageController::class, 'index']);
+    Route::post('/', [ElevageController::class, 'store']);
+    Route::get('/statistiques', [ElevageController::class, 'statistiques']);
+    Route::get('/{id}', [ElevageController::class, 'show']);
+    Route::put('/{id}', [ElevageController::class, 'update']);
+    Route::delete('/{id}', [ElevageController::class, 'destroy']);
+    
+    // Actions spécifiques
+    Route::patch('/{id}/statut', [ElevageController::class, 'changeStatut']);
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Animaux
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api'])->prefix('animaux')->group(function () {
+    // CRUD de base
+    Route::get('/', [AnimalController::class, 'index']);
+    Route::post('/', [AnimalController::class, 'store']);
+    Route::get('/statistiques', [AnimalController::class, 'statistiques']);
+    Route::get('/{id}', [AnimalController::class, 'show']);
+    Route::put('/{id}', [AnimalController::class, 'update']);
+    Route::delete('/{id}', [AnimalController::class, 'destroy']);
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Tâches
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api'])->prefix('taches')->group(function () {
+    // CRUD de base
+    Route::get('/', [TacheController::class, 'index']);
+    Route::get('/calendar', [TacheController::class, 'calendar']);
+    Route::get('/statistiques', [TacheController::class, 'statistiques']);
+    Route::post('/', [TacheController::class, 'store']);
+    Route::get('/{id}', [TacheController::class, 'show']);
+    Route::put('/{id}', [TacheController::class, 'update']);
+    Route::delete('/{id}', [TacheController::class, 'destroy']);
+    
+    // Actions spécifiques
+    Route::patch('/{id}/complete', [TacheController::class, 'complete']);
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Notifications
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api'])->prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::get('/unread', [NotificationController::class, 'unread']);
+    Route::get('/stats', [NotificationController::class, 'stats']);
+    Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/{id}', [NotificationController::class, 'destroy']);
+    Route::delete('/', [NotificationController::class, 'destroyAll']);
 });

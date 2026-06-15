@@ -9,7 +9,7 @@
             <a href="#" class="navbar-brand logo-wrapper d-flex align-items-center">
 
                 <div class="logo-circle">
-                    Logo
+                    <img class="img-logo" src="{{ asset('images/logoE.png')}}" alt="" srcset="">
                 </div>
 
                 <span class="logo-text">
@@ -49,9 +49,9 @@
                     </li>
 
                     <li class="nav-item">
-                        <a href="{{ url('/auth/profile') }}" class="nav-link">
-                            <i class="fas fa-user"></i>
-                            <span>Profil</span>
+                        <a href="{{ url('/notification') }}" class="nav-link">
+                            <i class="fas fa-bell"></i>
+                            <span>Notification</span>
                         </a>
                     </li>
 

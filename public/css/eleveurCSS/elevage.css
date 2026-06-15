@@ -1,5 +1,490 @@
-h1 {
-    color: #007bff;
-    font-size: 2.5rem;
-    font-weight: 900;
+
+
+/* ==========================================================================
+   Variables de design & Utilitaires de secours
+   ========================================================================== */
+:root {
+    --primary-green: #1b8549;
+    --hover-green: #146436;
+    --btn-gray-bg: #f3f4f6;
+    --btn-gray-border: #d1d5db;
+    --danger-soft-bg: #fee2e2;
+    --danger-soft-border: #fca5a5;
+    --danger-text: #dc2626;
+    --text-main: #000000;
+}
+
+/* Flex gap fallback pour les anciennes versions de navigateurs */
+.gap-2 { gap: 0.5rem; }  
+.gap-3 { gap: 1rem; }
+
+/* Wrapper principal */
+.dashboard-wrapper {
+    font-family: 'Inter', sans-serif;
+    color: var(--text-main);
+}
+
+/* ==========================================================================
+   Boutons Globaux & Titre
+   ========================================================================== */
+.page-title {
+    font-size: 1.5rem;
+    color: #000000;
+    letter-spacing: 0.5px;
+}
+
+.btn-create {
+    background-color: var(--primary-green);
+    color: #ffffff !important;
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+.btn-create:hover {
+    background-color: var(--hover-green);
+}
+
+/* ==========================================================================
+   Cartes d'Élevages
+   ========================================================================== */
+.elevage-card {
+    border-radius: 12px !important;
+    border: 1px solid #e5e7eb !important;
+    background-color: #ffffff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.elevage-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+.elevage-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #000000;
+    letter-spacing: 0.5px;
+}
+
+/* Conteneur d'image avec superposition de texte (Ferme Intégrée) */
+.img-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 150px;
+}
+
+.img-container img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    aspect-ratio: 1 / 1;
+}
+
+.img-overlay-text {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.85);
+    color: #000000;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    width: 85%;
+    border: 1px solid #444;
+}
+
+/* Grille d'informations alignée */
+.elevage-info-grid .info-icon {
+    width: 20px;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.elevage-info-grid span {
+    font-size: 0.95rem;
+    color: #333333;
+}
+
+/* ==========================================================================
+   Boutons d'action contextuels (Voir, Modifier, Supprimer)
+   ========================================================================== */
+.action-buttons-group {
+    width: 100%;
+    max-width: 120px;
+}
+
+@media (max-width: 575.98px) {
+    .action-buttons-group {
+        max-width: 100%;
+    }
+}
+
+.btn-action {
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+
+/* Action : Voir */
+.btn-view {
+    background-color: #d1fae5;
+    color: #065f46;
+    border-color: #a7f3d0;
+}
+.btn-view:hover {
+    background-color: #a7f3d0;
+    color: #044e37;
+}
+
+/* Action : Modifier */
+.btn-edit {
+    background-color: var(--btn-gray-bg);
+    color: #374151;
+    border-color: var(--btn-gray-border);
+}
+.btn-edit:hover {
+    background-color: #e5e7eb;
+    color: #1f2937;
+}
+
+/* Action : Supprimer */
+
+/* Action : Voir -> VERT avec TEXTE BLANC */
+.btn-view {
+    background-color: var(--primary-green) !important;
+    color: #ffffff !important;
+    border-color: var(--primary-green) !important;
+}
+.btn-view:hover {
+    background-color: var(--hover-green) !important;
+    border-color: var(--hover-green) !important;
+    color: #ffffff !important;
+}
+
+/* Action : Modifier -> VERT avec TEXTE BLANC */
+.btn-edit {
+    background-color: var(--primary-green) !important;
+    color: #ffffff !important;
+    border-color: var(--primary-green) !important;
+}
+.btn-edit:hover {
+    background-color: var(--hover-green) !important;
+    border-color: var(--hover-green) !important;
+    color: #ffffff !important;
+}
+
+/* Action : Supprimer -> Reste inchangé */
+
+.btn-delete {
+    background-color: var(--danger-soft-bg);
+    color: var(--danger-text);
+    border-color: var(--danger-soft-border);
+}
+.btn-delete:hover {
+    background-color: #ffeeee;
+    border-color: var(--danger-text);
+}
+
+/* ==========================================================================
+   Pagination
+   ========================================================================== */
+.btn-pagination {
+    border: 1px solid var(--btn-gray-border) !important;
+    background-color: #ffffff;
+    color: #374151 !important;
+    font-size: 0.9rem;
+    text-transform: lowercase;
+    padding: 0.35rem 1rem;
+    border-radius: 6px;
+}
+
+.btn-pagination:hover {
+    background-color: var(--btn-gray-bg) !important;
+}
+/* ==========================================================================
+   Styles spécifiques au Formulaire / Modal "Créer un élevage"
+   ========================================================================== */
+.create-elevage-modal {
+    border-radius: 16px !important;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Bouton fermer personnalisé (X vert en haut à droite) */
+.close-modal-btn {
+    background: none;
+    border: none;
+    color: #22c55e;
+    font-size: 1.6rem;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.close-modal-btn:hover {
+    color: #15803d;
+}
+
+/* Encadré de la section Photo */
+.form-section-box {
+    border: 1px solid #e5e7eb;
+    background-color: #fafafa;
+}
+
+.image-preview-placeholder {
+    width: 70px;
+    height: 70px;
+    background-color: #f3f4f6;
+    border-style: dashed !important;
+    border-color: #cbd5e1 !important;
+}
+
+.btn-photo-action {
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    background-color: #ffffff;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Personnalisation fine des champs de saisie */
+.custom-input, .custom-textarea {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    padding: 0.6rem 0.75rem !important;
+    font-size: 0.95rem;
+    color: #333333;
+}
+
+.custom-input::placeholder, .custom-textarea::placeholder {
+    color: #94a3b8;
+}
+
+.custom-input:focus, .custom-textarea:focus {
+    border-color: var(--primary-green) !important;
+    box-shadow: 0 0 0 3px rgba(27, 133, 73, 0.15) !important;
+}
+
+/* Gestion de la flèche personnalisée pour le sélecteur de type d'élevage */
+.select-wrapper {
+    position: relative;
+}
+
+.appearance-none {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 2.5rem !important;
+}
+
+.select-arrow {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    pointer-events: none;
+}
+
+/* Boutons de pied de formulaire (Annuler et Valider) */
+.btn-modal-cancel {
+    background-color: #ffffff;
+    color: #000000 !important;
+    border: 1px solid #cbd5e1 !important;
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.45rem 1.2rem;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.btn-modal-cancel:hover {
+    background-color: #f8fafc;
+}
+
+.btn-modal-submit {
+    background-color: var(--primary-green);
+    color: #ffffff !important;
+    border: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.45rem 1.5rem;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.btn-modal-submit:hover {
+    background-color: var(--hover-green);
+}
+
+.form-label {
+    font-size: 0.9rem;
+    color: #1e293b;
+}
+ 
+
+/* Force la ligne de la carte à supprimer les marges internes pour coller l'image au bord */
+.elevage-card .row.no-gutters {
+    margin-right: 0;
+    margin-left: 0;
+}
+.elevage-card .row.no-gutters > [class*='col-'] {
+    padding-right: 0;
+    padding-left: 0;
+}
+
+/* Conteneur d'image qui remplit 100% de la hauteur et de la largeur disponible */
+.col-image-container {
+    position: relative;
+    min-height: 200px; /* Évite que l'image s'écrase */
+}
+
+.img-container-full {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+}
+
+/* L'image prend tout l'espace disponible de son conteneur sans se déformer */
+.img-container-full img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Repositionnement du texte blanc sur l'image */
+.img-overlay-text {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #000000;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 5px 10px;
+    border-radius: 6px;
+    width: 85%;
+    border: 1px solid #333;
+    z-index: 2;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Alignement des infos */
+.info-item-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Rendu Responsive Mobile (< 768px) */
+@media (max-width: 767.98px) {
+    .col-image-container {
+        height: 220px; /* Fixe une belle hauteur d'image sur mobile */
+    }
+    .img-container-full img {
+        position: relative; /* Repasse en position fluide pour le mobile */
+    }
+    .btn-action span {
+        display: none !important; /* Ne laisse que les icônes sur mobile */
+    }
+    
+}
+
+@media (max-width: 967.98px){
+    .btn-action span {
+        display: none !important; /* Ne laisse que les icônes sur mobile */
+    }
+}
+
+
+
+/* Force la ligne de la carte à supprimer les marges internes pour coller l'image au bord */
+.elevage-card .row.no-gutters {
+    margin-right: 0;
+    margin-left: 0;
+}
+.elevage-card .row.no-gutters > [class*='col-'] {
+    padding-right: 0;
+    padding-left: 0;
+}
+
+/* Conteneur d'image qui remplit 100% de la hauteur et de la largeur disponible */
+.col-image-container {
+    position: relative;
+    min-height: 200px; /* Évite que l'image s'écrase */
+}
+
+.img-container-full {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+}
+
+/* L'image prend tout l'espace disponible de son conteneur sans se déformer */
+.img-container-full img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Repositionnement du texte blanc sur l'image */
+.img-overlay-text {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #000000;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 5px 10px;
+    border-radius: 6px;
+    width: 85%;
+    border: 1px solid #333;
+    z-index: 2;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Alignement des infos */
+.info-item-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Rendu Responsive Mobile (< 768px) */
+@media (max-width: 767.98px) {
+    .col-image-container {
+        height: 220px; /* Fixe une belle hauteur d'image sur mobile */
+    }
+    .img-container-full img {
+        position: relative; /* Repasse en position fluide pour le mobile */
+    }
+    .btn-action span {
+        display: none !important; /* Ne laisse que les icônes sur mobile */
+    }
 }
