@@ -15,25 +15,26 @@
 </head>
 <body>
 
-<div class="container py-4 py-md-5">
+<!-- En-tête : Logo + lien connexion (Déja inscrit ?) -->
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 register-container">
+                        <div class="d-flex align-items-center gap-2 logo-wrapper">
+                            <i class="fas fa-paw text-success fs-2"></i>
+                            <span class="logo-text">ÉLEVAGE+</span>
+                        </div>
+                        <div class="mt-2 mt-sm-0">
+                            <p class="register-subtitle">Déja inscrit ?   
+                            <a href="{{('/auth/login') }}" class="text-decoration-none fw-semibold small-link">
+                                <i class="fas fa-sign-in-alt me-1"></i> Se connecter
+                            </a></p>
+                        </div>
+                    </div>
+    <div class="container py-4 py-md-5">
     <div class="row justify-content-center">
         <div class="col-lg-8 col-md-10 col-12">
             <!-- Carte principale (card) identique à la maquette -->
             <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
                 <div class="card-body p-4 p-md-5">
 
-                    <!-- En-tête : Logo + lien connexion (Déja inscrit ?) -->
-                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-                        <div class="d-flex align-items-center gap-2 logo-wrapper">
-                            <i class="fas fa-paw text-success fs-2"></i>
-                            <span class="logo-text">ÉLEVAGE+</span>
-                        </div>
-                        <div class="mt-2 mt-sm-0">
-                            <a href="#" class="text-decoration-none fw-semibold small-link">
-                                <i class="fas fa-sign-in-alt me-1"></i> Déja inscrit ? Se connecter
-                            </a>
-                        </div>
-                    </div>
 
                     <!-- Titre central CRÉER UN COMPTE -->
                     <div class="text-center mb-4 mt-2">
@@ -147,7 +148,7 @@
         </div>
     </div>
 </div>
-
+</div>
 <!-- jQuery + Bootstrap JS (nécessaire pour certains composants) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
