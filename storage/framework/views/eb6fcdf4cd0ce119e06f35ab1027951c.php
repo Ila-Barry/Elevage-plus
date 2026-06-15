@@ -18,6 +18,9 @@
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet">
+    
+    <!-- LOGO -->
+    <link rel="icon" type="image/x-icon" href="<?php echo e(asset('images/logoE.png')); ?>">
 
     <!-- CSS GLOBAL -->
     <link rel="stylesheet" href="<?php echo e(asset('css/layoutCSS/navbar.css')); ?>">

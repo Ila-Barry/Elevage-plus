@@ -9,7 +9,7 @@
             <a href="#" class="navbar-brand logo-wrapper d-flex align-items-center">
 
                 <div class="logo-circle">
-                    <img class="img-logo" src="{{ asset('images/logoE.png')}}" alt="" srcset="">
+                    Logo
                 </div>
 
                 <span class="logo-text">

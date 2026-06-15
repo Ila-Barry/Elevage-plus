@@ -407,6 +407,13 @@
     .btn-action span {
         display: none !important; /* Ne laisse que les icônes sur mobile */
     }
+    
+}
+
+@media (max-width: 967.98px){
+    .btn-action span {
+        display: none !important; /* Ne laisse que les icônes sur mobile */
+    }
 }
 
 

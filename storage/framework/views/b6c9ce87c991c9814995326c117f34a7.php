@@ -9,7 +9,7 @@
             <a href="#" class="navbar-brand logo-wrapper d-flex align-items-center">
 
                 <div class="logo-circle">
-                    Logo
+                    <img class="img-logo" src="<?php echo e(asset('images/logoE.png')); ?>" alt="" srcset="">
                 </div>
 
                 <span class="logo-text">

@@ -234,6 +234,7 @@
       <div class="cta-box">
         <h4><i class="fas fa-rocket"></i> Prête à améliorer votre élevage?</h4>
         <p>rejoignez les centaines d'éleveurs qui nous font déjà confiance!</p>
+        <a href="{{ url('../auth/register') }}" class="btn btn-success w-100"><i class="fas fa-user-plus"></i> Créez votre compte gratuitement</a>
         <a href="{{ url('auth/register') }}" class="btn btn-success w-100"><i class="fas fa-user-plus"></i> Créez votre compte gratuitement</a>
       </div>
 

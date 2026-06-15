@@ -27,8 +27,8 @@
                 <a class="navbar-brand d-flex align-items-center logo-brand"
                 href="{{ url('/') }}">
 
-                    <i class="fas fa-paw mr-2"></i>
-                    <span>ÉLEVAGE+</span>
+                    <img class="img-logo" src="{{ asset('images/logoE.png')}}" alt="" srcset="">
+                    <span class="ml-2">ÉLEVAGE+</span>
 
                 </a>
 

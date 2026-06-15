@@ -39,6 +39,14 @@
                 <h1>section_2</h1>
 
             </div>
+
+            <div class="custom-post-body ">
+                <h3 class="post-title-badge color-experience">
+                    <span class="dot-indicator "></span> EXPERIENCE : NOUVELLE MÉTHODE D'ALIMENTATION
+                </h3>
+                <p class="post-text-content">
+                    Je viens de tester une nouvelle méthode d'alimentation méthode d'alimentation pour mes vaches et les résultats sont encourageants...
+                </p>
             <div class="col-ms-12 col-md-6 col-lg-4">
                 <h1>section_3</h1>
                 
