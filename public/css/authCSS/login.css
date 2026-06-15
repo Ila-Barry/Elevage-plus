@@ -7,10 +7,16 @@
     box-sizing: border-box;
 }
 body {
-    background-image: url("/images/elel.jpeg");
+    background-image:
+        linear-gradient(
+            rgba(20,108,67,.15),
+            rgba(25,135,84,.15)
+        ),
+        url('/images/bg.png');
+
     background-size: cover;
     background-position: center;
-    
+    background-attachment: fixed;
 }
 .login-container {
     width: 100%;
