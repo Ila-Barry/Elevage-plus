@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Inscription | ÉLEVAGE+</title>
+    <link rel="icon" href="{{ asset('images/logoE.png') }}" type="image/png">
 
     <!-- Bootstrap 4.6 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
@@ -16,138 +17,142 @@
 <body>
 
 <!-- En-tête : Logo + lien connexion (Déja inscrit ?) -->
-                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 register-container">
-                        <div class="d-flex align-items-center gap-2 logo-wrapper">
-                            <i class="fas fa-paw text-success fs-2"></i>
-                            <span class="logo-text">ÉLEVAGE+</span>
-                        </div>
-                        <div class="mt-2 mt-sm-0">
-                            <p class="register-subtitle">Déja inscrit ?   
-                            <a href="{{('/auth/login') }}" class="text-decoration-none fw-semibold small-link">
-                                <i class="fas fa-sign-in-alt me-1"></i> Se connecter
-                            </a></p>
-                        </div>
-                    </div>
+    <div class="d-flex register-container">
+        <div class="d-flex logo-wrapper">
+            <a href="{{ url('/') }}">
+                <div class="logo mt-1">
+                    <img class="img-logo mb-4" src="{{ asset('images/logoE.png')}}">
+                    <span class="logo-text">ÉLEVAGE+</span>
+                </div>
+            </a>
+        </div>
+        <div class="mt-2 mt-sm-0">
+            <p class="register-subtitle">Déja inscrit ?   
+                <a href="{{ url('/auth/login') }}">  
+                    <i class="fas fa-sign-in-alt me-1"></i> Se connecter
+                </a>
+            </p>
+        </div>
+    </div>
     <div class="container py-4 py-md-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8 col-md-10 col-12">
-            <!-- Carte principale (card) identique à la maquette -->
-            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-                <div class="card-body p-4 p-md-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10 col-12">
+                <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="logo"><img src="{{ asset('images/logoE.png')}}" alt=""></div>
 
+                        <!-- Titre central CRÉER UN COMPTE -->
+                        <div class="text-center mb-4 mt-2">
+                            <h3 class="fw-bold text-dark mb-1">CRÉER UN COMPTE</h3>
+                            <div class="underline-title mx-auto"></div>
+                        </div>
 
-                    <!-- Titre central CRÉER UN COMPTE -->
-                    <div class="text-center mb-4 mt-2">
-                        <h3 class="fw-bold text-dark mb-1">CRÉER UN COMPTE</h3>
-                        <div class="underline-title mx-auto"></div>
+                        <!-- Formulaire d'inscription (champs + icônes exacts comme sur l'image) -->
+                        <form action="#" method="POST" id="registerForm">
+                            @csrf
+
+                            <!-- 1. NOM (icône utilisateur) -->
+                            <div class="form-group mb-4">
+                                <label class="form-label fw-semibold">Nom</label>
+                                <div class="input-group custom-input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-user text-muted"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control border-start-0 ps-0" placeholder="complet" required>
+                                </div>
+                            </div>
+
+                            <!-- 2. ADRESS E-MAIL (icône envelope) -->
+                            <div class="form-group mb-4">
+                                <label class="form-label fw-semibold">Adress e-mail</label>
+                                <div class="input-group custom-input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-envelope text-muted"></i></span>
+                                    </div>
+                                    <input type="email" class="form-control border-start-0 ps-0" placeholder="e-mail" required>
+                                </div>
+                            </div>
+
+                            <!-- 3. NUMÉRO TÉLÉPHONE (icône phone) -->
+                            <div class="form-group mb-4">
+                                <label class="form-label fw-semibold">Numéro téléphone</label>
+                                <div class="input-group custom-input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-phone-alt text-muted"></i></span>
+                                    </div>
+                                    <input type="tel" class="form-control border-start-0 ps-0" placeholder="téléphone" required>
+                                </div>
+                            </div>
+
+                            <!-- 4. MOT DE PASSE (icône cadenas) -->
+                            <div class="form-group mb-4">
+                                <label class="form-label fw-semibold">Mot de pass</label>
+                                <div class="input-group custom-input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-lock text-muted"></i></span>
+                                    </div>
+                                    <input type="password" class="form-control border-start-0 ps-0" placeholder="mot de passe" id="password" required>
+                                </div>
+                            </div>
+
+                            <!-- 5. CONFIRMER MOT DE PASSE -->
+                            <div class="form-group mb-4">
+                                <label class="form-label fw-semibold">Confirmer mot de pass</label>
+                                <div class="input-group custom-input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-lock text-muted"></i></span>
+                                    </div>
+                                    <input type="password" class="form-control border-start-0 ps-0" placeholder="confirmer mot de passe" id="password_confirmation" required>
+                                </div>
+                                <small class="text-danger password-match-error d-none">Les mots de passe ne correspondent pas.</small>
+                            </div>
+
+                            <!-- 6. TYPE(S) ÉLEVAGE (icône tractor / élevage) -->
+                            <div class="form-group mb-4">
+                                <label class="form-label fw-semibold">Type(s) élevage</label>
+                                <div class="input-group custom-input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-tractor text-muted"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control border-start-0 ps-0" placeholder="élevage" required>
+                                </div>
+                            </div>
+
+                            <!-- 7. ADRESS DOMICILE (icône maison) -->
+                            <div class="form-group mb-4">
+                                <label class="form-label fw-semibold">adress domicile</label>
+                                <div class="input-group custom-input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-home text-muted"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control border-start-0 ps-0" placeholder="domicile" required>
+                                </div>
+                            </div>
+
+                            <!-- 8. Case à cocher conditions générales -->
+                            <div class="form-group form-check mb-4 d-flex align-items-center">
+                                <input class="form-check-input me-2" type="checkbox" id="acceptTerms" style="width: 18px; height: 18px;" required>
+                                <label class="form-check-label text-dark" for="acceptTerms">
+                                    j'accepte les conditions d'utilisation
+                                </label>
+                            </div>
+
+                            <!-- Bouton S'INSCRIRE -->
+                            <button type="submit" class="btn btn-success btn-block rounded-pill py-3 fw-bold btn-submit w-100 shadow-sm">
+                                S'INSCRIRE <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+
+                            <!-- Lien supplémentaire en bas: Déja un compte: Se connecter -->
+                            <div class="text-center mt-4">
+                                <span class="text-muted">Déja un compte :</span>
+                                <a href="" class="fw-bold text-decoration-none ms-1 link-login">Se connecter</a>
+                            </div>
+                        </form>
                     </div>
-
-                    <!-- Formulaire d'inscription (champs + icônes exacts comme sur l'image) -->
-                    <form action="#" method="POST" id="registerForm">
-                        @csrf
-
-                        <!-- 1. NOM (icône utilisateur) -->
-                        <div class="form-group mb-4">
-                            <label class="form-label fw-semibold">Nom</label>
-                            <div class="input-group custom-input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-user text-muted"></i></span>
-                                </div>
-                                <input type="text" class="form-control border-start-0 ps-0" placeholder="complet" required>
-                            </div>
-                        </div>
-
-                        <!-- 2. ADRESS E-MAIL (icône envelope) -->
-                        <div class="form-group mb-4">
-                            <label class="form-label fw-semibold">Adress e-mail</label>
-                            <div class="input-group custom-input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-envelope text-muted"></i></span>
-                                </div>
-                                <input type="email" class="form-control border-start-0 ps-0" placeholder="e-mail" required>
-                            </div>
-                        </div>
-
-                        <!-- 3. NUMÉRO TÉLÉPHONE (icône phone) -->
-                        <div class="form-group mb-4">
-                            <label class="form-label fw-semibold">Numéro téléphone</label>
-                            <div class="input-group custom-input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-phone-alt text-muted"></i></span>
-                                </div>
-                                <input type="tel" class="form-control border-start-0 ps-0" placeholder="téléphone" required>
-                            </div>
-                        </div>
-
-                        <!-- 4. MOT DE PASSE (icône cadenas) -->
-                        <div class="form-group mb-4">
-                            <label class="form-label fw-semibold">Mot de pass</label>
-                            <div class="input-group custom-input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-lock text-muted"></i></span>
-                                </div>
-                                <input type="password" class="form-control border-start-0 ps-0" placeholder="mot de passe" id="password" required>
-                            </div>
-                        </div>
-
-                        <!-- 5. CONFIRMER MOT DE PASSE -->
-                        <div class="form-group mb-4">
-                            <label class="form-label fw-semibold">Confirmer mot de pass</label>
-                            <div class="input-group custom-input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-lock text-muted"></i></span>
-                                </div>
-                                <input type="password" class="form-control border-start-0 ps-0" placeholder="confirmer mot de passe" id="password_confirmation" required>
-                            </div>
-                            <small class="text-danger password-match-error d-none">Les mots de passe ne correspondent pas.</small>
-                        </div>
-
-                        <!-- 6. TYPE(S) ÉLEVAGE (icône tractor / élevage) -->
-                        <div class="form-group mb-4">
-                            <label class="form-label fw-semibold">Type(s) élevage</label>
-                            <div class="input-group custom-input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-tractor text-muted"></i></span>
-                                </div>
-                                <input type="text" class="form-control border-start-0 ps-0" placeholder="élevage" required>
-                            </div>
-                        </div>
-
-                        <!-- 7. ADRESS DOMICILE (icône maison) -->
-                        <div class="form-group mb-4">
-                            <label class="form-label fw-semibold">adress domicile</label>
-                            <div class="input-group custom-input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-home text-muted"></i></span>
-                                </div>
-                                <input type="text" class="form-control border-start-0 ps-0" placeholder="domicile" required>
-                            </div>
-                        </div>
-
-                        <!-- 8. Case à cocher conditions générales -->
-                        <div class="form-group form-check mb-4 d-flex align-items-center">
-                            <input class="form-check-input me-2" type="checkbox" id="acceptTerms" style="width: 18px; height: 18px;" required>
-                            <label class="form-check-label text-dark" for="acceptTerms">
-                                j'accepte les conditions d'utilisation
-                            </label>
-                        </div>
-
-                        <!-- Bouton S'INSCRIRE -->
-                        <button type="submit" class="btn btn-success btn-block rounded-pill py-3 fw-bold btn-submit w-100 shadow-sm">
-                            S'INSCRIRE <i class="fas fa-arrow-right ms-2"></i>
-                        </button>
-
-                        <!-- Lien supplémentaire en bas: Déja un compte: Se connecter -->
-                        <div class="text-center mt-4">
-                            <span class="text-muted">Déja un compte :</span>
-                            <a href="" class="fw-bold text-decoration-none ms-1 link-login">Se connecter</a>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </div>
 <!-- jQuery + Bootstrap JS (nécessaire pour certains composants) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

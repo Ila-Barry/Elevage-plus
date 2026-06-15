@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion - Élevage+</title>
+    <link rel="icon" href="{{ asset('images/logoE.png') }}" type="image/png">
 
     <!-- Bootstrap 4.6 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
@@ -19,17 +20,20 @@
 <div class="login-container ">
         <!-- Logo et en-tête -->
         <div class="login-header">
-            <div class="logo">
-                <i class="fas fa-tractor"></i>
-                <span>ÉLEVAGE+</span>
-            </div>
+            <a href="{{ url('/') }}">
+                <div class="logo">
+                    <img class="img-logo" src="{{ asset('images/logoE.png')}}">
+                    <span>ÉLEVAGE+</span>
+                </div>
+            </a>
             <p class="login-subtitle">Pas de inscrit ? 
-                <a href="{{('/auth/register') }}" class="signup-link">S'inscrire</a>,
+                <a href="{{ url('/auth/register') }}" class="signup-link">S'inscrire</a>,
             </p>
         </div>
 
 
         <div class="login-card mx-auto">
+            <div class="logo"><img src="{{ asset('images/logoE.png')}}" alt=""></div>
             <!-- Titre du formulaire -->
             <div class="form-title">
                 <i class="fas fa-sign-in-alt"></i>
@@ -95,7 +99,7 @@
 
             <!-- Lien d'inscription en bas -->
             <div class="signup-footer">
-                Pas de compte: <a href="#">S'inscrire</a>
+                Pas de compte: <a href="{{ url('/auth/register') }}">S'inscrire</a>
             </div>
         </div>
     </div>
