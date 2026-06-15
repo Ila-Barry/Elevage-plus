@@ -55,7 +55,7 @@
                     <span class="dot-indicator "></span> EXPERIENCE : NOUVELLE MÉTHODE D'ALIMENTATION
                 </h3>
                 <p class="post-text-content">
-                    Je viens de tester une nouvelle méthode d'alimentation<br> pour mes vaches et les résultats sont encourageants...
+                    Je viens de tester une nouvelle méthode d'alimentation méthode d'alimentation pour mes vaches et les résultats sont encourageants...
                 </p>
                 
                 <div class="post-images-grid-2x2">
