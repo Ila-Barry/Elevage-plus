@@ -317,7 +317,11 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0,0,0,0.6);
+<<<<<<< HEAD
     /* z-index: 1000; */
+=======
+    /* z-index: 300; */
+>>>>>>> 62e45c61c486f7067df236529d8e639a92dc9d3e
     overflow-y: auto;
 }
 
@@ -762,7 +766,10 @@ textarea.form-control {
     text-align: center;
 }
 
+<<<<<<< HEAD
 /* Section des boutons */
+=======
+>>>>>>> 62e45c61c486f7067df236529d8e639a92dc9d3e
 .action-buttons {
     display: flex;
     gap: 15px;

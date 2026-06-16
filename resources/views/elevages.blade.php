@@ -9,7 +9,8 @@
 @section('content')
 <div class="dashboard-wrapper container-fluid py-4">
     
-    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
+   <div class="d-flex flex-column align-items-start mb-4 gap-2">
+        <h2 class="text-uppercase font-weight-bold mb-2" style="font-size: 1.5rem; letter-spacing: 0.5px; color: #000;">Mes Élevages</h2>
         <button type="button" class="btn btn-create d-flex align-items-center" data-toggle="modal" data-target="#createElevageModal">
             <i class="fas fa-plus mr-2"></i> Créer un nouvel élevage
         </button>
@@ -35,8 +36,8 @@
                     </div>
                 </div>
 
-                <div class="col-12 col-md-5 col-lg-6 p-4 d-flex flex-column justify-content-center">
-                    <h2 class="elevage-card-title text-uppercase mb-3" style="font-size: 1.25rem; font-weight: 700;">{{ $elevage['titre'] }}</h2>
+                <div class="col-12 col-md-6 col-lg-6 p-4 d-flex flex-column justify-content-center">
+                    <h2 class="elevage-card-title text-uppercase mb-3" style="font-size: 1.15rem; font-weight: 700;">{{ $elevage['titre'] }}</h2>
 
                     <div class="elevage-info-grid d-flex flex-column gap-2">
                         <div class="info-item-row pb-1 d-flex align-items-center">
@@ -57,7 +58,7 @@
 
                         <div class="info-item-row pb-1 d-flex align-items-center">
                             <div class="info-label-side mr-2">
-                                <i class="fas fa-cow text-secondary info-icon mr-2"></i>
+                                <i class="fas fa-layer-group text-secondary info-icon mr-2"></i>
                                 <strong>Animaux :</strong>
                             </div>
                             <span class="text-muted">{{ $elevage['animaux'] }}</span>
@@ -73,7 +74,7 @@
                     </div>
                 </div>
 
-                <div class="col-12 col-md-3 col-lg-3 p-4 border-top border-md-top-0 d-flex align-items-center justify-content-center">
+                <div class="col-12 col-md-2 col-lg-3 p-4 border-top border-md-top-0 d-flex align-items-center justify-content-center">
                     <div class="action-buttons-group d-flex flex-row flex-md-column align-items-stretch justify-content-center gap-2 w-100">
                         
                         <button type="button" class="btn btn-action btn-view d-flex align-items-center justify-content-center gap-2" data-toggle="modal" data-target="#voirElevageModal">
@@ -271,7 +272,7 @@
 
                     <div class="d-flex justify-content-between mt-4">
                         <button type="button" class="btn btn-outline-secondary d-flex align-items-center gap-1" data-dismiss="modal" style="border-radius: 6px; min-width: 100px; justify-content: center;">
-                            静态 ❎ Annuler
+                             ❎ Annuler
                         </button>
                         <button type="submit" class="btn btn-success d-flex align-items-center gap-1" style="background-color: #198754; border-radius: 6px; min-width: 100px; justify-content: center;">
                             ✅ Valider
