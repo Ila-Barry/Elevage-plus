@@ -10,21 +10,34 @@ BANNIERE
     background: url('/images/banner-farm.jpg');
     background-size: cover;
     background-position: center;
-    height: 80px;
+    min-height: 110px; /* Augmenté pour donner de l'espace comme sur l'image */
     border-radius: 12px;
-    padding: 15px 20px;
+    padding: 20px 25px;
     display: flex;
     align-items: center;
-    margin-bottom: 15px;
+}
+
+.banner-text-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Espace entre le titre et le sous-titre */
 }
 
 .welcome-banner h1 {
-    font-size: 34px;
+    font-size: 32px;
     font-weight: 800;
+    color: #000000; /* Texte noir */
     margin: 0;
+    display: inline-block;
+    border-bottom: 4px solid #007bff; /* Ligne bleue sous le titre */
+    padding-bottom: 2px;
+    width: fit-content;
 }
 
 .welcome-banner p {
+    font-size: 18px;
+    font-weight: 500;
+    color: #000000; /* Texte noir */
     margin: 0;
 }
 
