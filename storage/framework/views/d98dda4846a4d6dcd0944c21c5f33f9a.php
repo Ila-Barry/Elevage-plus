@@ -39,11 +39,12 @@
             </div>
         </div>
 
-        <!-- Bouton Nouvelle conversation (mobile) -->
-        <button class="btn-new-conversation-mobile" id="newConversationMobileBtn">
-            <i class="fas fa-plus"></i>
-            <span>Nouvelle conversation</span>
-        </button>
+            <!-- Bouton Nouvelle conversation (mobile) -->
+            <button class="btn-new-conversation-mobile">
+                <i class="fas fa-plus"></i>
+                <span>Nouvelle conversation</span>
+            </button>
+        </div>
 
         <!-- COLONNE DROITE : Zone de discussion -->
         <div class="discussion-area" id="discussionArea">

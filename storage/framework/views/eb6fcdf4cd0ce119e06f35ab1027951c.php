@@ -536,11 +536,16 @@ function showTemporaryMessage(message) {
         infoDiv.innerHTML = originalContent;
     }, 2000);
 }
+document.getElementById('filterAge').addEventListener('change', function() {
+    console.log(this.value);
+});
+
+
     </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <?php echo $__env->yieldPushContent('scripts'); ?>
-
+  
 </body>
-</html><?php /**PATH C:\Users\USER\Desktop\Projet\Elevage-plus\resources\views/layouts/menu.blade.php ENDPATH**/ ?>
+</html> <?php /**PATH C:\Users\USER\Desktop\Projet\Elevage-plus\resources\views/layouts/menu.blade.php ENDPATH**/ ?>
