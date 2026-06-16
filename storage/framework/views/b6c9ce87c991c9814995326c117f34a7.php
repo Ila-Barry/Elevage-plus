@@ -58,7 +58,7 @@
                 </ul>
 
                 <!-- RIGHT -->
-                <div class="navbar-right d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center">
+                <div class="navbar-right d-flex flex-column flex-lg-row align-items-stretch nav align-items-lg-center">
 
                     <!-- SEARCH -->
                     <div class="search-box">
