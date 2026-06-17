@@ -7,15 +7,17 @@ BANNIERE
 ====================================================== */
 
 .welcome-banner {
-    background: url('/images/banner-farm.jpg');
-    background-size: cover;
+    /* Le chiffre 0.8 augmente le voile blanc, ce qui diminue l'opacité de l'image en fond */
+    background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('/images/elel.jpeg');
+    background-size: 100% 100%;
     background-position: center;
-    height: 120px; /* Taille idéale d'après la photo */
+    background-repeat: no-repeat;
+    height: 120px; 
     border-radius: 12px;
-    padding: 0 30px; /* Aligne bien le texte vers la gauche */
+    padding: 0 30px; 
     display: flex;
     align-items: center;
-    border: 1px solid #e0e0e0; /* Légère bordure grise comme sur la photo */
+    border: 1px solid #e0e0e0; 
     margin-bottom: 20px;
 }
 
