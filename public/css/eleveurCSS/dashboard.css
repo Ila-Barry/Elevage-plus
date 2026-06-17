@@ -72,9 +72,38 @@ KPI (Statistiques)
     margin-top: 5px;
 }
 
-.stat-card a {
-    text-decoration: none;
-    font-size: 14px;
+/* Change la couleur du lien de la carte Animaux (carte verte) */
+.stat-card.green a {
+    color: #198754; /* Un joli vert qui s'accorde bien avec le fond */
+    font-weight: 600; /* Rend le texte un peu plus visible */
+}
+
+/* Optionnel : Change la couleur au survol de la souris */
+.stat-card.green a:hover {
+    color: #13653f; 
+    text-decoration: underline; /* Ajoute un soulignement au survol */
+}
+/* Change la couleur du lien de la carte Alertes (carte jaune) */
+.stat-card.yellow a {
+    color: #b58105; /* Un joli orange/marron qui se lit très bien sur le fond jaune */
+    font-weight: 600; /* Rend le texte un peu plus visible */
+}
+
+/* Optionnel : Change la couleur au survol de la souris */
+.stat-card.yellow a:hover {
+    color: #855f04;
+    text-decoration: underline; /* Ajoute un soulignement au survol */
+}
+/* Change la couleur du lien de la carte Rapports (carte rouge) */
+.stat-card.red a {
+    color: #dc3545; /* Un rouge vif qui ressort bien sur le fond clair */
+    font-weight: 600; /* Rend le texte plus visible */
+}
+
+/* Optionnel : Change la couleur au survol de la souris */
+.stat-card.red a:hover {
+    color: #a71d2a;
+    text-decoration: underline; /* Ajoute un soulignement au survol */
 }
 
 /* ======================================================
