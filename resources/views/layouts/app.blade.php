@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Élevage+ - Gestion intégrée d\'élevage & Communauté agricole')</title>
+    <link rel="icon" href="{{ asset('images/logoE.png') }}" type="image/png">
 
     <!-- Bootstrap 4.6 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
@@ -27,7 +28,7 @@
                 <a class="navbar-brand d-flex align-items-center logo-brand"
                 href="{{ url('/') }}">
 
-                    <img class="img-logo" src="{{ asset('images/logoE.png')}}" alt="" srcset="">
+                    <img class="img-logo" src="{{ asset('images/logoE.png')}}">
                     <span class="ml-2">ÉLEVAGE+</span>
 
                 </a>
