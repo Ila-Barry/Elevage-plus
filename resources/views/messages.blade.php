@@ -595,10 +595,10 @@
         </div>
     </div>
     <div class="people-info">
-        <div class="people-name">Amadeu Sy</div>
+        <div class="people-name">Amadou Sy</div>
         <div class="people-spec">Éleveur évent - Dakar</div>
     </div>
-    <button class="btn-contact" onclick="startConversation('Amadeu Sy')">
+    <button class="btn-contact" onclick="startConversation('Amadou Sy')">
         <i class="fas fa-comment mr-1"></i> Contacter
     </button>
 </div>
