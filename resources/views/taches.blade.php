@@ -10,7 +10,6 @@
 
 <div class="taches-container">
 
-```
 <!-- ========================================= -->
 <!-- TITRE PAGE -->
 <!-- ========================================= -->
@@ -175,7 +174,11 @@
     <!-- ========================================= -->
     <div class="tasks-right">
 
-        <button class="btn-add-task">
+        <button
+            class="btn-add-task"
+            data-bs-toggle="modal"
+            data-bs-target="#addTaskModal">
+
             <i class="fas fa-plus"></i>
             Ajouter une tâche
         </button>
@@ -273,7 +276,172 @@
     </div>
 
 </div>
-```
+
+</div>
+<!-- ========================================= -->
+<!-- MODALE AJOUTER UNE TÂCHE -->
+<!-- ========================================= -->
+
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <!-- En-tête -->
+            <div class="modal-header">
+
+                <h2 class="modal-title fw-bold" id="addTaskModalLabel">
+                    AJOUTER UNE TÂCHE
+                </h2>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Fermer">
+                </button>
+
+            </div>
+
+            <!-- Corps -->
+            <div class="modal-body">
+
+                <form action="#" method="POST">
+
+                    @csrf
+
+                    <!-- Animal concerné -->
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            🐄 Animal concerné <span class="text-danger">*</span>
+                        </label>
+
+                        <select class="form-select" name="animal_id" required>
+
+                            <option value="">
+                                Sélectionner un animal
+                            </option>
+
+                            <option value="1">
+                                Marguerite (n°123)
+                            </option>
+
+                            <option value="2">
+                                Bella (n°124)
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- Type de tâche -->
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            🏠 Type de tâche <span class="text-danger">*</span>
+                        </label>
+
+                        <select class="form-select" name="type_tache" required>
+
+                            <option value="">
+                                Choisir un type
+                            </option>
+
+                            <option value="Vaccination">
+                                Vaccination
+                            </option>
+
+                            <option value="Vermifuge">
+                                Vermifuge
+                            </option>
+
+                            <option value="Pesée">
+                                Pesée
+                            </option>
+
+                            <option value="Contrôle vétérinaire">
+                                Contrôle vétérinaire
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- Date -->
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            📅 Date planifiée <span class="text-danger">*</span>
+                        </label>
+
+                        <input
+                            type="date"
+                            class="form-control"
+                            name="date_planifiee"
+                            required>
+
+                    </div>
+
+                    <!-- Heure -->
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            ⏰ Heure (optionnel)
+                        </label>
+
+                        <input
+                            type="time"
+                            class="form-control"
+                            name="heure">
+
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            📝 Notes (optionnelle)
+                        </label>
+
+                        <textarea
+                            class="form-control"
+                            name="notes"
+                            rows="4"
+                            placeholder="Ajouter une description ou une remarque..."></textarea>
+
+                    </div>
+
+                    <!-- Boutons -->
+                    <div class="d-flex justify-content-center gap-3">
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+
+                            ❌ Annuler
+
+                        </button>
+
+                        <button
+                            type="submit"
+                            class="btn btn-success">
+
+                            ✅ Ajouter
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </div>
 
