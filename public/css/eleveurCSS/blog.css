@@ -544,3 +544,215 @@
     color: white;
     border-color: #198754;
 }
+
+/* ==========================================================================
+   CONCEPTION DE LA FENÊTRE MODALE DE PUBLICATION (MAQUETTE COMPATIBLE)
+   ========================================================================== */
+
+/* Fond flouté et sombre qui couvre tout l'écran */
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease-in-out;
+}
+
+/* Classe déclenchée par JS pour afficher la fenêtre popup */
+.custom-modal-overlay.modal-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* La boîte de dialogue blanche */
+.custom-modal-container {
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 540px;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    transform: translateY(-20px);
+    transition: transform 0.25s ease-in-out;
+    box-sizing: border-box;
+}
+
+.custom-modal-overlay.modal-visible .custom-modal-container {
+    transform: translateY(0);
+}
+
+/* Titre principal H2 */
+.modal-form-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #000000;
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+/* Structure du formulaire */
+.modal-publish-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Libellés (Labels) */
+.form-custom-label {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #212529;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Inputs textes et selects */
+.form-custom-control, .form-custom-select {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    font-size: 14px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #fafafa;
+    color: #212529;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.form-custom-control:focus, .form-custom-select:focus {
+    border-color: #198754;
+    background-color: #ffffff;
+}
+
+/* Zone d'édition de texte (Éditeur WYSIWYG de la maquette) */
+.custom-editor-box {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #fafafa;
+}
+
+/* Barre d'outils B I U */
+.editor-toolbar {
+    background-color: #f1f3f5;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.tool-btn {
+    background: none;
+    border: none;
+    font-size: 14px;
+    font-weight: bold;
+    color: #495057;
+    cursor: pointer;
+    padding: 2px 6px;
+}
+
+.tool-separator {
+    color: #ced4da;
+    user-select: none;
+}
+
+/* Zone de saisie textarea */
+.editor-textarea {
+    width: 100%;
+    height: 110px;
+    border: none;
+    background: #ffffff;
+    padding: 12px;
+    font-size: 14px;
+    resize: none;
+    box-sizing: border-box;
+    outline: none;
+    font-family: inherit;
+}
+
+/* Input d'upload fichier (Bouton vert clair personnalisé) */
+.custom-file-upload-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-choose-file {
+    background-color: #e8f5e9;
+    color: #1e7e34;
+    border: 1px solid #c8e6c9;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+}
+
+.file-status-text {
+    font-size: 13px;
+    color: #6c757d;
+}
+
+/* Rangée inférieure contenant les boutons Annuler et Publier */
+.modal-form-actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+/* Bouton Annuler (Blanc bordure grise) */
+.btn-form-cancel {
+    background-color: #ffffff;
+    color: #212529;
+    border: 1px solid #dee2e6;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Bouton Publier (Vert plein) */
+.btn-form-submit {
+    background-color: #198754;
+    color: #ffffff;
+    border: none;
+    padding: 8px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-form-submit:hover {
+    background-color: #146c43;
+}
