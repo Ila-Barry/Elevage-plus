@@ -317,11 +317,6 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0,0,0,0.6);
-<<<<<<< HEAD
-    /* z-index: 1000; */
-=======
-    /* z-index: 300; */
->>>>>>> 62e45c61c486f7067df236529d8e639a92dc9d3e
     overflow-y: auto;
 }
 
@@ -766,10 +761,6 @@ textarea.form-control {
     text-align: center;
 }
 
-<<<<<<< HEAD
-/* Section des boutons */
-=======
->>>>>>> 62e45c61c486f7067df236529d8e639a92dc9d3e
 .action-buttons {
     display: flex;
     gap: 15px;
@@ -915,3 +906,314 @@ textarea.form-control {
 .btn-delete-img:hover {
     background: #f5c6cb;
 } 
+
+
+/* Styles supplémentaires pour le toast */
+.custom-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 10000;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+}
+
+.custom-toast.show {
+    transform: translateX(0);
+}
+
+.custom-toast .toast-content {
+    background: #343a40;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.custom-toast.success .toast-content {
+    background: #198754;
+}
+
+.custom-toast.danger .toast-content {
+    background: #dc3545;
+}
+
+.custom-toast.warning .toast-content {
+    background: #ffc107;
+    color: #343a40;
+}
+
+.custom-toast.info .toast-content {
+    background: #0dcaf0;
+    color: #343a40;
+}
+
+/* ===========================
+   RESPONSIVE ANIMAUX - AMÉLIORATIONS
+=========================== */
+
+/* Tablettes et petits écrans */
+@media (max-width: 992px) {
+    .animal-card {
+        grid-template-columns: 100px 1fr;
+    }
+
+    .animal-actions {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .animal-actions button {
+        flex: 1;
+        max-width: 150px;
+    }
+}
+
+/* Mobiles */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+    .search-box input {
+        width: 100%;
+    }
+
+    .animal-card {
+        grid-template-columns: 1fr;
+        padding: 15px;
+        gap: 12px;
+    }
+
+    .animal-image img {
+        height: 180px;
+        width: 100%;
+    }
+
+    /* === AMÉLIORATION: animal-details en 2 colonnes sur mobile === */
+    .animal-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 15px;
+        font-size: 13px;
+        color: #555;
+        padding: 8px 0;
+    }
+
+    .animal-details > div {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 0;
+    }
+
+    .animal-details > div i {
+        width: 16px;
+        font-size: 13px;
+        color: #198754;
+        flex-shrink: 0;
+    }
+
+    /* === AMÉLIORATION: boutons en bas alignés horizontalement === */
+    .animal-actions {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #e9ecef;
+        width: 100%;
+    }
+
+    .animal-actions button {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 8px;
+        font-size: 12px;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .animal-actions button i {
+        font-size: 14px;
+    }
+
+    /* Pour les très petits écrans, cacher le texte des boutons */
+    .pagination-section {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filters-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .filter-label {
+        grid-column: 1 / -1;
+    }
+
+    .filters-section select {
+        width: 100%;
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+}
+
+/* Très petits mobiles (< 480px) */
+@media (max-width: 480px) {
+    .animal-details {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px 12px;
+        font-size: 12px;
+    }
+
+    .animal-details > div {
+        padding: 3px 0;
+    }
+
+    .animal-details > div i {
+        font-size: 12px;
+        width: 14px;
+    }
+
+    .animal-actions button {
+        font-size: 11px;
+        padding: 8px 6px;
+    }
+
+    .animal-actions button i {
+        font-size: 12px;
+    }
+
+    .animal-card {
+        padding: 12px;
+    }
+
+    .animal-image img {
+        height: 150px;
+    }
+
+    .animal-info h5 {
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+}
+
+/* Pour les écrans très petits*/
+@media (max-width: 360px) {
+    .animal-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .animal-actions button {
+        width: 100%;
+        padding: 10px;
+        justify-content: center;
+    }
+
+    .animal-details {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .filters-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Badges santé */
+.badge-sante.bonne {
+    background: #d4edda;
+    color: #198754;
+}
+
+.badge-sante.moyenne {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge-sante.critique {
+    background: #f8d7da;
+    color: #dc3545;
+}
+
+.badge-sante-detail.bonne {
+    background: #d4edda;
+    color: #198754;
+}
+
+.badge-sante-detail.moyenne {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge-sante-detail.critique {
+    background: #f8d7da;
+    color: #dc3545;
+}
+
+/* Pagination */
+.page-numbers {
+    display: flex;
+    gap: 8px;
+}
+
+.page-numbers button {
+    width: 35px;
+    height: 35px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: white;
+    cursor: pointer;
+}
+
+.page-numbers button.active {
+    background: #198754;
+    color: white;
+    border-color: #198754;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+}
+
+/* Animation des cartes */
+.animal-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.animal-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
