@@ -41,12 +41,11 @@
             </div>
         </div>
 
-            <!-- Bouton Nouvelle conversation (mobile) -->
-            <button class="btn-new-conversation-mobile">
-                <i class="fas fa-plus"></i>
-                <span>Nouvelle conversation</span>
-            </button>
-        </div>
+        <!-- Bouton Nouvelle conversation (mobile) -->
+        <button class="btn-new-conversation-mobile" id="newConversationMobileBtn">
+            <i class="fas fa-plus"></i>
+            <span>Nouvelle conversation</span>
+        </button>
 
         <!-- COLONNE DROITE : Zone de discussion -->
         <div class="discussion-area" id="discussionArea">
@@ -478,7 +477,6 @@ function searchConversations(query) {
 
 // ================= CRÉER UNE NOUVELLE CONVERSATION =================
 function openNewConversation() {
-    const name = prompt('Entrez le nom de l\'éleveur :');
     if (!name || name.trim() === '') return;
     
     // Vérifier si la conversation existe déjà
