@@ -13,6 +13,7 @@
     box-sizing: border-box;
 }
 
+
 /* En-tête principale */
 .blog-top-header {
     display: flex;
@@ -543,4 +544,532 @@
     background-color: #198754;
     color: white;
     border-color: #198754;
+}
+/* Conteneur principal */
+.post-images-gallery {
+    margin: 10px 0;
+}
+
+/* Ligne des 4 images : flex row */
+.image-row {
+    display: flex;
+    gap: 8px; /* espace entre les images */
+    flex-wrap: nowrap; /* force une seule ligne */
+}
+
+.grid-img-item {
+    flex: 1 1 0; /* chaque image prend une part égale */
+    min-width: 0; /* empêche le débordement */
+    position: relative;
+}
+
+.grid-img-item img {
+    width: 100%;
+    height: 150px; /* ou auto, mais pour un alignement propre */
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+
+/* Style du label (la 4ème image) */
+.gallery-trigger {
+    display: block;
+    cursor: pointer;
+    position: relative;
+}
+
+.gallery-trigger .overlay-text {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    pointer-events: none; /* pour que le clic passe au label */
+}
+
+/* Cache la checkbox */
+.gallery-checkbox {
+    display: none;
+}
+
+/* Conteneur d'images supplémentaires : caché par défaut */
+.extra-images {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, margin 0.3s ease;
+    margin-top: 0;
+}
+
+/* Quand la checkbox est cochée, on affiche les extras */
+.gallery-checkbox:checked ~ .extra-images {
+    max-height: 600px; /* adaptez selon le nombre d'images */
+    margin-top: 12px;
+}
+
+/* Grille des images supplémentaires */
+.extra-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 colonnes */
+    gap: 8px;
+}
+
+.extra-grid img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+/* Conteneur principal */
+.post-images-gallery {
+    margin: 12px 0;
+}
+
+/* Ligne des 4 images : alignées sur une ligne */
+.image-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.grid-img-item {
+    flex: 1 1 0;       /* largeur égale */
+    min-width: 0;
+    position: relative;
+}
+
+.grid-img-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+
+/* Label (la 4ème image) */
+.gallery-trigger {
+    display: block;
+    cursor: pointer;
+    position: relative;
+}
+
+/* Petit signe "+" en superposition */
+.gallery-trigger .overlay-plus {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.6);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    pointer-events: none; /* pour que le clic passe au label */
+}
+
+/* Cache la checkbox */
+.gallery-checkbox {
+    display: none;
+}
+
+/* Conteneur des images supplémentaires : fermé par défaut */
+.extra-images {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease, margin 0.3s ease;
+    margin-top: 0;
+}
+
+/* Quand la checkbox est cochée, on ouvre le tiroir */
+.gallery-checkbox:checked ~ .extra-images {
+    max-height: 500px;   /* assez grand pour contenir la grille */
+    margin-top: 12px;
+}
+
+/* Grille des images supplémentaires (3 colonnes) */
+.extra-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.extra-grid img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+/* ----- GALLERIE SANS JS ----- */
+.post-images-gallery {
+    margin: 12px 0;
+}
+
+/* Ligne des 4 images : flex row */
+.image-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.grid-img-item {
+    flex: 1 1 0;
+    min-width: 0;
+    position: relative;
+}
+
+.grid-img-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+
+/* Label (4e image) */
+.gallery-trigger {
+    display: block;
+    cursor: pointer;
+    position: relative;
+}
+
+.gallery-trigger .overlay-plus {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.6);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+/* Cache la checkbox */
+.gallery-checkbox {
+    display: none;
+}
+
+/* Tiroir d'images supplémentaires : fermé par défaut */
+.extra-images {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease, margin 0.3s ease;
+    margin-top: 0;
+}
+
+/* Ouvert quand la checkbox est cochée */
+.gallery-checkbox:checked ~ .extra-images {
+    max-height: 500px;   /* assez grand pour le contenu */
+    margin-top: 12px;
+}
+
+/* Grille des images supplémentaires (3 colonnes) */
+.extra-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.extra-grid img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+/* Galerie : amélioration de la transition */
+.extra-images {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out, margin 0.3s ease;
+    margin-top: 0;
+}
+
+.gallery-checkbox:checked ~ .extra-images {
+    max-height: 600px; /* assez grand pour votre contenu */
+    margin-top: 12px;
+}
+/* Conteneur principal */
+.post-images-gallery {
+    margin: 10px 0;
+}
+
+/* Ligne des 4 images : flex row */
+.image-row {
+    display: flex;
+    gap: 8px; /* espace entre les images */
+    flex-wrap: nowrap; /* force une seule ligne */
+}
+
+.grid-img-item {
+    flex: 1 1 0; /* chaque image prend une part égale */
+    min-width: 0; /* empêche le débordement */
+    position: relative;
+}
+
+.grid-img-item img {
+    width: 100%;
+    height: 150px; /* ou auto, mais pour un alignement propre */
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+
+/* Style du label (la 4ème image) */
+.gallery-trigger {
+    display: block;
+    cursor: pointer;
+    position: relative;
+}
+
+.gallery-trigger .overlay-text {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    pointer-events: none; /* pour que le clic passe au label */
+}
+
+/* Cache la checkbox */
+.gallery-checkbox {
+    display: none;
+}
+
+/* Conteneur d'images supplémentaires : caché par défaut */
+.extra-images {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, margin 0.3s ease;
+    margin-top: 0;
+}
+
+/* Quand la checkbox est cochée, on affiche les extras */
+.gallery-checkbox:checked ~ .extra-images {
+    max-height: 600px; /* adaptez selon le nombre d'images */
+    margin-top: 12px;
+}
+
+/* Grille des images supplémentaires */
+.extra-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 colonnes */
+    gap: 8px;
+}
+
+.extra-grid img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+/* Conteneur principal */
+.post-images-gallery {
+    margin: 12px 0;
+}
+
+/* Ligne des 4 images : alignées sur une ligne */
+.image-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.grid-img-item {
+    flex: 1 1 0;       /* largeur égale */
+    min-width: 0;
+    position: relative;
+}
+
+.grid-img-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+
+/* Label (la 4ème image) */
+.gallery-trigger {
+    display: block;
+    cursor: pointer;
+    position: relative;
+}
+
+/* Petit signe "+" en superposition */
+.gallery-trigger .overlay-plus {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.6);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    pointer-events: none; /* pour que le clic passe au label */
+}
+
+/* Cache la checkbox */
+.gallery-checkbox {
+    display: none;
+}
+
+/* Conteneur des images supplémentaires : fermé par défaut */
+.extra-images {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease, margin 0.3s ease;
+    margin-top: 0;
+}
+
+/* Quand la checkbox est cochée, on ouvre le tiroir */
+.gallery-checkbox:checked ~ .extra-images {
+    max-height: 500px;   /* assez grand pour contenir la grille */
+    margin-top: 12px;
+}
+
+/* Grille des images supplémentaires (3 colonnes) */
+.extra-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.extra-grid img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+/* ----- GALLERIE SANS JS ----- */
+.post-images-gallery {
+    margin: 12px 0;
+}
+
+/* Ligne des 4 images : flex row */
+.image-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.grid-img-item {
+    flex: 1 1 0;
+    min-width: 0;
+    position: relative;
+}
+
+.grid-img-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+
+/* Label (4e image) */
+.gallery-trigger {
+    display: block;
+    cursor: pointer;
+    position: relative;
+}
+
+.gallery-trigger .overlay-plus {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.6);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+/* Cache la checkbox */
+.gallery-checkbox {
+    display: none;
+}
+
+/* Tiroir d'images supplémentaires : fermé par défaut */
+.extra-images {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease, margin 0.3s ease;
+    margin-top: 0;
+}
+
+/* Ouvert quand la checkbox est cochée */
+.gallery-checkbox:checked ~ .extra-images {
+    max-height: 500px;   /* assez grand pour le contenu */
+    margin-top: 12px;
+}
+
+/* Grille des images supplémentaires (3 colonnes) */
+.extra-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.extra-grid img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+/* Galerie : amélioration de la transition */
+.extra-images {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out, margin 0.3s ease;
+    margin-top: 0;
+}
+
+.gallery-checkbox:checked ~ .extra-images {
+    max-height: 600px; /* assez grand pour votre contenu */
+    margin-top: 12px;
+}
+
+/* Pour un effet plus doux, on peut aussi ajouter une opacité */
+.extra-images .extra-grid {
+    opacity: 0;
+    transform: translateY(-5px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.gallery-checkbox:checked ~ .extra-images .extra-grid {
+    opacity: 1;
+    transform: translateY(0);
 }
