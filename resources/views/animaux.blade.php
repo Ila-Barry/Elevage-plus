@@ -1,573 +1,279 @@
-
 @extends('layouts.menu')
 
-@section('title', 'Gestion des animaux')
+@section('title', 'Nouvelle Conversation')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/eleveurCSS/animaux.css') }}">
+<link rel="stylesheet" href="{{ asset('css/eleveurCSS/nouvelle-conversation.css') }}">
 @endpush
 
 @section('content')
 
-<div class="animals-page">
+<div class="nouvelle-conversation-container">
+    
+    <!-- En-tête avec titre et bouton fermer -->
+    <div class="conversation-header">
+        <h1 class="conversation-title">
+            <i class="fas fa-comment-dots mr-2 text-success"></i> NOUVELLE CONVERSATION
+        </h1>
+        <button class="btn-close-conversation" onclick="window.history.back()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
 
-    <!-- HEADER -->
-    <div class="page-header">
-        <div>
-            <h2>GESTION DES ANIMAUX</h2>
-        </div>
-
-        <div class="header-actions">
-            <button class="btn-add-animal">
-                <i class="fas fa-plus"></i>
-                Ajouter un animal
-            </button>
-
-            <div class="search-box">
-                <input type="text" placeholder="rechercher...">
-                <button>
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
+    <!-- Barre de recherche -->
+    <div class="search-section">
+        <div class="search-bar">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" placeholder="Rechercher un éleveur..." class="search-input" id="searchEleveur">
         </div>
     </div>
 
-    <!-- FILTRES -->
-    <div class="filters-section">
-
-        <span class="filter-label">Filtres :</span>
-
-        <select>
-            <option>Tous</option>
-            <option>Bovin</option>
-            <option>Ovin</option>
-            <option>Caprin</option>
-        </select>
-
-        <select>
-            <option>Espèce</option>
-        </select>
-
-        <select>
-            <option>Âge</option>
-        </select>
-
-        <select>
-            <option>Santé</option>
-        </select>
-
-    </div>
-
-    <!-- LISTE DES ANIMAUX -->
-    <div class="animals-list">
-
-        {{-- Animal 1 --}}
-        <div class="animal-card">
-
-            <div class="animal-image">
-                <img src="https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=600"
-                     alt="Animal">
-            </div>
-
-            <div class="animal-info">
-
-                <h5>NOM : Marguerite</h5>
-
-                <div class="animal-details">
-
-                    <div>
-                        <i class="fas fa-tag"></i>
-                        Race : Brune
-                    </div>
-
-                    <div>
-                        <i class="fas fa-birthday-cake"></i>
-                        Âge : 4 ans
-                    </div>
-
-                    <div>
-                        <i class="fas fa-weight-hanging"></i>
-                        Poids : 450 kg
-                    </div>
-
-                    <div>
-                        <i class="fas fa-heartbeat"></i>
-                        Santé :
-                        <span class="badge-sante">Bonne</span>
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="animal-actions">
-
-                <button class="btn-detail">
-                    <i class="fas fa-eye"></i>
-                    Détail
-                </button>
-
-                <button class="btn-edit">
-                    <i class="fas fa-pen"></i>
-                    Modifier
-                </button>
-
-                <button class="btn-delete">
-                    <i class="fas fa-trash"></i>
-                    Supprimer
-                </button>
-
-            </div>
-
-        </div>
-
-        {{-- Animal 2 --}}
-        <div class="animal-card">
-
-            <div class="animal-image">
-                <img src="https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=600"
-                     alt="Animal">
-            </div>
-
-            <div class="animal-info">
-
-                <h5>NOM : Blanchette</h5>
-
-                <div class="animal-details">
-
-                    <div>
-                        <i class="fas fa-tag"></i>
-                        Race : Brune
-                    </div>
-
-                    <div>
-                        <i class="fas fa-birthday-cake"></i>
-                        Âge : 1 ans 6 mois
-                    </div>
-
-                    <div>
-                        <i class="fas fa-weight-hanging"></i>
-                        Poids : 250 kg
-                    </div>
-
-                    <div>
-                        <i class="fas fa-heartbeat"></i>
-                        Santé :
-                        <span class="badge-sante">Bonne</span>
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="animal-actions">
-
-                <button class="btn-detail">
-                    <i class="fas fa-eye"></i>
-                    Détail
-                </button>
-
-                <button class="btn-edit">
-                    <i class="fas fa-pen"></i>
-                    Modifier
-                </button>
-
-                <button class="btn-delete">
-                    <i class="fas fa-trash"></i>
-                    Supprimer
-                </button>
-
-            </div>
-
-        </div>
-
-        {{-- Animal 3 --}}
-        <div class="animal-card">
-
-            <div class="animal-image">
-                <img src="https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=600"
-                     alt="Animal">
-            </div>
-
-            <div class="animal-info">
-
-                <h5>NOM : Roussette</h5>
-
-                <div class="animal-details">
-
-                    <div>
-                        <i class="fas fa-tag"></i>
-                        Race : Brune
-                    </div>
-
-                    <div>
-                        <i class="fas fa-birthday-cake"></i>
-                        Âge :  32 mois
-                    </div>
-
-                    <div>
-                        <i class="fas fa-weight-hanging"></i>
-                        Poids : 400 kg
-                    </div>
-
-                    <div>
-                        <i class="fas fa-heartbeat"></i>
-                        Santé :
-                        <span class="badge-sante">Bonne</span>
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="animal-actions">
-
-                <button class="btn-detail">
-                    <i class="fas fa-eye"></i>
-                    Détail
-                </button>
-
-                <button class="btn-edit">
-                    <i class="fas fa-pen"></i>
-                    Modifier
-                </button>
-
-                <button class="btn-delete">
-                    <i class="fas fa-trash"></i>
-                    Supprimer
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- PAGINATION -->
-    <div class="pagination-section">
-
-        <div class="pagination-custom">
-
-            <button>
-                <i class="fas fa-angle-left"></i>
-            </button>
-            <button class="active">1</button>
-
-                            <button>2</button>
-                            <button>3</button>
-                            <button>2</button>
-                            <button>3</button>
-                            <button>4</button>
-                            <button>5</button>
-                            <button>6</button>
-                            <button>...</button>
-            <button>
-                <i class="fas fa-angle-right"></i>
-            </button>
-
-        </div>
-
-        <div class="pagination-info">
-            Affichage : 1/45
-        </div>
-
-    <!-- MODALE DÉTAIL DE L'ANIMAL -->
-    <div id="detailAnimalModal" class="modal">
-        <div class="modal-content modal-detail">
-            <div class="modal-header">
-                <h2>
-                    <i class="fas fa-info-circle" style="color: #198754; margin-right: 10px;"></i>
-                    DÉTAIL DE L'ANIMAL : <span id="detailAnimalNom">MARGUERITE</span>
-                </h2>
-                <span class="modal-close">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="detail-container">
-                    <!-- Colonne gauche -->
-                    <div class="detail-left">
-                        <!-- Photo de l'animal -->
-                        <div class="detail-photo">
-                            <img id="detailAnimalImage" src="https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=400" alt="Animal">
-                        </div>
-
-                        <!-- Informations générales -->
-                        <div class="info-section">
-                            <h3>
-                                <i class="fas fa-info-circle"></i>
-                                INFORMATIONS GÉNÉRALES
-                            </h3>
-                            <div class="info-grid">
-                                <div class="info-item">
-                                    <span class="info-label">Nom :</span>
-                                    <span class="info-value" id="detailNom">Marguerite</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Espèce :</span>
-                                    <span class="info-value" id="detailEspece">Bovin</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Race :</span>
-                                    <span class="info-value" id="detailRace">Brune</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Date naissance :</span>
-                                    <span class="info-value" id="detailDateNaissance">15/03/2022 <span style="color:#888;">(âge : 4 ans)</span></span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Poids :</span>
-                                    <span class="info-value" id="detailPoids">450 kg</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Statut sanitaire :</span>
-                                    <span class="info-value">
-                                        <span class="badge-sante-detail" id="detailStatutSanitaire">Bonne</span>
-                                    </span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Élevage :</span>
-                                    <span class="info-value" id="detailElevage">Drenage bovin - Thèse</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Colonne droite -->
-                    <div class="detail-right">
-                        <!-- Historique des tâches -->
-                        <div class="tasks-section">
-                            <h3>
-                                <i class="fas fa-history"></i>
-                                HISTORIQUE DES TÂCHES
-                            </h3>
-                            <div class="tasks-list" id="detailHistoriqueTaches">
-                                <div class="task-item">
-                                    <span class="task-type">Vaccination</span>
-                                    <span class="task-date">10/03/2022</span>
-                                </div>
-                                <div class="task-item">
-                                    <span class="task-type">Poids</span>
-                                    <span class="task-date">430 kg</span>
-                                </div>
-                                <div class="task-item">
-                                    <span class="task-type">Vermifuge</span>
-                                    <span class="task-date">15/01/2022</span>
-                                </div>
-                                <div class="task-item">
-                                    <span class="task-type">Prochaine vaccination</span>
-                                    <span class="task-date">15/06/2022</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Courbe de poids -->
-                        <div class="weight-chart-section">
-                            <h3>
-                                <i class="fas fa-chart-line"></i>
-                                COURBE DE POIDS
-                            </h3>
-                            <div class="chart-container">
-                                <canvas id="weightChart" width="400" height="250" style="max-width:100%; height:auto;"></canvas>
-                            </div>
-                            <div class="weight-labels" id="detailWeightLabels">
-                                <span>0</span><span>50</span><span>100</span><span>150</span><span>200</span>
-                                <span>250</span><span>300</span><span>350</span><span>400</span><span>450</span><span>500</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section des boutons -->
-                <div class="action-buttons">
-    <button class="action-btn btn-modify">
-        <i class="fas fa-edit"></i>
-        Modifier l'animal
-    </button>
-    <button class="action-btn btn-delete">
-        <i class="fas fa-trash-alt"></i>
-        Supprimer
-    </button>
-    <button class="action-btn btn-add-task">
-        <i class="fas fa-plus-circle"></i>
-        Ajouter une tâche
-    </button>
-</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- MODALE AJOUTER UN ANIMAL -->
-<div id="addAnimalModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header mt-3">
-            <h2>
-                <i class="fas fa-paw" style="color: #198754; margin-right: 10px;"></i>
-                AJOUTER UN ANIMAL
-            </h2>
-            <span class="modal-close">&times;</span>
-        </div>
-
-        <div class="modal-body">
-            <!-- Logo ÉLEVAGE+ -->
-            <div class="modal-logo">
-                <span class="logo-text">ÉLEVAGE<span style="color: #198754;">+</span></span>
-            </div>
-
-            <!-- Photo section -->
-
-<div class="modal-body px-4 pb-4">
-    <form action="#" method="POST" enctype="multipart/form-data">
-        @csrf
-        <div class="form-section-box p-3 mb-3 rounded">
-            <label class="form-label font-weight-bold mb-2">
-                <i class="far fa-image text-success mr-1"></i> Photo <span class="font-weight-normal text-muted text-lowercase">(optionnelle)</span>
-            </label> 
+    <!-- Résultats de recherche -->
+    <div class="results-section">
+        <h3 class="results-title">RÉSULTATS :</h3>
+        
+        <div class="results-list" id="resultsList">
             
-            <div class="photo-actions-wrapper">
-                <div class="image-preview-placeholder d-flex align-items-center justify-content-center rounded border border-dashed">
-                    <i class="far fa-image fa-2x text-muted"></i>
+            <!-- Éleveur 1 - Amadeu Sy -->
+            <div class="result-item" data-name="Amadeu Sy" data-specialty="Éleveur évent" data-location="Dakar">
+                <div class="result-avatar">
+                    <img src="https://ui-avatars.com/api/?name=Amadeu+Sy&background=198754&color=fff&rounded=true&size=50" alt="Amadeu Sy">
                 </div>
-                
-                <label class="btn btn-outline-success btn-photo-action mb-0 d-flex align-items-center justify-content-center cursor-pointer">
-                    <i class="far fa-image mr-2"></i> Choisir une image
-                    <input type="file" name="photo" class="d-none" accept="image/*">
-                </label>
-                
-                <button type="button" class="btn btn-outline-danger btn-photo-action d-flex align-items-center justify-content-center">
-                    <i class="fas fa-times mr-2"></i> Supprimer
-                </button>
-            </div>
-        </div>
-    </form>
-</div>
-            <!-- Formulaire -->
-            <form id="addAnimalForm">
-                <div class="form-group">
-                    <label>NOM</label>
-                    <input type="text" placeholder="nom animal" class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label>RACE</label>
-                    <input type="text" placeholder="race animal" class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label>POIDS (kg)</label>
-                    <input type="number" step="0.1" placeholder="poids animal" class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label>ELEVAGE</label>
-                    <select class="form-control">
-                        <option value="">élevage</option>
-                        <option>Ferme des Monts</option>
-                        <option>Vallée Verte</option>
-                        <option>Prairie Fleurie</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>NOTE <span class="optional">(optionnelle)</span></label>
-                    <textarea rows="3" placeholder="description de l'animal" class="form-control"></textarea>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn-cancel">Annuler</button>
-                    <button type="submit" class="btn-save">Enregistrer</button>
-                </div>
-            </form>
-
-        </div>
-    </div>
-
-
-
-</div>
-
-<!-- MODALE MODIFIER L'ANIMAL -->
-<div id="editAnimalModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header mt-3">
-            <h2>
-                <i class="fas fa-edit" style="color: #198754; margin-right: 10px;"></i>
-                MODIFIER L'ANIMAL
-            </h2>
-            <span class="modal-close">&times;</span>
-        </div>
-
-        <div class="modal-body">
-            <!-- Logo ÉLEVAGE+ -->
-            <div class="modal-logo">
-                <span class="logo-text">ÉLEVAGE<span style="color: #198754;">+</span></span>
-            </div>
-
-            <!-- Photo section -->
-            <div class="photo-section">
-                <label class="photo-label">Photo <span class="optional">(optionnelle)</span></label>
-                <div class="photo-preview" id="editPhotoPreview">
-                    <img id="editPreviewImage" src="" alt="Aperçu" style="width: 100%; height: 100%; object-fit: cover; display: none;">
-                    <div id="editPreviewPlaceholder" style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
-                        <i class="fas fa-camera-retro"></i>
-                        <span>Aperçu photo</span>
+                <div class="result-info">
+                    <div class="result-name">Amadeu Sy</div>
+                    <div class="result-details">
+                        <span class="result-specialty">Éleveur évent</span>
+                        <span class="result-location">- Dakar</span>
                     </div>
                 </div>
-                <div class="photo-actions">
-                    <button type="button" class="btn-choose-img" id="editChooseImageBtn">
-                        <i class="fas fa-folder-open"></i>
-                        Choisir une image
-                    </button>
-                    <button type="button" class="btn-delete-img" id="editDeleteImageBtn">
-                        <i class="fas fa-trash-alt"></i>
-                        Supprimer
-                    </button>
-                </div>
-                <input type="file" id="editAnimalImageInput" accept="image/*" style="display: none;">
+                <button class="btn-contacter" data-eleveur="Amadeu Sy">
+                    Contacter
+                </button>
             </div>
 
-            <!-- Formulaire -->
-            <form id="editAnimalForm">
-                <input type="hidden" id="editAnimalId">
-                <div class="form-group">
-                    <label>NOM</label>
-                    <input type="text" id="editNom" placeholder="nom animal" class="form-control">
+            <!-- Éleveur 2 - Marie Diop -->
+            <div class="result-item" data-name="Marie Diop" data-specialty="Éleveur caprine" data-location="Thiès">
+                <div class="result-avatar">
+                    <img src="https://ui-avatars.com/api/?name=Marie+Diop&background=198754&color=fff&rounded=true&size=50" alt="Marie Diop">
                 </div>
+                <div class="result-info">
+                    <div class="result-name">Marie Diop</div>
+                    <div class="result-details">
+                        <span class="result-specialty">Éleveur caprine</span>
+                        <span class="result-location">- Thiès</span>
+                    </div>
+                </div>
+                <button class="btn-contacter" data-eleveur="Marie Diop">
+                    Contacter
+                </button>
+            </div>
 
-                <div class="form-group">
-                    <label>RACE</label>
-                    <input type="text" id="editRace" placeholder="race animal" class="form-control">
+            <!-- Éleveur 3 - Ibrahim Fali -->
+            <div class="result-item" data-name="Ibrahim Fali" data-specialty="Éleveur bovin" data-location="Saint-Louis">
+                <div class="result-avatar">
+                    <img src="https://ui-avatars.com/api/?name=Ibrahim+Fali&background=198754&color=fff&rounded=true&size=50" alt="Ibrahim Fali">
                 </div>
+                <div class="result-info">
+                    <div class="result-name">Ibrahim Fali</div>
+                    <div class="result-details">
+                        <span class="result-specialty">Éleveur bovin</span>
+                        <span class="result-location">- Saint-Louis</span>
+                    </div>
+                </div>
+                <button class="btn-contacter" data-eleveur="Ibrahim Fali">
+                    Contacter
+                </button>
+            </div>
 
-                <div class="form-group">
-                    <label>POIDS (kg)</label>
-                    <input type="number" step="0.1" id="editPoids" placeholder="poids animal" class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label>ELEVAGE</label>
-                    <select id="editElevage" class="form-control">
-                        <option value="">élevage</option>
-                        <option>Ferme des Monts</option>
-                        <option>Vallée Verte</option>
-                        <option>Prairie Fleurie</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>NOTE <span class="optional">(optionnelle)</span></label>
-                    <textarea id="editNote" rows="3" placeholder="description de l'animal" class="form-control"></textarea>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn-cancel">Annuler</button>
-                    <button type="submit" class="btn-save">Mettre à jour</button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
+
+    <!-- Mots-clés / Message d'exemple -->
+    <div class="keywords-section">
+        <div class="keywords-badge">
+            <i class="fas fa-tag text-success mr-2"></i>
+            <span class="keywords-text">Bonjour Amadeu, as-tu des nouvelles de la fièvre aphteuse ?</span>
+        </div>
+    </div>
+
+    <!-- Zone d'envoi de message (cachée par défaut, s'affiche après clic sur Contacter) -->
+    <div class="message-input-area" id="messageInputArea" style="display: none;">
+        <div class="input-actions">
+            <button class="input-action-btn" title="Joindre un fichier">
+                <i class="fas fa-paperclip"></i>
+            </button>
+            <button class="input-action-btn" title="Émojis">
+                <i class="fas fa-smile-wink"></i>
+            </button>
+            <button class="input-action-btn" title="Image">
+                <i class="fas fa-image"></i>
+            </button>
+        </div>
+        <div class="message-input-wrapper">
+            <input type="text" placeholder="Écrire un message..." class="message-input" id="messageInput">
+            <button class="send-btn" id="sendMessageBtn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
 
 </div>
 
 @endsection
 
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        
+        // Variable pour stocker l'éleveur sélectionné
+        let selectedEleveur = '';
+
+        /**
+         * Fonction : Filtrer les résultats de recherche
+         * Permet de rechercher un éleveur par nom
+         */
+        $('#searchEleveur').on('keyup', function() {
+            const searchTerm = $(this).val().toLowerCase().trim();
+            
+            $('.result-item').each(function() {
+                const name = $(this).data('name').toLowerCase();
+                const specialty = $(this).data('specialty').toLowerCase();
+                const location = $(this).data('location').toLowerCase();
+                
+                // Recherche dans le nom, la spécialité ou la localisation
+                if (name.includes(searchTerm) || 
+                    specialty.includes(searchTerm) || 
+                    location.includes(searchTerm)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+
+        /**
+         * Fonction : Gérer le clic sur le bouton "Contacter"
+         * Affiche la zone de saisie et met à jour les mots-clés
+         */
+        $('.btn-contacter').click(function() {
+            const eleveurName = $(this).data('eleveur');
+            selectedEleveur = eleveurName;
+            
+            // Mettre à jour les mots-clés avec le nom de l'éleveur
+            $('.keywords-text').text(`Bonjour ${eleveurName}, `);
+            
+            // Afficher la zone de saisie avec animation
+            $('#messageInputArea').slideDown(300);
+            
+            // Mettre le focus sur l'input
+            $('#messageInput').focus();
+            
+            // Mettre en évidence l'éleveur sélectionné
+            $('.result-item').removeClass('selected');
+            $(this).closest('.result-item').addClass('selected');
+            
+            // Scroll vers la zone de saisie
+            setTimeout(() => {
+                $('#messageInputArea')[0].scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }, 350);
+        });
+
+        /**
+         * Fonction : Envoyer un message
+         * Simule l'envoi d'un message et redirige vers la messagerie
+         */
+        function sendMessage() {
+            const messageText = $('#messageInput').val().trim();
+            
+            if (messageText === '') {
+                // Effet de secousse si le message est vide
+                $('#messageInput').addClass('shake');
+                setTimeout(() => {
+                    $('#messageInput').removeClass('shake');
+                }, 500);
+                return;
+            }
+            
+            if (selectedEleveur === '') {
+                alert('Veuillez sélectionner un éleveur en cliquant sur "Contacter".');
+                return;
+            }
+            
+            // Simuler l'envoi avec une confirmation
+            const confirmMessage = confirm(
+                `Envoyer le message à ${selectedEleveur} ?\n\n"${messageText}"`
+            );
+            
+            if (confirmMessage) {
+                // Animation de succès
+                $('.send-btn').addClass('sending');
+                $('.send-btn i').removeClass('fa-paper-plane').addClass('fa-spinner fa-spin');
+                
+                setTimeout(() => {
+                    // Rediriger vers la messagerie avec le message
+                    // Ici on simule un retour vers la messagerie
+                    alert(`✅ Message envoyé à ${selectedEleveur} !`);
+                    
+                    // Redirection vers la messagerie
+                    window.location.href = "{{ route('messagerie') }}";
+                    
+                }, 1000);
+            }
+        }
+
+        /**
+         * Envoi du message avec la touche Entrée
+         */
+        $('#messageInput').keypress(function(e) {
+            if (e.which === 13 && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        /**
+         * Envoi du message avec le bouton d'envoi
+         */
+        $('#sendMessageBtn').click(function() {
+            sendMessage();
+        });
+
+        /**
+         * Bouton de fermeture - Retour à la messagerie
+         */
+        $('.btn-close-conversation').click(function() {
+            window.history.back();
+        });
+
+        /**
+         * Gestion des actions supplémentaires (pièce jointe, émojis, etc.)
+         */
+        $('.input-action-btn').click(function() {
+            const action = $(this).find('i').attr('class');
+            if (action.includes('paperclip')) {
+                alert('📎 Fonctionnalité : Joindre un fichier');
+            } else if (action.includes('smile')) {
+                alert('😊 Fonctionnalité : Insérer un émoji');
+            } else if (action.includes('image')) {
+                alert('🖼️ Fonctionnalité : Insérer une image');
+            }
+        });
+
+        /**
+         * Animation : Survol des résultats
+         */
+        $('.result-item').hover(
+            function() {
+                $(this).find('.btn-contacter').addClass('hover-effect');
+            },
+            function() {
+                $(this).find('.btn-contacter').removeClass('hover-effect');
+            }
+        );
+
+    });
+</script>
+@endpush
