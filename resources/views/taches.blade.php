@@ -208,7 +208,14 @@
                         Masquer fait
                     </button>
 
-                    <button class="btn-edit-task">
+                                        <button
+                        class="btn-edit-task edit-task-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#editTaskModal"
+                        data-type="Vaccination"
+                        data-heure="09:00"
+                        data-description="Troupeau bovin - Élevage de Thiès">
+
                         <i class="fas fa-pen"></i>
                         Modifier
                     </button>
@@ -235,11 +242,18 @@
                         Masquer fait
                     </button>
 
-                    <button class="btn-edit-task">
+                                        <button
+                        class="btn-edit-task edit-task-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#editTaskModal"
+                        data-type="Pesée"
+                        data-heure="14:00"
+                        data-description="Animal : Marguerite (n°123)">
+
                         <i class="fas fa-pen"></i>
                         Modifier
                     </button>
-
+                    
                 </div>
 
             </div>
@@ -262,10 +276,13 @@
                         Masquer fait
                     </button>
 
-                                        <button
-                        class="btn-edit-task"
+                                                            <button
+                        class="btn-edit-task edit-task-btn"
                         data-bs-toggle="modal"
-                        data-bs-target="#editTaskModal">
+                        data-bs-target="#editTaskModal"
+                        data-type="Nettoyage enclos"
+                        data-heure="16:00"
+                        data-description="Élevage bovin - Enclos nord">
 
                         <i class="fas fa-pen"></i>
                         Modifier
@@ -347,11 +364,10 @@
                             🏠 Type de tâche <span class="text-danger">*</span>
                         </label>
 
-                        <select class="form-select" name="type_tache" required>
-
-                            <option value="">
-                                Choisir un type
-                            </option>
+                                                <select
+                            class="form-select"
+                            name="type_tache"
+                            id="editTypeTache">
 
                             <option value="Vaccination">
                                 Vaccination
@@ -363,6 +379,10 @@
 
                             <option value="Pesée">
                                 Pesée
+                            </option>
+
+                            <option value="Nettoyage enclos">
+                                Nettoyage enclos
                             </option>
 
                             <option value="Contrôle vétérinaire">
@@ -557,10 +577,11 @@
                             ⏰ Heure
                         </label>
 
-                        <input type="time"
-                               class="form-control"
-                               value="09:00">
-                    </div>
+                                                <input
+                            type="time"
+                            class="form-control"
+                            id="editHeure"
+                            name="heure">
 
                     <!-- Notes -->
 
@@ -570,9 +591,12 @@
                             📝 Notes
                         </label>
 
-                        <textarea
+                                                <textarea
                             class="form-control"
-                            rows="4">Vaccination contre la fièvre aphteuse</textarea>
+                            id="editDescription"
+                            name="notes"
+                            rows="4">
+                        </textarea>
 
                     </div>
 
@@ -608,4 +632,27 @@
     </div>
 
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const editButtons = document.querySelectorAll('.edit-task-btn');
+
+    const typeField = document.getElementById('editTypeTache');
+    const heureField = document.getElementById('editHeure');
+    const descriptionField = document.getElementById('editDescription');
+
+    editButtons.forEach(button => {
+
+        button.addEventListener('click', function () {
+
+            typeField.value = this.dataset.type;
+            heureField.value = this.dataset.heure;
+            descriptionField.value = this.dataset.description;
+
+        });
+
+    });
+
+});
+</script>
 @endsection
