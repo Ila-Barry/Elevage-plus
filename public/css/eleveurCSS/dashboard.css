@@ -8,7 +8,7 @@ BANNIERE
 
 .welcome-banner {
     /* Le chiffre 0.8 augmente le voile blanc, ce qui diminue l'opacité de l'image en fond */
-    background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('/images/elel.jpeg');
+    background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('/images/bg.png');
     background-size: 100% 100%;
     background-position: center;
     background-repeat: no-repeat;

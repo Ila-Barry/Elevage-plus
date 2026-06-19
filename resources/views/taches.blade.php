@@ -139,35 +139,41 @@
         </div>
 
         <!-- TACHES A VENIR -->
-        <div class="upcoming-card">
+<div class="upcoming-card">
 
-            <div class="section-header">
-                <i class="far fa-calendar-alt"></i>
-                TÂCHES À VENIR
-            </div>
-
-            <ul>
-
-                <li>
-                    <i class="far fa-calendar"></i>
-                    <span>15/05 - Vermifuge (Marguerite)</span>
-                </li>
-
-                <li>
-                    <i class="far fa-calendar"></i>
-                    <span>20/05 - Contrôle vétérinaire</span>
-                </li>
-
-                <li>
-                    <i class="far fa-calendar"></i>
-                    <span>26/05 - Vaccination rappel (troupeau)</span>
-                </li>
-
-            </ul>
-
-        </div>
-
+    <div class="section-header">
+        <i class="far fa-calendar-alt"></i>
+        TÂCHES À VENIR
     </div>
+
+    <ul>
+
+        <li>
+            <a href="#" class="upcoming-link">
+                <i class="far fa-calendar"></i>
+                <span>15/05 - Vermifuge (Marguerite)</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="#" class="upcoming-link">
+                <i class="far fa-calendar"></i>
+                <span>20/05 - Contrôle vétérinaire</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="#" class="upcoming-link">
+                <i class="far fa-calendar"></i>
+                <span>26/05 - Vaccination rappel (troupeau)</span>
+            </a>
+        </li>
+
+    </ul>
+
+</div>
+
+</div> <!-- fin tasks-left -->
 
     <!-- ========================================= -->
     <!-- COLONNE DROITE -->

@@ -40,8 +40,8 @@ GRID PRINCIPAL
 
 .tasks-grid {
   display: grid;
-  grid-template-columns: 1fr 270px;
-  gap: 12px;
+  grid-template-columns: 1fr 320px;
+  gap: 10px;
   align-items: start;
 }
 
@@ -111,6 +111,14 @@ CALENDRIER
   background: white;
   border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-nav:hover {
+  background: #16a34a;
+  color: white;
+  border-color: #16a34a;
+  transform: scale(1.05);
 }
 
 .calendar-table {
@@ -127,18 +135,41 @@ CALENDRIER
 }
 
 .calendar-table td {
-  border: 1px solid #d9d9d9;
+  border: 1px solid #f1f3f4;
   text-align: center;
   padding: 14px 5px;
   font-weight: 600;
   font-size: 15px;
+  cursor: pointer;
+
+  border-radius: 10px;
+  position: relative;
+
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.calendar-table td:hover {
+  background: #f0fdf4; /* vert très léger */
+ box-shadow: inset 0 0 0 1px #dadce0;
 }
 
 .task-day {
   color: #16a34a;
   position: relative;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
+.task-day:hover {
+  background: #dcfce7;
+  color: #0f7a33;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 2px #16a34a;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+/* Point vert */
 .task-day::after {
   content: "";
   width: 7px;
@@ -148,6 +179,13 @@ CALENDRIER
   position: absolute;
   bottom: 8px;
   right: 12px;
+  transition: all 0.2s ease;
+}
+
+/* Effet sur le point au survol */
+.task-day:hover::after {
+  background: #0f7a33;
+  transform: scale(1.3);
 }
 
 .calendar-legend {
@@ -170,51 +208,51 @@ TACHES A VENIR
 ====================================================== */
 
 .upcoming-card {
-  margin-top: 16px;
-  border: 2px solid #d8d8d8;
-  border-radius: 16px;
-  overflow: hidden;
-  background: white;
+    margin-top: 16px;
+    border: 2px solid #d8d8d8;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
 }
 
 .section-header {
-  background: #cdeed7;
-  padding: 8px 12px;
-  font-weight: 700;
-  font-size: 15px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+    background: #cdeed7;
+    padding: 8px 12px;
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .upcoming-card ul {
-  list-style: none;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
 .upcoming-card li {
-  padding: 12px;
-  border-top: 1px solid #e3e3e3;
-  display: flex;
-  gap: 10px;
-  align-items: center;
+    border-top: 1px solid #dcdcdc;
 }
 
-.upcoming-card li i {
-  color: #888;
+.upcoming-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    text-decoration: none;
+    color: #222;
+    transition: background 0.2s ease;
 }
 
-.upcoming-card li {
-  cursor: pointer;
-  transition: all 0.2s ease;
+.upcoming-link i {
+    color: #888;
+    font-size: 16px;
 }
 
-.upcoming-card li:hover {
-  background-color: #f5faf7;
-  color: #198754;
-}
-
-.upcoming-card li:hover i {
-  color: #198754;
+.upcoming-link:hover {
+    background: #f5f5f5;
+    color: #198754;
 }
 
 /* ======================================================
