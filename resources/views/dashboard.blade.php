@@ -189,20 +189,51 @@ const ctx = document.getElementById('weightChart');
 new Chart(ctx, {
     type: 'line',
     data: {
-        labels: ['s1','s2','s3','s4','s5','s6'],
+        labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
         datasets: [{
-            data: [10, 15, 20, 25, 30, 35],
-            borderColor:'#22c55e',
-            backgroundColor:'rgba(34,197,94,.2)',
-            tension:.4,
-            fill:false
+            label: 'Poids moyen (kg)',
+            data: [420, 435, 448, 462, 480, 495],
+            borderColor: '#22c55e',
+            backgroundColor: 'rgba(34,197,94,0.15)',
+            borderWidth: 3,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            tension: 0.4,
+            fill: true
         }]
     },
-    options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{
-            legend:{display:false}
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.parsed.y + ' kg';
+                    }
+                }
+            }
+        },
+
+        scales: {
+            y: {
+                min: 400,
+                max: 520,
+                ticks: {
+                    callback: function(value) {
+                        return value + ' kg';
+                    }
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
         }
     }
 });
