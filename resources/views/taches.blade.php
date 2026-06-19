@@ -367,7 +367,11 @@
                                                 <select
                             class="form-select"
                             name="type_tache"
-                            id="editTypeTache">
+                            required>
+
+                            <option value="">
+                                Choisir un type
+                            </option>
 
                             <option value="Vaccination">
                                 Vaccination
@@ -632,6 +636,7 @@
     </div>
 
 </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 

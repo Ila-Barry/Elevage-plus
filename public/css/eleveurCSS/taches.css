@@ -203,6 +203,20 @@ TACHES A VENIR
   color: #888;
 }
 
+.upcoming-card li {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upcoming-card li:hover {
+  background-color: #f5faf7;
+  color: #198754;
+}
+
+.upcoming-card li:hover i {
+  color: #198754;
+}
+
 /* ======================================================
 BOUTON AJOUT
 ====================================================== */
