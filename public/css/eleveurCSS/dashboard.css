@@ -108,6 +108,44 @@ KPI (Statistiques)
     text-decoration: underline; /* Ajoute un soulignement au survol */
 }
 
+.stat-card {
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+/* Hover général */
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
+
+/* Vert */
+.stat-card.green:hover {
+    background: #dff5e3;
+}
+
+/* Bleu */
+.stat-card.blue:hover {
+    background: #dbe9ff;
+}
+
+/* Jaune */
+.stat-card.yellow:hover {
+    background: #fff1c2;
+}
+
+/* Rouge */
+.stat-card.red:hover {
+    background: #fbd6d6;
+}
+
+.stat-card {
+    will-change: transform;
+}
+
 /* ======================================================
 GRID PRINCIPAL
 ====================================================== */
@@ -185,6 +223,40 @@ ALERTES
     margin-bottom: 5px;
 }
 
+.alert-card {
+    margin: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+/* Hover général */
+.alert-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Warning hover */
+.alert-card.warning:hover {
+    background: #fff3d6;
+}
+
+/* Danger hover */
+.alert-card.danger:hover {
+    background: #ffdede;
+}
+
+/* Titre */
+.alert-card h5 {
+    margin-bottom: 5px;
+    transition: color 0.2s ease;
+}
+
+.alert-card:hover h5 {
+    color: #111;
+}
+
 /* ======================================================
 CHART (Graphique linéaire)
 ====================================================== */
@@ -256,6 +328,21 @@ ACTIVITE
     text-decoration: none;
 }
 
+.activity-item {
+    padding: 12px;
+    border-top: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.activity-item:hover {
+    background: #f8f9fa;
+    transform: translateX(4px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
 /* ======================================================
 RESPONSIVE (Tablettes)
 ====================================================== */
