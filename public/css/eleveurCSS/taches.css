@@ -342,136 +342,25 @@ PETITS TELEPHONES
   .taches-container {
     padding: 10px;
   }
+
   .calendar-top h3 {
     font-size: 15px;
   }
+
   .calendar-table th,
   .calendar-table td {
     font-size: 11px;
-  }/* Arrière-plan sombre qui couvre toute la page */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Effet de transparence */
-    backdrop-filter: blur(4px); /* Floute légèrement l'arrière-plan */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
+  }
 }
 
-/* Classe active pour afficher la modale */
-.modal-overlay.active {
-    opacity: 1;
-    pointer-events: auto;
-}
+/* =========================================
+   MODALE AJOUTER / MODIFIER TÂCHE
+========================================= */
 
-/* Boîte du formulaire */
-.modal-content {
-    background-color: #ffffff;
-    padding: 24px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 500px; /* Largeur max sur PC */
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    transform: translateY(-20px);
-    transition: transform 0.3s ease;
-}
-
-.modal-overlay.active .modal-content {
-    transform: translateY(0);
-}
-
-/* En-tête du formulaire */
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.modal-header h2 {
-    font-size: 1.25rem;
-    color: #333;
-    margin: 0;
-}
-
-.close-btn {
-    background: none;
+#addTaskModal .modal-content,
+#editTaskModal .modal-content {
+    border-radius: 18px;
     border: none;
-    font-size: 1.8rem;
-    cursor: pointer;
-    color: #666;
 }
 
-/* Design des champs de saisie */
-.form-group {
-    margin-bottom: 16px;
-    display: flex;
-    flex-direction: column;
-}
-
-.form-group label {
-    font-size: 0.9rem;
-    margin-bottom: 6px;
-    color: #555;
-    font-weight: 500;
-}
-
-.form-group input, 
-.form-group textarea, 
-.form-group select {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    font-family: inherit;
-}
-
-/* Aligner Date et Priorité côte à côte */
-.form-row {
-    display: flex;
-    gap: 16px;
-}
-
-.form-row .form-group {
-    flex: 1;
-}
-
-/* Bouton de validation vert */
-.submit-btn {
-    width: 100%;
-    padding: 12px;
-    background-color: #2ecc71; /* Vert moderne */
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.submit-btn:hover {
-    background-color: #27ae60;
-}
-
-/* Responsivité pour les petits écrans */
-@media (max-width: 480px) {
-    .form-row {
-        flex-direction: column;
-        gap: 0;
-    }
-    .modal-content {
-        padding: 16px;
-        width: 95%;
-    }
-}
-
-}
+/* ... le reste du CSS des modales Bootstrap ... */

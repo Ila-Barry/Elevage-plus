@@ -262,7 +262,11 @@
                         Masquer fait
                     </button>
 
-                    <button class="btn-edit-task">
+                                        <button
+                        class="btn-edit-task"
+                        data-bs-toggle="modal"
+                        data-bs-target="#editTaskModal">
+
                         <i class="fas fa-pen"></i>
                         Modifier
                     </button>
@@ -444,5 +448,164 @@
     </div>
 
 </div>
+<!-- ========================================= -->
+<!-- MODALE MODIFIER UNE TÂCHE -->
+<!-- ========================================= -->
 
+<div class="modal fade"
+     id="editTaskModal"
+     tabindex="-1"
+     aria-labelledby="editTaskModalLabel"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <!-- HEADER -->
+            <div class="modal-header">
+
+                <h2 class="modal-title fw-bold"
+                    id="editTaskModalLabel">
+
+                    MODIFIER UNE TÂCHE
+
+                </h2>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body">
+
+                <form action="#" method="POST">
+
+                    @csrf
+                    @method('PUT')
+
+                    <!-- Animal -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            🐄 Animal concerné
+                        </label>
+
+                        <select class="form-select" name="animal_id">
+
+                            <option value="1" selected>
+                                Marguerite (n°123)
+                            </option>
+
+                            <option value="2">
+                                Bella (n°124)
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- Type tâche -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            📋 Type de tâche
+                        </label>
+
+                        <select class="form-select"
+                                name="type_tache">
+
+                            <option>
+                                Vaccination
+                            </option>
+
+                            <option>
+                                Vermifuge
+                            </option>
+
+                            <option>
+                                Pesée
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- Date -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            📅 Date planifiée
+                        </label>
+
+                        <input type="date"
+                               class="form-control"
+                               value="2026-05-14">
+                    </div>
+
+                    <!-- Heure -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            ⏰ Heure
+                        </label>
+
+                        <input type="time"
+                               class="form-control"
+                               value="09:00">
+                    </div>
+
+                    <!-- Notes -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            📝 Notes
+                        </label>
+
+                        <textarea
+                            class="form-control"
+                            rows="4">Vaccination contre la fièvre aphteuse</textarea>
+
+                    </div>
+
+                    <!-- Boutons -->
+
+                    <div class="d-flex justify-content-center gap-3">
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+
+                            Annuler
+
+                        </button>
+
+                        <button
+                            type="submit"
+                            class="btn btn-success">
+
+                            Enregistrer
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 @endsection
