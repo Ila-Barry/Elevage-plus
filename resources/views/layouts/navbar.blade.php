@@ -101,19 +101,14 @@
 
                         <div class="dropdown-menu dropdown-menu-right shadow border-0">
 
-                            <a class="dropdown-item" href="{{ url('/profil') }}">
+                            <a class="dropdown-item" href="{{ url('../auth/profile') }}">
                                 <i class="fas fa-user mr-2"></i>
                                 Mon profil
                             </a>
 
-                            <a class="dropdown-item" href="{{ url('/parametres') }}">
+                            <a class="dropdown-item" href="{{ url('../auth/parametre') }}">
                                 <i class="fas fa-cog mr-2"></i>
                                 Paramètres
-                            </a>
-
-                            <a class="dropdown-item" href="{{ url('/elevages') }}">
-                                <i class="fas fa-horse mr-2"></i>
-                                Mes élevages
                             </a>
 
                             <div class="dropdown-divider"></div>
