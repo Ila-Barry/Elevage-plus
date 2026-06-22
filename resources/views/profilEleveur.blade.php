@@ -25,29 +25,31 @@
               <p class="member"><i class="far fa-calendar-alt"></i> Membre depuis <span id="profileMemberSince">mars 2025</span></p>
             </div>
           </div>
-          
           <div class="profile-stats" id="profileStats">
-            <div class="stat-item">
-              <strong id="statPublications">48</strong>
-              <span>Publications</span>
-            </div>
-            <div class="stat-item stat-heart">
-              <strong id="statLikes">2.3k</strong>
-              <span>Likes</span>
-            </div>
-            <div class="stat-item">
-              <strong id="statComments">127</strong>
-              <span>Commentaires</span>
-            </div>
-            <div class="stat-item">
-              <strong id="statFollowers">156</strong>
-              <span>Abonnés</span>
-            </div>
-            <div class="stat-item">
-              <strong id="statFollowing">89</strong>
-              <span>Abonnements</span>
-            </div>
-          </div>
+  <div class="stat-item stat-pub">
+    <strong id="statPublications">48</strong>
+    <span><i class="fas fa-file-alt"></i> Publications</span>
+  </div>
+  <div class="stat-item stat-likes">
+    <strong id="statLikes">2.3k</strong>
+    <span><i class="fas fa-heart"></i> Likes</span>
+  </div>
+  <div class="stat-item stat-comments">
+    <strong id="statComments">127</strong>
+    <span><i class="fas fa-comment"></i> Commentaires</span>
+  </div>
+  <div class="stat-item stat-followers">
+    <strong id="statFollowers">156</strong>
+    <span><i class="fas fa-users"></i> Abonnés</span>
+  </div>
+  <div class="stat-item stat-following">
+    <strong id="statFollowing">89</strong>
+    <span><i class="fas fa-user-plus"></i> Abonnements</span>
+  </div>
+</div>
+          
+          
+          
         </div>
 
         <div class="profile-bio">

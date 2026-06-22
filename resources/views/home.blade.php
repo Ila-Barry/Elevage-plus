@@ -36,7 +36,7 @@
             éleveurs.
         </p>
 
-        <a href="{{ url('register') }}" class="btn btn-success">
+        <a href="{{ url('auth/register') }}" class="btn btn-success">
             Commencer maintenant
         </a>
     </div>
