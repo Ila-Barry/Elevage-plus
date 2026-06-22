@@ -37,9 +37,9 @@
             <div class="header-actions">
                 {{-- Dropdown personnalisé "Ce mois" avec les 12 mois --}}
                 <div class="custom-dropdown">
-                    <button class="btn btn-outline dropdown-toggle" id="monthDropdownBtn" onclick="toggleMonthDropdown()">
-                        Ce mois <i class="fas fa-chevron-down"></i>
-                    </button>
+                <button class="btn btn-outline dropdown-toggle" id="monthDropdownBtn" onclick="toggleMonthDropdown()">
+    <i class="fas fa-calendar-alt"></i> Ce mois <i class="fas fa-chevron-down"></i>
+</button>
                     <ul class="custom-dropdown-menu" id="monthDropdownMenu">
                         <li><a href="#">Janvier</a></li>
                         <li><a href="#">Février</a></li>
@@ -145,9 +145,9 @@
                     <div class="stat-card blue">
                         <div class="stat-number">127</div>
                         <div class="stat-label">Total utilisateurs</div>
-                        <div class="stat-detail">Nouveaux ce mois : 12</div>
+                        <!-- <div class="stat-detail">Nouveaux ce mois : 12</div>
                         <div class="stat-detail">Utilisateurs actifs : 118</div>
-                        <div class="stat-detail">Taux de rétention : 92%</div>
+                        <div class="stat-detail">Taux de rétention : 92%</div> -->
                     </div>
                 </div>
                 <div class="col-md-3 col-sm-6">
