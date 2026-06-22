@@ -4,9 +4,9 @@
         <nav class="navbar navbar-expand-lg navbar-light p-0 w-100">
 
             <!-- LOGO -->
-            <a href="{{ url('dashboard') }}" class="navbar-brand logo-wrapper d-flex align-items-center">
+            <a href="<?php echo e(url('dashboard')); ?>" class="navbar-brand logo-wrapper d-flex align-items-center">
                 <div class="logo-circle">
-                    <img class="img-logo" src="{{ asset('images/logoE.png') }}" alt="Élevage+">
+                    <img class="img-logo" src="<?php echo e(asset('images/logoE.png')); ?>" alt="Élevage+">
                 </div>
                 <span class="logo-text">ÉLEVAGE+</span>
             </a>
@@ -27,20 +27,20 @@
                 <!-- MENU PRINCIPAL -->
                 <ul class="navbar-nav mx-auto navbar-menu">
                     <li class="nav-item">
-                        <a href="{{ url('dashboard') }}" class="nav-link {{ request()->is('dashboard') ? 'active' : '' }}">
+                        <a href="<?php echo e(url('dashboard')); ?>" class="nav-link <?php echo e(request()->is('dashboard') ? 'active' : ''); ?>">
                             <i class="fas fa-home"></i>
                             <span class="titre">Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ url('/messages') }}" class="nav-link {{ request()->is('messages') ? 'active' : '' }}">
+                        <a href="<?php echo e(url('/messages')); ?>" class="nav-link <?php echo e(request()->is('messages') ? 'active' : ''); ?>">
                             <i class="fas fa-comment"></i>
                             <span class="titre">Messages</span>
                             <span class="badge badge-danger badge-pill">3</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ url('/notification') }}" class="nav-link {{ request()->is('notification') ? 'active' : '' }}">
+                        <a href="<?php echo e(url('/notification')); ?>" class="nav-link <?php echo e(request()->is('notification') ? 'active' : ''); ?>">
                             <i class="fas fa-bell"></i>
                             <span class="titre">Notifications</span>
                             <span class="badge badge-danger badge-pill">12</span>
@@ -60,38 +60,38 @@
                     <!-- PROFILE DROPDOWN -->
                     <div class="dropdown profile-dropdown">
                         <button class="btn dropdown-toggle profile-button" type="button" id="profileDropdown" data-toggle="dropdown">
-                            @php
+                            <?php
                                 $user = auth()->user();
                                 $avatar = $user?->photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($user?->name ?? 'User') . '&background=2e7d32&color=fff';
-                            @endphp
-                            <img src="{{ $avatar }}" alt="profile" class="profile-image">
-                            <span class="profile-name d-none d-lg-inline">{{ $user?->name ?? 'Utilisateur' }}</span>
+                            ?>
+                            <img src="<?php echo e($avatar); ?>" alt="profile" class="profile-image">
+                            <span class="profile-name d-none d-lg-inline"><?php echo e($user?->name ?? 'Utilisateur'); ?></span>
                         </button>
 
                         <div class="dropdown-menu dropdown-menu-right shadow border-0">
-<<<<<<< HEAD
-                            <a class="dropdown-item" href="{{ url('/auth/profile') }}">
+<<<<<<< HEAD:storage/framework/views/b6c9ce87c991c9814995326c117f34a7.php
+                            <a class="dropdown-item" href="<?php echo e(url('/auth/profile')); ?>">
                                 <i class="fas fa-user mr-2"></i> Mon profil
                             </a>
-                            <a class="dropdown-item" href="{{ url('/auth/parametre') }}">
+                            <a class="dropdown-item" href="<?php echo e(url('/auth/parametre')); ?>">
                                 <i class="fas fa-cog mr-2"></i> Paramètres
                             </a>
-                            <a class="dropdown-item" href="{{ url('/elevages') }}">
+                            <a class="dropdown-item" href="<?php echo e(url('/elevages')); ?>">
                                 <i class="fas fa-horse mr-2"></i> Mes élevages
                             </a>
 =======
 
-                            <a class="dropdown-item" href="{{ url('../auth/profile') }}">
+                            <a class="dropdown-item" href="<?php echo e(url('../auth/profile')); ?>">
                                 <i class="fas fa-user mr-2"></i>
                                 Mon profil
                             </a>
 
-                            <a class="dropdown-item" href="{{ url('../auth/parametre') }}">
+                            <a class="dropdown-item" href="<?php echo e(url('../auth/parametre')); ?>">
                                 <i class="fas fa-cog mr-2"></i>
                                 Paramètres
                             </a>
 
->>>>>>> 065b57d9e0805d57a9f73e16df822bb3bfe10716
+>>>>>>> 065b57d9e0805d57a9f73e16df822bb3bfe10716:storage/framework/views/aba80d3e5577424c9b4ef0aa8fa42a00.php
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item text-danger" href="#" id="logoutBtn">
                                 <i class="fas fa-sign-out-alt mr-2"></i>
@@ -111,7 +111,7 @@
 <!-- Toast pour les messages -->
 <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
     // ================= SIDEBAR TOGGLE =================
@@ -297,4 +297,4 @@ $(document).ready(function() {
     }
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?><?php /**PATH C:\Projets\Elevage-plus\resources\views/layouts/navbar.blade.php ENDPATH**/ ?>

@@ -611,6 +611,9 @@
 }
 
 
+<<<<<<< HEAD
+
+=======
 /* Styles supplémentaires pour le toast et les modals */
 .custom-toast {
     position: fixed;
@@ -716,3 +719,4 @@
     0%, 60%, 100% { transform: translateY(0); }
     30% { transform: translateY(-5px); }
 }
+>>>>>>> 0a4e5b797c364c19b532415e094e5a348cb6afcb

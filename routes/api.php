@@ -9,6 +9,9 @@ use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\ElevageController;
 use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\TacheController;
+
+use App\Http\Controllers\Api\MessageController;
+
 use App\Http\Controllers\Api\NotificationController;
 
 // api admin controllers
@@ -23,12 +26,12 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 
+
 /*
 |--------------------------------------------------------------------------
 | API Routes - Authentification
 |--------------------------------------------------------------------------
 */
-
 // gere la redirection vers la route de login pour les utilisateurs non authentifiés
 Route::get('/login', function () {
     return response()->json([
@@ -77,7 +80,6 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
         return response()->json(['message' => 'Bienvenue administrateur']);
     });
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -190,8 +192,6 @@ Route::middleware(['auth:api'])->prefix('animaux')->group(function () {
     Route::put('/{id}', [AnimalController::class, 'update']);
     Route::delete('/{id}', [AnimalController::class, 'destroy']);
 });
-
-
 /*
 |--------------------------------------------------------------------------
 | API Routes - Tâches
@@ -209,9 +209,25 @@ Route::middleware(['auth:api'])->prefix('taches')->group(function () {
     Route::delete('/{id}', [TacheController::class, 'destroy']);
     
     // Actions spécifiques
-    Route::patch('/{id}/complete', [TacheController::class, 'complete']);
+  Route::patch('/{id}/complete', [TacheController::class, 'complete']);
 });
 
+/*
+|--------------------------------------------------------------------------
+| API Routes - Messagerie
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api'])->prefix('messaging')->group(function () {
+    Route::get('/conversations', [MessageController::class, 'getConversations']);
+    Route::get('/conversations/{conversationId}/messages', [MessageController::class, 'getMessages']);
+    Route::post('/conversations/{conversationId}/read', [MessageController::class, 'markConversationAsRead']);
+    Route::post('/send', [MessageController::class, 'sendMessage']);
+    Route::delete('/messages/{messageId}', [MessageController::class, 'deleteMessage']);
+    Route::post('/upload-media', [MessageController::class, 'uploadMedia']);
+    Route::get('/stickers', [MessageController::class, 'getAvailableStickers']);
+    Route::get('/unread-count', [MessageController::class, 'getUnreadCount']);
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -353,3 +369,18 @@ Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
         ], 500);
     }
 })->middleware(['signed'])->name('verification.verify');
+/*
+|--------------------------------------------------------------------------
+| API Routes - Dashboard et Statistiques
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api'])->prefix('dashboard')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\DashboardController::class, 'index']);
+    Route::get('/charts', [App\Http\Controllers\Api\DashboardController::class, 'chartData']);
+    Route::post('/refresh-cache', [App\Http\Controllers\Api\DashboardController::class, 'refreshCache']);
+});
+
+Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard/stats', [App\Http\Controllers\Api\DashboardController::class, 'adminStats']);
+});

@@ -13,7 +13,9 @@
         "laravel/sanctum": "^3.2",
         "laravel/tinker": "^2.8",
         "namshi/jose": "^7.2",
+        "php-ffmpeg/php-ffmpeg": "^1.4",
         "php-open-source-saver/jwt-auth": "^2.3",
+        "pusher/pusher-php-server": "^7.2",
         "tymon/jwt-auth": "^2.3"
     },
     "require-dev": {
