@@ -78,7 +78,7 @@ body::before {
 .register-subtitle a {
     text-decoration: none;
     color: #2b8c4a;
-    font-weight: 700;
+    font-weight: 500;
 }
 
 /* Conteneur principal - PAS de background ici ! */

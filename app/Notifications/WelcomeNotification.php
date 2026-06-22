@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use NotificationChannels\WebPush\WebPushMessage;
 use Illuminate\Notifications\Notification;
 
 class WelcomeNotification extends Notification implements ShouldQueue
@@ -25,14 +26,12 @@ class WelcomeNotification extends Notification implements ShouldQueue
      */
     public function via($notifiable): array
     {
-        // Pour le développement, utiliser seulement 'database'
-        // Pour la production, ajouter 'mail' et 'broadcast'
-        $channels = ['database'];
+        // ✅ CORRECTION : Toujours envoyer par email et database
+        $channels = ['database', 'mail'];
         
-        // Activer les emails en production uniquement
-        if (app()->environment('production')) {
-            $channels[] = 'mail';
-            $channels[] = 'broadcast'; // Pour WebSockets
+        // Ajouter webpush si l'utilisateur a accepté
+        if ($notifiable->web_notifications && config('webpush.enabled', false)) {
+            $channels[] = 'webpush';
         }
         
         return $channels;
@@ -77,17 +76,36 @@ class WelcomeNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Email
+     * ✅ CORRECTION : Email - maintenant toujours envoyé
      */
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Bienvenue sur Élevage+ !')
+            ->subject('🎉 Bienvenue sur Élevage+ !')
             ->greeting('Bonjour ' . $this->user->name . ' !')
-            ->line('Nous sommes ravis de vous accueillir sur Élevage+.')
-            ->line('Commencez dès maintenant à gérer votre élevage et à échanger avec la communauté.')
+            ->line('Nous sommes ravis de vous accueillir sur Élevage+, la plateforme de gestion d\'élevage et d\'entraide communautaire.')
+            ->line('Voici ce que vous pouvez faire dès maintenant :')
+            ->line('• 📊 Gérer vos élevages et vos animaux')
+            ->line('• 📅 Planifier vos tâches et recevoir des rappels')
+            ->line('• 📦 Suivre vos stocks et recevoir des alertes')
+            ->line('• 👥 Échanger avec la communauté d\'éleveurs')
             ->action('Accéder à mon compte', url('/login'))
-            ->line('Merci de nous faire confiance !');
+            ->line('Merci de nous faire confiance !')
+            ->salutation('L\'équipe Élevage+');
+    }
+
+    /**
+     * ✅ CORRECTION : WebPush
+     */
+    public function toWebPush($notifiable, $notification): WebPushMessage
+    {
+        return (new WebPushMessage)
+            ->title('🎉 Bienvenue sur Élevage+ !')
+            ->icon('/images/icon-512x512.png')
+            ->badge('/images/badge-icon.png')
+            ->body("Bienvenue {$this->user->name} ! Commencez à gérer votre élevage.")
+            ->data(['url' => '/dashboard'])
+            ->vibrate([200, 100, 200]);
     }
 
     /**

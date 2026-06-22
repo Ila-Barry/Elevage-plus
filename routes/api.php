@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PublicationController;
@@ -9,6 +10,17 @@ use App\Http\Controllers\Api\ElevageController;
 use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\TacheController;
 use App\Http\Controllers\Api\NotificationController;
+
+// api admin controllers
+use App\Http\Controllers\Api\Admin\AdminUserController;
+use App\Http\Controllers\Api\Admin\AdminPublicationController;
+use App\Http\Controllers\Api\Admin\AdminReportController;
+use App\Http\Controllers\Api\Admin\AdminDashboardController;
+use App\Http\Controllers\Api\Admin\AdminNewsletterController;
+
+
+use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 
 /*
@@ -216,3 +228,128 @@ Route::middleware(['auth:api'])->prefix('notifications')->group(function () {
     Route::delete('/{id}', [NotificationController::class, 'destroy']);
     Route::delete('/', [NotificationController::class, 'destroyAll']);
 });
+
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Administration
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
+    
+    // Dashboard et Statistiques
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/kpis', [AdminDashboardController::class, 'kpis']);
+        Route::get('/evolution', [AdminDashboardController::class, 'evolution']);
+        Route::get('/repartition', [AdminDashboardController::class, 'repartition']);
+        Route::get('/activites-recentes', [AdminDashboardController::class, 'activitesRecentes']);
+    });
+    
+    Route::prefix('stats')->group(function () {
+        Route::get('/engagement', [AdminDashboardController::class, 'engagement']);
+        Route::get('/rapport-mensuel', [AdminDashboardController::class, 'rapportMensuel']);
+    });
+    
+    // Gestion des Utilisateurs
+    Route::prefix('users')->group(function () {
+        Route::get('/', [AdminUserController::class, 'index']);
+        Route::get('/export/csv', [AdminUserController::class, 'exportCSV']);
+        Route::get('/{id}', [AdminUserController::class, 'show']);
+        Route::put('/{id}', [AdminUserController::class, 'update']);
+        Route::patch('/{id}/status', [AdminUserController::class, 'changeStatus']);
+        Route::post('/{id}/reset-password', [AdminUserController::class, 'resetPassword']);
+        Route::delete('/{id}', [AdminUserController::class, 'destroy']);
+    });
+    
+    // Gestion des Publications
+    Route::prefix('publications')->group(function () {
+        Route::get('/', [AdminPublicationController::class, 'index']);
+        Route::get('/{id}', [AdminPublicationController::class, 'show']);
+        Route::put('/{id}', [AdminPublicationController::class, 'update']);
+        Route::patch('/{id}/status', [AdminPublicationController::class, 'changeStatus']);
+        Route::post('/{id}/review', [AdminPublicationController::class, 'review']);
+        Route::delete('/{id}', [AdminPublicationController::class, 'destroy']);
+    });
+    
+    // Gestion des Signalements
+    Route::prefix('reports')->group(function () {
+        Route::get('/', [AdminReportController::class, 'index']);
+        Route::get('/{id}', [AdminReportController::class, 'show']);
+        Route::post('/{id}/handle', [AdminReportController::class, 'handle']);
+        Route::post('/{id}/ignore', [AdminReportController::class, 'ignore']);
+    });
+    
+    // Newsletter
+    Route::prefix('newsletter')->group(function () {
+        Route::post('/send', [AdminNewsletterController::class, 'send']);
+    });
+});
+
+
+
+// Route pour renvoyer l'email de vérification
+Route::post('/email/resend', function (Request $request) {
+    $user = $request->user();
+    
+    if (!$user) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Non authentifié.'
+        ], 401);
+    }
+    
+    if ($user->email_verified_at) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Email déjà vérifié.'
+        ], 422);
+    }
+    
+    $user->sendEmailVerificationNotification();
+    
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Email de vérification renvoyé avec succès.'
+    ]);
+})->middleware('auth:api')->name('verification.send');
+
+
+Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
+    try {
+        \Log::info('Tentative de vérification email', ['user_id' => $id, 'hash' => $hash]);
+        
+        $user = User::findOrFail($id);
+        \Log::info('Utilisateur trouvé', ['user_id' => $user->id, 'email' => $user->email]);
+        
+        $expectedHash = sha1($user->getEmailForVerification());
+        \Log::info('Validation du hash', ['provided_hash' => $hash, 'expected_hash' => $expectedHash]);
+        
+        if (!hash_equals($expectedHash, $hash)) {
+            \Log::warning('Hash invalide pour vérification email', ['user_id' => $id]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lien de vérification invalide.'
+            ], 403);
+        }
+        
+        // ✅ FORCER la mise à jour du statut même si déjà vérifié
+        $user->email_verified_at = now();
+        $user->status = 'active';
+        $user->save();
+        
+        \Log::info('Email vérifié avec succès', ['user_id' => $user->id, 'email' => $user->email]);
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Email vérifié avec succès. Votre compte est maintenant actif.'
+        ]);
+        
+    } catch (\Exception $e) {
+        \Log::error('Erreur vérification email: ' . $e->getMessage(), ['exception' => $e]);
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Erreur lors de la vérification.'
+        ], 500);
+    }
+})->middleware(['signed'])->name('verification.verify');
