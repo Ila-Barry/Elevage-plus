@@ -6,10 +6,10 @@
         <nav class="navbar navbar-expand-lg navbar-light p-0 w-100">
 
             <!-- LOGO -->
-            <a href="{{ url('dashboard') }}" class="navbar-brand logo-wrapper d-flex align-items-center">
+            <a href="<?php echo e(url('dashboard')); ?>" class="navbar-brand logo-wrapper d-flex align-items-center">
 
                 <div class="logo-circle">
-                    <img class="img-logo" src="{{ asset('images/logoE.png') }}" alt="Élevage+">
+                    <img class="img-logo" src="<?php echo e(asset('images/logoE.png')); ?>" alt="Élevage+">
                 </div>
 
                 <span class="logo-text">
@@ -46,14 +46,14 @@
                 <ul class="navbar-nav mx-auto navbar-menu">
 
                     <li class="nav-item">
-                        <a href="{{ url('dashboard') }}" class="nav-link {{ request()->is('dashboard') ? 'active' : '' }} titre">
+                        <a href="<?php echo e(url('dashboard')); ?>" class="nav-link <?php echo e(request()->is('dashboard') ? 'active' : ''); ?> titre">
                             <i class="fas fa-home"></i>
                             <span class="titre">Dashboard</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a href="{{ url('/messages') }}" class="nav-link {{ request()->is('messages') ? 'active' : '' }} titre">
+                        <a href="<?php echo e(url('/messages')); ?>" class="nav-link <?php echo e(request()->is('messages') ? 'active' : ''); ?> titre">
                             <i class="fas fa-comment"></i>
                             <span class="titre">Messages</span>
                             <span class="badge badge-danger badge-pill">3</span>
@@ -61,7 +61,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <a href="{{ url('/notification') }}" class="nav-link {{ request()->is('notification') ? 'active' : '' }} titre">
+                        <a href="<?php echo e(url('/notification')); ?>" class="nav-link <?php echo e(request()->is('notification') ? 'active' : ''); ?> titre">
                             <i class="fas fa-bell"></i>
                             <span class="titre">Notifications</span>
                             <span class="badge badge-danger badge-pill">12</span>
@@ -101,19 +101,19 @@
 
                         <div class="dropdown-menu dropdown-menu-right shadow border-0">
 
-                            <a class="dropdown-item" href="{{ url('../auth/profile') }}">
+                            <a class="dropdown-item" href="<?php echo e(url('../auth/profile')); ?>">
                                 <i class="fas fa-user mr-2"></i>
                                 Mon profil
                             </a>
 
-                            <a class="dropdown-item" href="{{ url('../auth/parametre') }}">
+                            <a class="dropdown-item" href="<?php echo e(url('../auth/parametre')); ?>">
                                 <i class="fas fa-cog mr-2"></i>
                                 Paramètres
                             </a>
 
                             <div class="dropdown-divider"></div>
 
-                            <a class="dropdown-item text-danger" href="{{ url('/logout') }}">
+                            <a class="dropdown-item text-danger" href="<?php echo e(url('/logout')); ?>">
                                 <i class="fas fa-sign-out-alt mr-2"></i>
                                 Déconnexion
                             </a>
@@ -132,7 +132,7 @@
 
 </header>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     $(document).ready(function() {
         // === TOGGLE SIDEBAR SUR MOBILE ===
@@ -223,4 +223,4 @@
     $('#sidebar').toggleClass('open');
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?><?php /**PATH C:\Projets\Elevage-plus\resources\views/layouts/navbar.blade.php ENDPATH**/ ?>

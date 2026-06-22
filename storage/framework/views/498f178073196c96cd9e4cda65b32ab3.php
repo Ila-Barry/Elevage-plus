@@ -1,12 +1,10 @@
-@extends('layouts.menu')
+<?php $__env->startSection('title', 'Dashboard - Élevage+'); ?>
 
-@section('title', 'Dashboard - Élevage+')
+<?php $__env->startPush('styles'); ?>
+<link rel="stylesheet" href="<?php echo e(asset('css/eleveurCSS/dashboard.css')); ?>">
+<?php $__env->stopPush(); ?>
 
-@push('styles')
-<link rel="stylesheet" href="{{ asset('css/eleveurCSS/dashboard.css') }}">
-@endpush
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 
 <div class="dashboard-container">
 
@@ -176,9 +174,9 @@
 
 </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -266,4 +264,5 @@ new Chart(species,{
 
 </script>
 
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.menu', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\Projets\Elevage-plus\resources\views/dashboard.blade.php ENDPATH**/ ?>

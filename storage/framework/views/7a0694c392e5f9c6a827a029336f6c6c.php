@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 
-    <title>@yield('title', 'Élevage+')</title>
+    <title><?php echo $__env->yieldContent('title', 'Élevage+'); ?></title>
 
     <!-- Bootstrap -->
     <link rel="stylesheet"
@@ -20,29 +20,29 @@
           rel="stylesheet">
     
     <!-- LOGO -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('images/logoE.png') }}">
+    <link rel="icon" type="image/x-icon" href="<?php echo e(asset('images/logoE.png')); ?>">
 
     <!-- CSS GLOBAL -->
-    <link rel="stylesheet" href="{{ asset('css/layoutCSS/navbar.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/layoutCSS/sidebar.css') }}">
+    <link rel="stylesheet" href="<?php echo e(asset('css/layoutCSS/navbar.css')); ?>">
+    <link rel="stylesheet" href="<?php echo e(asset('css/layoutCSS/sidebar.css')); ?>">
 
     <!-- CSS PAGE -->
-    @stack('styles')
+    <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 
 <body>
 
     <!-- NAVBAR -->
-    @include('layouts.navbar')
+    <?php echo $__env->make('layouts.navbar', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
     <div class="dashboard-layout" id="dashboardLayout">
 
         <!-- SIDEBAR -->
-        @include('layouts.sidebar')
+        <?php echo $__env->make('layouts.sidebar', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
         <!-- CONTENU PRINCIPAL -->
         <main class="dashboard-content" id="dashboardContent">
-            @yield('content')
+            <?php echo $__env->yieldContent('content'); ?>
         </main>
 
     </div>
@@ -106,7 +106,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    @stack('scripts')
+    <?php echo $__env->yieldPushContent('scripts'); ?>
   
 </body>
-</html> 
+</html> <?php /**PATH C:\Projets\Elevage-plus\resources\views/layouts/menu.blade.php ENDPATH**/ ?>
