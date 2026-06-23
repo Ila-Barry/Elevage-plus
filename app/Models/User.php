@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Notification;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Hash;
@@ -172,8 +173,9 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
      */
     public function sendEmailVerificationNotification()
     {
-        // Utiliser une notification personnalisée pour la vérification
-        $this->notify(new \App\Notifications\CustomVerifyEmailNotification());
+        // Envoyer immédiatement la notification de vérification
+        // Utilise sendNow pour ne pas dépendre d'un worker de queue en développement
+        Notification::sendNow($this, new \App\Notifications\CustomVerifyEmailNotification());
     }
 
     // ========== JWT METHODS ==========

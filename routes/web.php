@@ -4,6 +4,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Web\AuthController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -86,7 +87,13 @@ Route::middleware(['auth'])->group(function () {
     
     // Gestion
     Route::get('/elevages', function () {
-        return view('elevages');
+        $user = Auth::user();
+        
+        if (!$user) {
+            return redirect('/auth/login');
+        }
+        
+        return view('elevages', compact('user'));
     });
     
     Route::get('/animaux', function () {
