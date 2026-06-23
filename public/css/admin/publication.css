@@ -395,12 +395,3 @@
         font-size: 0.8rem;
     }
 }
-/* Exemple d'ajouts pour plus de professionnalisme */
-:root {
-    --primary-color: #0d6efd;
-    --primary-hover: #0b5ed7;
-    --border-radius: 0.75rem;
-    --box-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-/* Utilisez ces variables dans les règles existantes */
