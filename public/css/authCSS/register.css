@@ -1,92 +1,130 @@
 /* public/css/authCSS/register.css */
-/* Avec background image + superposition */
-
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
+
 body {
-    background-image: url("/images/elel.jpeg");
+    background-image:
+        linear-gradient(
+            rgba(20,108,67,.15),
+            rgba(25,135,84,.15)
+        ),
+        url('/images/bg.png');
+
     background-size: cover;
     background-position: center;
-    position: relative;
-
-    
+    background-attachment: fixed;
 }
 
-
-
-/* Voile sombre pour améliorer la lisibilité du texte */
 body::before {
-    content: "";
+    content: '';
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.55);
-    z-index: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: -1;
 }
 
-.container {
-    position: relative;
-    z-index: 2;
+/* Header fixe en haut */
+.register-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    background: #fff;
+    width: 100%;
+    padding: 5px 30px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
 }
 
-/* Carte principale - fond blanc avec un subtil effet glassmorphisme */
-.card {
-    background: rgba(255, 255, 255, 0.97);
-    border-radius: 32px !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(0px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+.register-header a:hover {
+    text-decoration: none;
 }
 
-.card:hover {
-    box-shadow: 0 30px 50px -14px rgba(0, 0, 0, 0.35);
-    transform: translateY(-2px);
-}
-
-/* Logo typographique + icône animal */
-.logo-wrapper {
+.register-header .logo {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
-.logo-text {
-    font-size: 1.9rem;
+.register-header .logo .img-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    padding: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.register-header .logo span {
+    font-size: 22px;
     font-weight: 800;
-    letter-spacing: -0.5px;
-    background: linear-gradient(135deg, #1f6e43, #2b8c4a);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
+    color: #1b5e20;
+    letter-spacing: 1px;
 }
 
-.logo-wrapper i {
-    font-size: 2rem;
+.register-subtitle {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+}
+
+.register-subtitle a {
+    text-decoration: none;
     color: #2b8c4a;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+    font-weight: 700;
 }
 
-/* Lien "Déja inscrit ? Se connecter" */
-.small-link {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #2c6e2f;
-    transition: all 0.2s;
-    border-bottom: 1px dashed transparent;
+/* Conteneur principal - PAS de background ici ! */
+.register-container {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 80px;
+    padding-bottom: 40px;
 }
 
-.small-link:hover {
-    color: #1f5430;
-    border-bottom-color: #2c6e2f;
+/* Carte blanche */
+.register-card {
+    max-width: 550px;
+    width: 100%;
+    background: white;
+    border-radius: 32px;
+    padding: 40px 35px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transition: transform 0.3s ease;
+    margin: 0 auto;
 }
 
-/* Titre central avec soulignement élégant */
+.register-card:hover {
+    transform: translateY(-5px);
+}
+
+.register-card .logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.register-card .logo img {
+    width: 150px;
+    height: 80px;
+    border-radius: 50%;
+    padding: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Titre */
 .underline-title {
     width: 70px;
     height: 3px;
@@ -110,14 +148,17 @@ h3 {
     display: block;
 }
 
-/* Groupes d'input avec icônes */
+/* Groupes d'input */
+.custom-input-group {
+    position: relative;
+}
+
 .custom-input-group .input-group-text {
     background-color: #ffffff;
     border: 1px solid #d4dee5;
     border-right: none;
     border-radius: 16px 0 0 16px;
     padding: 0.6rem 1rem;
-    color: #588b5e;
     transition: all 0.2s;
 }
 
@@ -133,41 +174,11 @@ h3 {
 
 .custom-input-group .form-control:focus {
     border-color: #9bc48f;
-    box-shadow: 0 0 0 3px rgba(43, 140, 74, 0.15);
+    box-shadow: none;
     outline: none;
 }
 
-.custom-input-group .form-control:focus + .input-group-prepend .input-group-text {
-    border-color: #9bc48f;
-}
-
-.custom-input-group:hover .input-group-text,
-.custom-input-group:hover .form-control {
-    border-color: #bdd8ae;
-}
-
-/* Checkbox */
-.form-check-input {
-    cursor: pointer;
-    border-radius: 5px;
-    border: 1.5px solid #cbd5e0;
-    transition: 0.1s linear;
-}
-
-.form-check-input:checked {
-    background-color: #2b8c4a;
-    border-color: #2b8c4a;
-    box-shadow: 0 0 0 1px rgba(43, 140, 74, 0.2);
-}
-
-.form-check-label {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #2d3e2b;
-    margin-left: 4px;
-}
-
-/* Bouton S'INSCRIRE */
+/* Bouton */
 .btn-submit {
     background: linear-gradient(100deg, #24653a, #2e7d48);
     border: none;
@@ -176,98 +187,140 @@ h3 {
     letter-spacing: 0.5px;
     transition: all 0.25s ease;
     box-shadow: 0 5px 12px rgba(34, 110, 55, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+    border-radius: 50px;
+    color: white;
 }
 
 .btn-submit:hover {
     background: linear-gradient(100deg, #1f5834, #266a3f);
     transform: translateY(-2px);
     box-shadow: 0 12px 20px -10px rgba(39, 103, 49, 0.4);
+    color: white;
 }
 
-.btn-submit:active {
-    transform: translateY(1px);
+/* Checkbox */
+.form-check-input {
+    cursor: pointer;
+    border-radius: 5px;
+    border: 1.5px solid #cbd5e0;
 }
 
-/* Lien "Se connecter" en bas */
+.form-check-input:checked {
+    background-color: #2b8c4a;
+    border-color: #2b8c4a;
+}
+
+/* Lien connexion */
 .link-login {
     color: #24653a;
     font-weight: 600;
-    border-bottom: 1px solid transparent;
     transition: 0.2s;
 }
 
 .link-login:hover {
     color: #104d29;
-    border-bottom-color: #2b8c4a;
+    text-decoration: underline !important;
 }
 
-/* Message erreur mot de passe */
-.password-match-error {
-    font-size: 0.75rem;
-    margin-top: 6px;
-    display: block;
+/* Séparateur */
+.divider {
+    text-align: center;
+    margin: 25px 0;
+    position: relative;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: calc(50% - 30px);
+    height: 1px;
+    background: #e0e0e0;
+}
+
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+.divider span {
+    background: white;
+    padding: 0 15px;
+    color: #999;
+    font-size: 14px;
+}
+
+/* Réseaux sociaux */
+.social-register {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.social-btn {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 16px;
+    background: white;
+    font-size: 14px;
     font-weight: 500;
-    letter-spacing: 0.2px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
-.d-none {
-    display: none;
-}
+.social-btn i { font-size: 18px; }
+
+.social-btn.google { color: #db4437; border-color: #db4437; }
+.social-btn.google:hover { background: #db4437; color: white; }
+.social-btn.facebook { color: #4267b2; border-color: #4267b2; }
+.social-btn.facebook:hover { background: #4267b2; color: white; }
+.social-btn.instagram { color: #e4405f; border-color: #e4405f; }
+.social-btn.instagram:hover { background: linear-gradient(45deg, #f09433, #d62976, #962fbf); color: white; border-color: transparent; }
+.social-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 
 /* Responsive */
 @media (max-width: 768px) {
-    .card-body {
-        padding: 1.8rem !important;
+    .register-header {
+        padding: 5px 15px;
     }
-
-    .logo-text {
-        font-size: 1.6rem;
+    .register-header .logo span {
+        font-size: 18px;
     }
-
-    .btn-submit {
-        font-size: 1rem;
-        padding: 0.8rem;
+    .register-card {
+        padding: 30px 20px;
+        margin: 0 15px;
     }
-
-    .custom-input-group .input-group-text {
-        padding: 0.5rem 0.9rem;
+    .register-subtitle {
+        font-size: 12px;
+    }
+    .social-register {
+        flex-direction: column;
     }
 }
 
 @media (max-width: 480px) {
-    .logo-wrapper {
-        gap: 6px;
+    .register-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+        padding: 10px 15px;
     }
-
-    .logo-text {
-        font-size: 1.4rem;
+    .register-card .logo img {
+        width: 120px;
+        height: 65px;
     }
-
-    .small-link {
-        font-size: 0.75rem;
+    .btn-submit {
+        font-size: 0.9rem;
     }
-
-    h3 {
-        font-size: 1.6rem;
-    }
-
-    .form-label {
-        font-size: 0.85rem;
-    }
-}
-
-.form-group {
-    margin-bottom: 1.4rem;
-}
-
-::placeholder {
-    color: #9aaeb6;
-    font-weight: 400;
-    font-size: 0.9rem;
-    opacity: 0.8;
-}
-
-.custom-input-group:focus-within .input-group-text i {
-    color: #2b8c4a;
-    transition: color 0.15s;
 }

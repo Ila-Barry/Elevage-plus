@@ -69,3 +69,27 @@ Route::get('/auth/login', function () {
 Route::get('/auth/register', function () {
     return view('auth/register');
 });
+
+
+
+// administration routes
+
+route::get('/admin/dashboard', function () {
+    return view('admin/dashboard');
+});
+
+route::get('/admin/utilisateur', function () {
+    return view('admin/utilisateur');
+});
+
+route::get('/admin/publication', function () {
+    return view('admin/publication');
+});
+
+route::get('/admin/signale', function () {
+    return view('admin/signale');
+});
+
+route::get('/admin/statistique', function () {
+    return view('admin/statistique');
+});

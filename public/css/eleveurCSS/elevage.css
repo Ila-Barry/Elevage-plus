@@ -407,6 +407,13 @@
     .btn-action span {
         display: none !important; /* Ne laisse que les icônes sur mobile */
     }
+    
+}
+
+@media (max-width: 967.98px){
+    .btn-action span {
+        display: none !important; /* Ne laisse que les icônes sur mobile */
+    }
 }
 
 
@@ -479,5 +486,60 @@
     }
     .btn-action span {
         display: none !important; /* Ne laisse que les icônes sur mobile */
+    }
+}
+
+
+/* Styles supplémentaires pour le toast et les modals */
+.custom-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 10000;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+}
+
+.custom-toast.show {
+    transform: translateX(0);
+}
+
+.custom-toast .toast-content {
+    background: #343a40;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.custom-toast.success .toast-content {
+    background: #28a745;
+}
+
+.custom-toast.danger .toast-content {
+    background: #dc3545;
+}
+
+.custom-toast.warning .toast-content {
+    background: #ffc107;
+    color: #343a40;
+}
+
+/* Responsive pour mobile */
+@media (max-width: 576px) {
+    .custom-toast {
+        left: 15px;
+        right: 15px;
+        bottom: 15px;
+        transform: translateY(100px);
+    }
+    .custom-toast.show {
+        transform: translateY(0);
+    }
+    .search-container {
+        max-width: 100%;
     }
 }
