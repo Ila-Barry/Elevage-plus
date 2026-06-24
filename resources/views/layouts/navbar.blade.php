@@ -69,18 +69,7 @@
                         </button>
 
                         <div class="dropdown-menu dropdown-menu-right shadow border-0">
-<<<<<<< HEAD
-                            <a class="dropdown-item" href="{{ url('/auth/profile') }}">
-                                <i class="fas fa-user mr-2"></i> Mon profil
-                            </a>
-                            <a class="dropdown-item" href="{{ url('/auth/parametre') }}">
-                                <i class="fas fa-cog mr-2"></i> Paramètres
-                            </a>
-                            <a class="dropdown-item" href="{{ url('/elevages') }}">
-                                <i class="fas fa-horse mr-2"></i> Mes élevages
-                            </a>
-=======
-
+                            
                             <a class="dropdown-item" href="{{ url('../auth/profile') }}">
                                 <i class="fas fa-user mr-2"></i>
                                 Mon profil
@@ -90,8 +79,6 @@
                                 <i class="fas fa-cog mr-2"></i>
                                 Paramètres
                             </a>
-
->>>>>>> 065b57d9e0805d57a9f73e16df822bb3bfe10716
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item text-danger" href="#" id="logoutBtn">
                                 <i class="fas fa-sign-out-alt mr-2"></i>
