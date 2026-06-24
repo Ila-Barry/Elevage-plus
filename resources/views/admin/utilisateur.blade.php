@@ -700,30 +700,44 @@ Suivante →
 
             <!-- Mot de passe -->
 
-            <label>
-                Mot de passe
-            </label>
+               <label>
+                  🔒 Mot de passe
+               </label>
+
+               <input 
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Mot de passe"
+               >
 
 
-            <input 
-            type="password"
-            placeholder="Mot de passe"
-            >
+
+               <!-- Confirmation -->
+
+               <label>
+                  🔒 Confirmer le mot de passe
+               </label>
+
+               <input 
+                  type="password"
+                  id="password_confirmation"
+                  name="password_confirmation"
+                  placeholder="Confirmer le mot de passe"
+               >
 
 
 
-            <!-- Confirmation mot de passe -->
+               <!-- Bouton unique -->
 
-            <label>
-               🔒 Confirmer le mot de passe
-            </label>
+               <button 
+                  type="button"
+                  class="show-password"
+                  onclick="togglePasswords()">
 
-            <input 
-               type="password"
-               name="password_confirmation"
-               placeholder="Confirmer le mot de passe"
-            >
+                  👁️ Afficher les mots de passe
 
+               </button>
 
 
 
@@ -835,6 +849,29 @@ window.addEventListener('click', (e) => {
 
 });
 
+function togglePasswords(){
+
+    const password = document.getElementById('password');
+
+    const confirmation = document.getElementById('password_confirmation');
+
+
+    if(password.type === "password"){
+
+        password.type = "text";
+
+        confirmation.type = "text";
+
+    } 
+    else {
+
+        password.type = "password";
+
+        confirmation.type = "password";
+
+    }
+
+}
 
 </script>
 @endsection
