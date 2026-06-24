@@ -662,15 +662,87 @@ Suivante →
 
             <!-- Email -->
 
-            <label>
-                Email
-            </label>
+               <label>
+                  📧 Email
+               </label>
 
 
-            <input 
-            type="email"
-            placeholder="Email utilisateur"
-            >
+               <input 
+               type="email"
+               name="email"
+               placeholder="Email utilisateur"
+               >
+
+
+
+
+               <!-- Téléphone -->
+
+               <label>
+                  📞 Numéro de téléphone
+               </label>
+
+
+               <input 
+               type="tel"
+               name="telephone"
+               placeholder="Ex: 77 123 45 67"
+               >
+
+
+
+
+               <!-- Type d'élevage -->
+
+               <label>
+                  🐄 Type d'élevage
+               </label>
+
+
+               <select name="type_elevage">
+
+
+               <option value="">
+                  -- Choisir un type d'élevage --
+               </option>
+
+
+               <option value="bovin">
+                  🐄 Élevage bovin (vaches)
+               </option>
+
+
+               <option value="ovin">
+                  🐑 Élevage ovin (moutons)
+               </option>
+
+
+               <option value="caprin">
+                  🐐 Élevage caprin (chèvres)
+               </option>
+
+
+               <option value="volaille">
+                  🐔 Élevage de volaille
+               </option>
+
+
+               <option value="porcin">
+                  🐖 Élevage porcin
+               </option>
+
+
+               <option value="pisciculture">
+                  🐟 Pisciculture (poissons)
+               </option>
+
+
+               <option value="autre">
+                  Autre
+               </option>
+
+
+               </select>
 
 
 
