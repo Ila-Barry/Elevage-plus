@@ -730,14 +730,14 @@ Suivante →
 
                <!-- Bouton unique -->
 
-               <button 
-                  type="button"
-                  class="show-password"
-                  onclick="togglePasswords()">
+                  <button 
+                     type="button"
+                     class="show-password"
+                     onclick="togglePasswords()">
 
-                  👁️ Afficher les mots de passe
+                        <i id="eyeIcon" class="fa-solid fa-eye-slash"></i>
 
-               </button>
+                     </button>
 
 
 
@@ -855,6 +855,8 @@ function togglePasswords(){
 
     const confirmation = document.getElementById('password_confirmation');
 
+    const icon = document.getElementById('eyeIcon');
+
 
     if(password.type === "password"){
 
@@ -862,12 +864,25 @@ function togglePasswords(){
 
         confirmation.type = "text";
 
-    } 
-    else {
+
+        // oeil ouvert
+        icon.classList.remove('fa-eye-slash');
+
+        icon.classList.add('fa-eye');
+
+
+    }
+    else{
 
         password.type = "password";
 
         confirmation.type = "password";
+
+
+        // oeil barré
+        icon.classList.remove('fa-eye');
+
+        icon.classList.add('fa-eye-slash');
 
     }
 
