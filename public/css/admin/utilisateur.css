@@ -612,6 +612,7 @@ tbody tr:hover {
     display: none;
     position: fixed;
     inset: 0;
+
     background: rgba(0,0,0,0.5);
 
     justify-content: center;
@@ -619,22 +620,24 @@ tbody tr:hover {
 
     padding: 20px;
 
-    overflow-y: auto;
+    overflow: hidden; /* bloque le scroll du fond */
 }
-
 
 
 /* Fenêtre formulaire */
 
 .modal-content {
+
     background: white;
 
-    width: min(500px, 95%); /* clé du responsive */
-    
+    width: min(500px, 95%);
+
     max-height: 90vh;
-    overflow-y: auto;
+
+    overflow-y: auto; /* seul le formulaire défile */
 
     padding: 25px;
+
     border-radius: 16px;
 
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
@@ -783,4 +786,8 @@ tbody tr:hover {
 
 .modal-content {
     scrollbar-width: thin;
+}
+
+body.modal-open {
+    overflow: hidden;
 }

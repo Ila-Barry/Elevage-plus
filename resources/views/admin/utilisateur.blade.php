@@ -790,26 +790,51 @@ Suivante →
 
 
 </div>
+
 <script>
-    const openBtn = document.getElementById('openModal');
-    const closeBtn = document.getElementById('closeModal');
-    const modal = document.getElementById('userModal');
 
-    // Ouvrir modale
-    openBtn.addEventListener('click', () => {
-        modal.classList.add('show');
-    });
+const openBtn = document.getElementById('openModal');
+const closeBtn = document.getElementById('closeModal');
+const modal = document.getElementById('userModal');
 
-    // Fermer modale
-    closeBtn.addEventListener('click', () => {
+
+// Ouvrir la modale
+openBtn.addEventListener('click', () => {
+
+    modal.classList.add('show');
+
+    // bloque le scroll arrière-plan
+    document.body.classList.add('modal-open');
+
+});
+
+
+
+// Fermer la modale
+closeBtn.addEventListener('click', () => {
+
+    modal.classList.remove('show');
+
+    // réactive le scroll
+    document.body.classList.remove('modal-open');
+
+});
+
+
+
+// Fermer en cliquant sur le fond
+window.addEventListener('click', (e) => {
+
+    if(e.target === modal){
+
         modal.classList.remove('show');
-    });
 
-    // clic en dehors
-    window.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.classList.remove('show');
-        }
-    });
+        document.body.classList.remove('modal-open');
+
+    }
+
+});
+
+
 </script>
 @endsection
