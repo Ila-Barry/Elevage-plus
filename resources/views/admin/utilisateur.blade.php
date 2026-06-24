@@ -677,23 +677,207 @@ Suivante →
 
             <!-- Localisation -->
 
-            <label>
-               📍 Localisation
-            </label>
+                           <label>
+                  📍 Localisation
+               </label>
 
-            <select name="localisation">
 
-               <option value="">-- Choisir une ville --</option>
+               <select name="localisation">
 
-               <option value="dakar">Dakar</option>
-               <option value="pikine">Pikine</option>
-               <option value="guediawaye">Guédiawaye</option>
-               <option value="rufisque">Rufisque</option>
-               <option value="thies">Thiès</option>
-               <option value="saint-louis">Saint-Louis</option>
-               <option value="kaolack">Kaolack</option>
 
-            </select>
+               <option value="">
+                  -- Choisir une ville --
+               </option>
+
+
+
+               <!-- REGION DAKAR -->
+
+               <optgroup label="🌆 Région de Dakar">
+
+                  <option value="dakar">Dakar</option>
+                  <option value="pikine">Pikine</option>
+                  <option value="guediawaye">Guédiawaye</option>
+                  <option value="rufisque">Rufisque</option>
+                  <option value="keur-massar">Keur Massar</option>
+                  <option value="bargny">Bargny</option>
+                  <option value="diamniadio">Diamniadio</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION THIES -->
+
+               <optgroup label="🏖️ Région de Thiès">
+
+                  <option value="thies">Thiès</option>
+                  <option value="mbour">Mbour</option>
+                  <option value="tivaouane">Tivaouane</option>
+                  <option value="joal">Joal-Fadiouth</option>
+                  <option value="khombole">Khombole</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION DIOURBEL -->
+
+               <optgroup label="🕌 Région de Diourbel">
+
+                  <option value="diourbel">Diourbel</option>
+                  <option value="touba">Touba</option>
+                  <option value="mbacke">Mbacké</option>
+                  <option value="bambey">Bambey</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION SAINT-LOUIS -->
+
+               <optgroup label="🌊 Région de Saint-Louis">
+
+                  <option value="saint-louis">Saint-Louis</option>
+                  <option value="podor">Podor</option>
+                  <option value="dagana">Dagana</option>
+                  <option value="richard-toll">Richard-Toll</option>
+                  <option value="rosso">Rosso</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION KAOLACK -->
+
+               <optgroup label="🌿 Région de Kaolack">
+
+                  <option value="kaolack">Kaolack</option>
+                  <option value="nioro">Nioro du Rip</option>
+                  <option value="guinguineo">Guinguinéo</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION FATICK -->
+
+               <optgroup label="🌴 Région de Fatick">
+
+                  <option value="fatick">Fatick</option>
+                  <option value="foundiougne">Foundiougne</option>
+                  <option value="gossas">Gossas</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION LOUGA -->
+
+               <optgroup label="🐪 Région de Louga">
+
+                  <option value="louga">Louga</option>
+                  <option value="kebemer">Kébémer</option>
+                  <option value="linguere">Linguère</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION ZIGUINCHOR -->
+
+               <optgroup label="🌴 Région de Ziguinchor">
+
+                  <option value="ziguinchor">Ziguinchor</option>
+                  <option value="bignona">Bignona</option>
+                  <option value="oussouye">Oussouye</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION KOLDA -->
+
+               <optgroup label="🌳 Région de Kolda">
+
+                  <option value="kolda">Kolda</option>
+                  <option value="velingara">Vélingara</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION MATAM -->
+
+               <optgroup label="🐫 Région de Matam">
+
+                  <option value="matam">Matam</option>
+                  <option value="ourossogui">Ourossogui</option>
+                  <option value="kanel">Kanel</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION TAMBACOUNDA -->
+
+               <optgroup label="🌍 Région de Tambacounda">
+
+                  <option value="tambacounda">Tambacounda</option>
+                  <option value="bake">Bakel</option>
+                  <option value="koumpentoum">Koumpentoum</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION KAFFRINE -->
+
+               <optgroup label="🌾 Région de Kaffrine">
+
+                  <option value="kaffrine">Kaffrine</option>
+                  <option value="koungheul">Koungheul</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION KEDOUGOU -->
+
+               <optgroup label="⛰️ Région de Kédougou">
+
+                  <option value="kedougou">Kédougou</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION SEDHIOU -->
+
+               <optgroup label="🌿 Région de Sédhiou">
+
+                  <option value="sedhiou">Sédhiou</option>
+                  <option value="goudomp">Goudomp</option>
+                  <option value="bounkiling">Bounkiling</option>
+
+               </optgroup>
+
+
+
+               </select>
 
 
 
