@@ -1,3 +1,5 @@
+{{-- resources/views/stocks.blade.php --}}
+
 @extends('layouts.menu')
 
 @section('title', 'Stocks')
@@ -36,10 +38,10 @@
                 </div>
                 <select class="filter-cat" id="filterCategory">
                     <option value="all">Toutes les catégories</option>
-                    <option value="Aliments">Aliments</option>
-                    <option value="Médicaments">Médicaments</option>
-                    <option value="Equipements">Equipements</option>
-                    <option value="Autre">Autre</option>
+                    <option value="aliment">Aliments</option>
+                    <option value="medicament">Médicaments</option>
+                    <option value="equipement">Équipements</option>
+                    <option value="autre">Autre</option>
                 </select>
                 <select class="filter-cat" id="filterStatus">
                     <option value="all">Tous les statuts</option>
@@ -62,7 +64,12 @@
                         </tr>
                     </thead>
                     <tbody id="stocksTableBody">
-                        <!-- Les lignes seront générées par JavaScript -->
+                        <tr>
+                            <td colspan="4" class="text-center py-4">
+                                <i class="fas fa-spinner fa-spin fa-2x text-success"></i>
+                                <p class="mt-2 text-muted">Chargement des produits...</p>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -113,7 +120,9 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="addProductForm">
+            <div id="addError" class="alert alert-danger" style="display: none;"></div>
+            <form id="addProductForm" enctype="multipart/form-data">
+                @csrf
                 <div class="modal-body">
                     <div class="form-group">
                         <label>Nom du produit *</label>
@@ -124,15 +133,25 @@
                             <label>Catégorie *</label>
                             <select class="form-control" id="addProductCategory" required>
                                 <option value="">Choisir...</option>
-                                <option value="Aliments">Aliments</option>
-                                <option value="Médicaments">Médicaments</option>
-                                <option value="Equipements">Equipements</option>
-                                <option value="Autre">Autre</option>
+                                <option value="aliment">Aliments</option>
+                                <option value="medicament">Médicaments</option>
+                                <option value="equipement">Équipements</option>
+                                <option value="autre">Autre</option>
                             </select>
                         </div>
                         <div class="form-group col-md-6">
                             <label>Unité de mesure</label>
-                            <input type="text" class="form-control" id="addProductUnit" placeholder="kg, boîtes, paires...">
+                            <select class="form-control" id="addProductUnit">
+                                <option value="kg">Kilogramme (kg)</option>
+                                <option value="g">Gramme (g)</option>
+                                <option value="l">Litre (l)</option>
+                                <option value="ml">Millilitre (ml)</option>
+                                <option value="piece">Pièce</option>
+                                <option value="boite">Boîte</option>
+                                <option value="sac">Sac</option>
+                                <option value="bouteille">Bouteille</option>
+                                <option value="unite">Unité</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-row">
@@ -141,9 +160,15 @@
                             <input type="number" class="form-control" id="addProductQuantity" placeholder="0" min="0" required>
                         </div>
                         <div class="form-group col-md-6">
-                            <label>Seuil d'alerte</label>
-                            <input type="number" class="form-control" id="addProductThreshold" placeholder="Ex: 50" min="0">
+                            <label>Seuil d'alerte *</label>
+                            <input type="number" class="form-control" id="addProductThreshold" placeholder="Ex: 50" min="0" required>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Élevage *</label>
+                        <select class="form-control" id="addElevage" required>
+                            <option value="">Sélectionnez un élevage...</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Description (optionnel)</label>
@@ -152,7 +177,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-success">Ajouter</button>
+                    <button type="submit" class="btn btn-success" id="addSubmitBtn">Ajouter</button>
                 </div>
             </form>
         </div>
@@ -169,6 +194,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
+            <div id="movementError" class="alert alert-danger" style="display: none;"></div>
             <form id="movementForm">
                 <div class="modal-body">
                     <div class="form-row mb-3">
@@ -197,7 +223,7 @@
                         </div>
                         <div class="col-md-6">
                             <label>Quantité *</label>
-                            <input type="number" class="form-control" id="mvtQuantite" placeholder="100" min="1" required>
+                            <input type="number" class="form-control" id="mvtQuantite" placeholder="100" min="0.01" step="0.01" required>
                         </div>
                     </div>
 
@@ -206,12 +232,13 @@
                             <label>Motif *</label>
                             <select class="form-control" id="mvtMotif" required>
                                 <option value="">Choisir...</option>
-                                <option value="Achat fournisseur">Achat fournisseur</option>
-                                <option value="Don">Don</option>
-                                <option value="Production propre">Production propre</option>
-                                <option value="Consommation animale">Consommation animale</option>
-                                <option value="Perte">Perte</option>
-                                <option value="Autre">Autre</option>
+                                <option value="achat">Achat fournisseur</option>
+                                <option value="don">Don</option>
+                                <option value="production">Production propre</option>
+                                <option value="consommation">Consommation animale</option>
+                                <option value="perte">Perte</option>
+                                <option value="inventaire">Ajustement inventaire</option>
+                                <option value="autre">Autre</option>
                             </select>
                         </div>
                         <div class="col-md-6">
@@ -227,7 +254,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-success">Valider</button>
+                    <button type="submit" class="btn btn-success" id="mvtSubmitBtn">Valider</button>
                 </div>
             </form>
         </div>
@@ -264,9 +291,12 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="editProductForm">
+            <div id="editError" class="alert alert-danger" style="display: none;"></div>
+            <form id="editProductForm" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+                <input type="hidden" id="editProductId">
                 <div class="modal-body">
-                    <input type="hidden" id="editProductId">
                     <div class="form-group">
                         <label>Nom du produit *</label>
                         <input type="text" class="form-control" id="editProductName" required>
@@ -275,15 +305,25 @@
                         <div class="form-group col-md-6">
                             <label>Catégorie *</label>
                             <select class="form-control" id="editProductCategory" required>
-                                <option value="Aliments">Aliments</option>
-                                <option value="Médicaments">Médicaments</option>
-                                <option value="Equipements">Equipements</option>
-                                <option value="Autre">Autre</option>
+                                <option value="aliment">Aliments</option>
+                                <option value="medicament">Médicaments</option>
+                                <option value="equipement">Équipements</option>
+                                <option value="autre">Autre</option>
                             </select>
                         </div>
                         <div class="form-group col-md-6">
                             <label>Unité de mesure</label>
-                            <input type="text" class="form-control" id="editProductUnit">
+                            <select class="form-control" id="editProductUnit">
+                                <option value="kg">Kilogramme (kg)</option>
+                                <option value="g">Gramme (g)</option>
+                                <option value="l">Litre (l)</option>
+                                <option value="ml">Millilitre (ml)</option>
+                                <option value="piece">Pièce</option>
+                                <option value="boite">Boîte</option>
+                                <option value="sac">Sac</option>
+                                <option value="bouteille">Bouteille</option>
+                                <option value="unite">Unité</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-row">
@@ -293,8 +333,8 @@
                             <small class="text-muted">La quantité ne peut être modifiée que via un mouvement.</small>
                         </div>
                         <div class="form-group col-md-6">
-                            <label>Seuil d'alerte</label>
-                            <input type="number" class="form-control" id="editProductThreshold" min="0">
+                            <label>Seuil d'alerte *</label>
+                            <input type="number" class="form-control" id="editProductThreshold" min="0" required>
                         </div>
                     </div>
                     <div class="form-group">
@@ -304,7 +344,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-warning">Enregistrer</button>
+                    <button type="submit" class="btn btn-warning" id="editSubmitBtn">Enregistrer</button>
                 </div>
             </form>
         </div>
@@ -334,87 +374,29 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-// ================= DONNÉES =================
-let products = [
-    {
-        id: 1,
-        nom: "Aliment vache premium",
-        categorie: "Aliments",
-        quantite: 850,
-        unite: "kg",
-        seuil: 200,
-        description: "Aliment premium pour vaches laitières.",
-        icon: "fa-cow",
-        historique: [
-            { date: "12/05", type: "entree", quantite: 200, motif: "Achat fournisseur" },
-            { date: "11/05", type: "sortie", quantite: 50, motif: "Consommation animale" }
-        ]
-    },
-    {
-        id: 2,
-        nom: "Vitamine B12",
-        categorie: "Médicaments",
-        quantite: 12,
-        unite: "boîtes",
-        seuil: 5,
-        description: "Complément vitaminique pour bovins.",
-        icon: "fa-pills",
-        historique: [
-            { date: "10/05", type: "sortie", quantite: 2, motif: "Consommation animale" }
-        ]
-    },
-    {
-        id: 3,
-        nom: "Paille",
-        categorie: "Aliments",
-        quantite: 120,
-        unite: "kg",
-        seuil: 150,
-        description: "Paille de qualité pour litière.",
-        icon: "fa-seedling",
-        historique: [
-            { date: "09/05", type: "entree", quantite: 100, motif: "Production propre" }
-        ]
-    },
-    {
-        id: 4,
-        nom: "Gants vétérina",
-        categorie: "Equipements",
-        quantite: 45,
-        unite: "paires",
-        seuil: 20,
-        description: "Gants jetables pour examens vétérinaires.",
-        icon: "fa-mitten",
-        historique: []
-    },
-    {
-        id: 5,
-        nom: "Antibiotique",
-        categorie: "Médicaments",
-        quantite: 850,
-        unite: "g",
-        seuil: 1000,
-        description: "Antibiotique à large spectre.",
-        icon: "fa-syringe",
-        historique: []
-    }
-];
+// ================= CONFIGURATION =================
+const API_URL = window.location.origin + '/api';
+const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
+const rawToken = localStorage.getItem('access_token');
+const token = rawToken ? rawToken.replace(/^"(.*)"$/, '$1').trim() : null;
 
-let nextId = 6;
-let historyEntries = [
-    { date: "12/05", type: "entree", produit: "Aliment vache premium", quantite: 200 },
-    { date: "11/05", type: "sortie", produit: "Aliment vache premium", quantite: 50 },
-    { date: "10/05", type: "sortie", produit: "Vitamine B12", quantite: 2 },
-    { date: "09/05", type: "entree", produit: "Paille", quantite: 100 }
-];
+console.log('🔍 Configuration Stocks:', { 
+    API_URL, 
+    token: token ? '✅ Présent' : '❌ Absent',
+    token_preview: token ? token.substring(0, 20) + '...' : null
+});
 
+// ================= VARIABLES =================
+let products = [];
+let movements = [];
+let elevages = [];
 let toastTimeout = null;
+let currentProductId = null;
+let currentPage = 1;
+const itemsPerPage = 10;
 
-// ================= TOAST =================
+// ================= FONCTIONS TOAST =================
 function showToast(message, type = 'info') {
     const existingToast = document.querySelector('.custom-toast');
     if (existingToast) existingToast.remove();
@@ -439,30 +421,213 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
-// ================= STATUT DU STOCK =================
+// ================= API CALLS AVEC GESTION D'ERREUR =================
+async function fetchWithAuth(url, options = {}) {
+    const headers = {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        'X-CSRF-TOKEN': CSRF_TOKEN,
+        ...options.headers
+    };
+    
+    if (!token) {
+        showToast('Session expirée. Veuillez vous reconnecter.', 'danger');
+        setTimeout(() => window.location.href = '/auth/login', 2000);
+        throw new Error('Token manquant');
+    }
+    
+    const response = await fetch(url, {
+        ...options,
+        headers: headers
+    });
+
+    if (response.status === 401) {
+        console.error('❌ Token invalide ou expiré');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('token_expiry');
+        localStorage.removeItem('user');
+        showToast('Session expirée. Veuillez vous reconnecter.', 'danger');
+        setTimeout(() => window.location.href = '/auth/login', 2000);
+        throw new Error('Non authentifié');
+    }
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+        throw result;
+    }
+
+    return result;
+}
+
+// ================= FONCTIONS API =================
+async function fetchElevages() {
+    try {
+        console.log('📤 Récupération des élevages...');
+        const url = `${API_URL}/elevages?per_page=50`;
+        return await fetchWithAuth(url);
+    } catch (error) {
+        console.error('❌ Erreur fetch élevages:', error);
+        throw error;
+    }
+}
+
+async function fetchProducts(search = '', category = 'all', status = 'all') {
+    try {
+        console.log('📤 Récupération des produits...');
+        
+        let url = `${API_URL}/stock/produits?per_page=50`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (category !== 'all') url += `&categorie=${encodeURIComponent(category)}`;
+        if (status === 'critical') url += `&statut=critique`;
+        else if (status === 'low') url += `&statut=low`;
+        else if (status === 'good') url += `&statut=good`;
+        
+        return await fetchWithAuth(url);
+    } catch (error) {
+        console.error('❌ Erreur fetch produits:', error);
+        throw error;
+    }
+}
+
+async function fetchMovements(productId = null) {
+    try {
+        console.log('📤 Récupération des mouvements...');
+        
+        let url = `${API_URL}/stock/mouvements?per_page=20`;
+        if (productId) url += `&produit_id=${productId}`;
+        
+        const result = await fetchWithAuth(url);
+        console.log('📥 Réponse mouvements brute:', result);
+        
+        if (result.data && result.data.data && result.data.data.length > 0) {
+            console.log('📋 Structure du premier mouvement:', result.data.data[0]);
+        }
+        
+        return result;
+    } catch (error) {
+        console.error('❌ Erreur fetch mouvements:', error);
+        throw error;
+    }
+}
+
+// ================= FONCTIONS API PRODUITS =================
+async function createProduct(data) {
+    try {
+        console.log('📤 Création produit...');
+        return await fetchWithAuth(`${API_URL}/stock/produits`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    } catch (error) {
+        console.error('❌ Erreur création produit:', error);
+        throw error;
+    }
+}
+
+async function updateProduct(id, data) {
+    try {
+        console.log('📤 Mise à jour produit...');
+        return await fetchWithAuth(`${API_URL}/stock/produits/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    } catch (error) {
+        console.error('❌ Erreur mise à jour produit:', error);
+        throw error;
+    }
+}
+
+async function deleteProduct(id) {
+    try {
+        console.log('📤 Suppression produit...');
+        return await fetchWithAuth(`${API_URL}/stock/produits/${id}`, {
+            method: 'DELETE'
+        });
+    } catch (error) {
+        console.error('❌ Erreur suppression produit:', error);
+        throw error;
+    }
+}
+
+async function addStock(productId, data) {
+    try {
+        console.log('📤 Ajout stock...');
+        return await fetchWithAuth(`${API_URL}/stock/mouvements/${productId}/entree`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    } catch (error) {
+        console.error('❌ Erreur ajout stock:', error);
+        throw error;
+    }
+}
+
+async function removeStock(productId, data) {
+    try {
+        console.log('📤 Retrait stock...');
+        return await fetchWithAuth(`${API_URL}/stock/mouvements/${productId}/sortie`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    } catch (error) {
+        console.error('❌ Erreur retrait stock:', error);
+        throw error;
+    }
+}
+
+// ================= FONCTIONS AUXILIAIRES : FERMETURE MODAL =================
+function closeModalSafe(modalId) {
+    const modalElement = document.getElementById(modalId);
+    if (!modalElement) return;
+
+    if (window.bootstrap && bootstrap.Modal) {
+        let modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (!modalInstance) {
+            modalInstance = new bootstrap.Modal(modalElement);
+        }
+        modalInstance.hide();
+    } else if (window.$ && typeof $.fn.modal === 'function') {
+        $(modalElement).modal('hide');
+    } else {
+        const closeBtn = modalElement.querySelector('[data-bs-dismiss="modal"], [data-dismiss="modal"]');
+        if (closeBtn) closeBtn.click();
+    }
+}
+
+// ================= FONCTIONS D'AFFICHAGE =================
 function getStockStatus(quantite, seuil) {
-    if (quantite <= 0) return { status: 'critical', label: 'Rupture de stock', icon: 'fa-circle' };
-    if (quantite < seuil * 0.3) return { status: 'critical', label: 'Stock critique', icon: 'fa-circle' };
+    if (quantite <= 0) return { status: 'critical', label: 'Rupture de stock', icon: 'fa-times-circle' };
+    if (quantite < seuil * 0.3) return { status: 'critical', label: 'Stock critique', icon: 'fa-exclamation-circle' };
     if (quantite < seuil * 0.6) return { status: 'low', label: 'Stock faible', icon: 'fa-exclamation-triangle' };
-    if (quantite < seuil) return { status: 'medium', label: 'Stock moyen', icon: 'fa-exclamation-triangle' };
+    if (quantite < seuil) return { status: 'medium', label: 'Stock moyen', icon: 'fa-info-circle' };
     return { status: 'good', label: 'Stock bon', icon: 'fa-check-circle' };
 }
 
-// ================= RENDU DU TABLEAU =================
 function renderTable() {
+    console.log('📊 Rendering table...');
     const tbody = document.getElementById('stocksTableBody');
+    if (!tbody) {
+        console.error('❌ Table body non trouvé');
+        return;
+    }
+    
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
     const categoryFilter = document.getElementById('filterCategory').value;
     const statusFilter = document.getElementById('filterStatus').value;
     
     let filtered = products.filter(p => {
-        const matchSearch = p.nom.toLowerCase().includes(searchTerm);
+        const matchSearch = p.nom?.toLowerCase().includes(searchTerm) || false;
         const matchCategory = categoryFilter === 'all' || p.categorie === categoryFilter;
-        const status = getStockStatus(p.quantite, p.seuil);
+        const status = getStockStatus(p.quantite || 0, p.seuil_alerte || 50);
         const matchStatus = statusFilter === 'all' || status.status === statusFilter;
         return matchSearch && matchCategory && matchStatus;
     });
-    
+
     if (filtered.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -472,29 +637,25 @@ function renderTable() {
                 </td>
             </tr>
         `;
-        updateStats([]);
+        updateStats(filtered);
         return;
     }
     
     tbody.innerHTML = filtered.map(p => {
-        const status = getStockStatus(p.quantite, p.seuil);
-        const statusClass = status.status;
-        const statusLabel = status.label;
-        const statusIcon = status.icon;
-        
+        const status = getStockStatus(p.quantite || 0, p.seuil_alerte || 50);
         return `
             <tr data-id="${p.id}">
                 <td>
                     <div class="prod-cell">
-                        <span class="prod-icon"><i class="fas ${p.icon || 'fa-box'}"></i></span>
-                        ${p.nom}
+                        <span class="prod-icon"><i class="fas fa-box"></i></span>
+                        ${p.nom || 'Sans nom'}
                     </div>
                 </td>
-                <td>${p.categorie}</td>
+                <td>${p.categorie_label || p.categorie || 'Non catégorisé'}</td>
                 <td>
-                    ${p.quantite}${p.unite ? ' ' + p.unite : ''}<br>
-                    <span class="stock-status status-${statusClass}">
-                        <i class="fas ${statusIcon}"></i> ${statusLabel}
+                    ${p.quantite || 0} ${p.unite || ''}<br>
+                    <span class="stock-status status-${status.status}">
+                        <i class="fas ${status.icon}"></i> ${status.label}
                     </span>
                 </td>
                 <td>
@@ -520,12 +681,11 @@ function renderTable() {
     updateStats(filtered);
 }
 
-// ================= STATISTIQUES =================
 function updateStats(filtered) {
     const total = filtered.length;
-    const critical = filtered.filter(p => getStockStatus(p.quantite, p.seuil).status === 'critical').length;
-    const low = filtered.filter(p => getStockStatus(p.quantite, p.seuil).status === 'low').length;
-    const good = filtered.filter(p => getStockStatus(p.quantite, p.seuil).status === 'good').length;
+    const critical = filtered.filter(p => getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'critical').length;
+    const low = filtered.filter(p => getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'low').length;
+    const good = filtered.filter(p => getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'good' || getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'medium').length;
     
     document.getElementById('totalProducts').textContent = total;
     document.getElementById('criticalProducts').textContent = critical;
@@ -533,11 +693,14 @@ function updateStats(filtered) {
     document.getElementById('goodProducts').textContent = good;
 }
 
-// ================= HISTORIQUE =================
-function renderHistory() {
+function renderHistory(movementsData) {
     const container = document.getElementById('historyList');
+    if (!container) return;
     
-    if (historyEntries.length === 0) {
+    const data = movementsData || movements;
+    console.log('📊 Rendering history avec', data.length, 'mouvements');
+    
+    if (!data || data.length === 0) {
         container.innerHTML = `
             <div class="hist-item">
                 <span class="text-muted">Aucun mouvement récent</span>
@@ -546,257 +709,657 @@ function renderHistory() {
         return;
     }
     
-    container.innerHTML = historyEntries.map(h => {
+    const productMap = {};
+    products.forEach(p => {
+        productMap[p.id] = p;
+    });
+    
+    const sorted = [...data].sort((a, b) => {
+        const dateA = new Date(a.date_mouvement || a.created_at || 0);
+        const dateB = new Date(b.date_mouvement || b.created_at || 0);
+        return dateB - dateA;
+    });
+    
+    const recent = sorted.slice(0, 10);
+    container.innerHTML = recent.map(h => {
         const dotClass = h.type === 'entree' ? 'dot-green' : 'dot-red';
         const sign = h.type === 'entree' ? '+' : '-';
+        
+        let produitNom = 'Produit inconnu';
+        let unite = '';
+        
+        if (h.produit && h.produit.nom) {
+            produitNom = h.produit.nom;
+            unite = h.produit.unite || '';
+        } 
+        else if (h.produit_nom) {
+            produitNom = h.produit_nom;
+            unite = h.produit_unite || '';
+        } 
+        else if (h.produit_id && productMap[h.produit_id]) {
+            produitNom = productMap[h.produit_id].nom || 'Produit inconnu';
+            unite = productMap[h.produit_id].unite || '';
+        }
+        
+        const quantite = h.quantite || 0;
+        const date = h.date_mouvement ? new Date(h.date_mouvement).toLocaleDateString('fr-FR') : 'N/A';
+        
         return `
             <div class="hist-item">
                 <span class="dot ${dotClass}"></span>
-                <span>${h.date} - ${h.type === 'entree' ? 'Entrée' : 'Sortie'} : ${sign}${h.quantite} ${h.produit}</span>
+                <span>${date} - ${h.type === 'entree' ? 'Entrée' : 'Sortie'} : ${sign}${quantite} ${unite} ${produitNom}</span>
             </div>
         `;
     }).join('');
 }
 
+// ================= POPULER LE SELECT D'ÉLEVAGE =================
+function populateElevageSelect() {
+    const select = document.getElementById('addElevage');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Sélectionnez un élevage...</option>';
+    
+    if (!elevages || elevages.length === 0) {
+        select.innerHTML += '<option value="" disabled>❌ Aucun élevage disponible - Créez-en un d\'abord</option>';
+        return;
+    }
+    
+    elevages.forEach(elevage => {
+        const option = document.createElement('option');
+        option.value = elevage.id;
+        option.textContent = elevage.nom || `Élevage #${elevage.id}`;
+        select.appendChild(option);
+    });
+}
+
+// ================= CHARGEMENT DES DONNÉES =================
+async function loadData() {
+    try {
+        console.log('🔄 Début chargement des données stocks...');
+        if (!token) {
+            showToast('Non connecté. Redirection...', 'danger');
+            setTimeout(() => window.location.href = '/auth/login', 2000);
+            return;
+        }
+        
+        try {
+            const elevagesResult = await fetchElevages();
+            let elevagesData = [];
+            if (elevagesResult.status === 'success' || elevagesResult.success === true) {
+                if (elevagesResult.data && elevagesResult.data.data) {
+                    elevagesData = elevagesResult.data.data;
+                } else if (elevagesResult.data && Array.isArray(elevagesResult.data)) {
+                    elevagesData = elevagesResult.data;
+                }
+            }
+            elevages = elevagesData.length > 0 ? elevagesData : [];
+            console.log('✅ Élevages chargés:', elevages.length);
+            populateElevageSelect();
+        } catch (e) { 
+            console.error('❌ Erreur chargement élevages:', e);
+            elevages = []; 
+        }
+        
+        try {
+            const productsResult = await fetchProducts();
+            let productsData = [];
+            if (productsResult.status === 'success' || productsResult.success === true) {
+                if (productsResult.data && productsResult.data.data) {
+                    productsData = productsResult.data.data;
+                } else if (productsResult.data && Array.isArray(productsResult.data)) {
+                    productsData = productsResult.data;
+                }
+            }
+            products = productsData.length > 0 ? productsData : [];
+            console.log('✅ Produits chargés:', products.length);
+        } catch (e) { 
+            console.error('❌ Erreur chargement produits:', e);
+            products = []; 
+        }
+        
+        try {
+            const movementsResult = await fetchMovements();
+            let movementsData = [];
+            if (movementsResult.status === 'success' || movementsResult.success === true) {
+                if (movementsResult.data && movementsResult.data.data) {
+                    movementsData = movementsResult.data.data;
+                } else if (movementsResult.data && Array.isArray(movementsResult.data)) {
+                    movementsData = movementsResult.data;
+                }
+            }
+            movements = movementsData.length > 0 ? movementsData : [];
+            console.log('✅ Mouvements chargés:', movements.length);
+        } catch (e) { 
+            console.error('❌ Erreur chargement mouvements:', e);
+            movements = []; 
+        }
+        
+        renderTable();
+        renderHistory(movements);
+        
+        console.log('✅ Chargement stocks terminé');
+    } catch (error) {
+        console.error('❌ Erreur globale chargement:', error);
+        showToast('Erreur lors du chargement des données', 'danger');
+    }
+}
+
 // ================= AJOUTER PRODUIT =================
 document.getElementById('openAddProduct').addEventListener('click', function() {
     document.getElementById('addProductForm').reset();
-    $('#modalAjoutProduit').modal('show');
+    document.getElementById('addError').style.display = 'none';
+    
+    if (window.bootstrap && bootstrap.Modal) {
+        new bootstrap.Modal(document.getElementById('modalAjoutProduit')).show();
+    } else {
+        $('#modalAjoutProduit').modal('show');
+    }
 });
 
-document.getElementById('addProductForm').addEventListener('submit', function(e) {
+document.getElementById('addProductForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+    
+    const submitBtn = document.getElementById('addSubmitBtn');
+    const errorDiv = document.getElementById('addError');
+    errorDiv.style.display = 'none';
     
     const nom = document.getElementById('addProductName').value.trim();
     const categorie = document.getElementById('addProductCategory').value;
-    const unite = document.getElementById('addProductUnit').value.trim();
+    const unite = document.getElementById('addProductUnit').value;
     const quantite = parseFloat(document.getElementById('addProductQuantity').value) || 0;
     const seuil = parseFloat(document.getElementById('addProductThreshold').value) || 50;
+    const elevageId = document.getElementById('addElevage').value;
     const description = document.getElementById('addProductDescription').value.trim();
     
-    if (!nom) {
-        showToast('Veuillez saisir un nom', 'warning');
-        return;
-    }
-    if (!categorie) {
-        showToast('Veuillez sélectionner une catégorie', 'warning');
+    if (!nom || !categorie || !unite || !elevageId) {
+        showToast('Veuillez remplir tous les champs obligatoires', 'warning');
         return;
     }
     
-    const newProduct = {
-        id: nextId++,
+    const data = {
         nom: nom,
         categorie: categorie,
-        quantite: quantite,
-        unite: unite || 'unité',
-        seuil: seuil,
-        description: description || 'Aucune description',
-        icon: 'fa-box',
-        historique: []
+        unite: unite,
+        elevage_id: parseInt(elevageId),
+        quantite_initiale: quantite,
+        seuil_alerte: seuil,
+        description: description || null
     };
     
-    products.push(newProduct);
-    renderTable();
-    renderHistory();
-    $('#modalAjoutProduit').modal('hide');
-    showToast(`Produit "${nom}" ajouté avec succès !`, 'success');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> En cours...';
+    
+    try {
+        const result = await createProduct(data);
+        if (result.status === 'success') {
+            closeModalSafe('modalAjoutProduit');
+            showToast('Produit ajouté avec succès !', 'success');
+            await loadData();
+        } else {
+            if (result.errors) {
+                let errorMessages = '';
+                Object.values(result.errors).forEach(errors => {
+                    errorMessages += errors.join('\n') + '\n';
+                });
+                errorDiv.textContent = errorMessages;
+                errorDiv.style.display = 'block';
+            } else {
+                errorDiv.textContent = result.message || 'Erreur lors de la création';
+                errorDiv.style.display = 'block';
+            }
+        }
+    } catch (error) {
+        if (error.errors) {
+            let errorMessages = '';
+            Object.values(error.errors).forEach(errors => {
+                errorMessages += errors.join('\n') + '\n';
+            });
+            errorDiv.textContent = errorMessages;
+            errorDiv.style.display = 'block';
+        } else {
+            errorDiv.textContent = error.message || 'Erreur lors de la création';
+            errorDiv.style.display = 'block';
+        }
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Ajouter';
+    }
 });
 
 // ================= MODAL MOUVEMENT =================
 function openMovementModal(productId) {
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-    
-    document.getElementById('mvtProductId').value = productId;
-    document.getElementById('mvtProduit').textContent = product.nom;
-    document.getElementById('mvtStockActuel').textContent = product.quantite + (product.unite ? ' ' + product.unite : '');
-    document.getElementById('mvtNouveauStock').textContent = product.quantite + (product.unite ? ' ' + product.unite : '');
-    document.getElementById('mvtQuantite').value = '';
-    document.getElementById('mvtMotif').value = '';
-    document.getElementById('mvtDate').value = new Date().toISOString().split('T')[0];
-    
-    // Réinitialiser le type à entrée
-    document.getElementById('mvtEntree').checked = true;
-    
-    $('#modalMouvement').modal('show');
-}
-
-document.getElementById('movementForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const productId = parseInt(document.getElementById('mvtProductId').value);
     const product = products.find(p => p.id === productId);
     if (!product) {
         showToast('Produit non trouvé', 'danger');
         return;
     }
     
-    const type = document.querySelector('input[name="mvtType"]:checked').value;
+    currentProductId = productId;
+    document.getElementById('mvtProductId').value = productId;
+    document.getElementById('mvtProduit').textContent = product.nom || 'Sans nom';
+    document.getElementById('mvtStockActuel').textContent = (product.quantite || 0) + ' ' + (product.unite || '');
+    document.getElementById('mvtNouveauStock').textContent = (product.quantite || 0) + ' ' + (product.unite || '');
+    document.getElementById('mvtQuantite').value = '';
+    document.getElementById('mvtMotif').value = '';
+    document.getElementById('mvtDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('movementError').style.display = 'none';
+    document.getElementById('mvtEntree').checked = true;
+    
+    if (window.bootstrap && bootstrap.Modal) {
+        new bootstrap.Modal(document.getElementById('modalMouvement')).show();
+    } else {
+        $('#modalMouvement').modal('show');
+    }
+}
+
+function updateDynamicStock() {
+    const stockText = document.getElementById('mvtStockActuel').textContent;
+    const stockActuel = parseFloat(stockText.replace(/[^0-9.]/g, '')) || 0;
+    const quantite = parseFloat(document.getElementById('mvtQuantite').value) || 0;
+    const type = document.querySelector('input[name="mvtType"]:checked')?.value || 'entree';
+    const unite = stockText.replace(/[0-9.]/g, '').trim();
+    
+    const nouveau = type === 'entree' ? stockActuel + quantite : stockActuel - quantite;
+    document.getElementById('mvtNouveauStock').textContent = (quantite > 0 ? nouveau : stockActuel) + ' ' + unite;
+}
+
+document.getElementById('mvtQuantite').addEventListener('input', updateDynamicStock);
+document.querySelectorAll('input[name="mvtType"]').forEach(radio => {
+    radio.addEventListener('change', updateDynamicStock);
+});
+
+document.getElementById('movementForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('mvtSubmitBtn');
+    const errorDiv = document.getElementById('movementError');
+    errorDiv.style.display = 'none';
+    
+    const productId = parseInt(document.getElementById('mvtProductId').value);
+    const type = document.querySelector('input[name="mvtType"]:checked')?.value;
     const quantite = parseFloat(document.getElementById('mvtQuantite').value);
     const motif = document.getElementById('mvtMotif').value;
     const date = document.getElementById('mvtDate').value;
+    const description = document.getElementById('mvtMotif').selectedOptions[0]?.text || '';
     
-    if (!quantite || quantite <= 0) {
-        showToast('Veuillez saisir une quantité valide', 'warning');
+    if (!quantite || quantite <= 0 || !motif) {
+        showToast('Veuillez remplir les champs correctement', 'warning');
         return;
     }
     
-    if (!motif) {
-        showToast('Veuillez sélectionner un motif', 'warning');
-        return;
-    }
-    
-    if (type === 'sortie' && quantite > product.quantite) {
-        showToast('Quantité insuffisante en stock', 'danger');
-        return;
-    }
-    
-    // Mettre à jour le stock
-    const oldQuantite = product.quantite;
-    product.quantite = type === 'entree' ? product.quantite + quantite : product.quantite - quantite;
-    
-    // Ajouter à l'historique
-    historyEntries.unshift({
-        date: date || new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-        type: type,
-        produit: product.nom,
-        quantite: quantite
-    });
-    
-    // Ajouter à l'historique du produit
-    product.historique.unshift({
-        date: date || new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+    const data = {
         type: type,
         quantite: quantite,
-        motif: motif
-    });
+        motif: motif,
+        description: description,
+        date_mouvement: date || null
+    };
     
-    renderTable();
-    renderHistory();
-    $('#modalMouvement').modal('hide');
-    showToast(`Mouvement enregistré : ${type === 'entree' ? '+' : '-'}${quantite} ${product.unite}`, 'success');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> En cours...';
+    
+    try {
+        let result = type === 'entree' ? await addStock(productId, data) : await removeStock(productId, data);
+        
+        if (result.status === 'success') {
+            closeModalSafe('modalMouvement');
+            showToast('Mouvement enregistré avec succès !', 'success');
+            await loadData();
+        } else {
+            if (result.errors) {
+                let errorMessages = '';
+                Object.values(result.errors).forEach(errors => {
+                    errorMessages += errors.join('\n') + '\n';
+                });
+                errorDiv.textContent = errorMessages;
+                errorDiv.style.display = 'block';
+            } else {
+                errorDiv.textContent = result.message || 'Erreur lors du mouvement';
+                errorDiv.style.display = 'block';
+            }
+        }
+    } catch (error) {
+        if (error.errors) {
+            let errorMessages = '';
+            Object.values(error.errors).forEach(errors => {
+                errorMessages += errors.join('\n') + '\n';
+            });
+            errorDiv.textContent = errorMessages;
+            errorDiv.style.display = 'block';
+        } else {
+            errorDiv.textContent = error.message || 'Erreur lors du mouvement';
+            errorDiv.style.display = 'block';
+        }
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Valider';
+    }
 });
 
 // ================= VOIR PRODUIT =================
-function viewProduct(productId) {
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
+window.viewProduct = async function(productId) {
+    console.log('📤 viewProduct appelé avec ID:', productId);
     
-    const status = getStockStatus(product.quantite, product.seuil);
-    const statusClass = status.status;
-    const statusLabel = status.label;
-    
-    const body = document.getElementById('viewProductBody');
-    body.innerHTML = `
-        <div class="row">
-            <div class="col-md-6">
-                <p><strong>Nom :</strong> ${product.nom}</p>
-                <p><strong>Catégorie :</strong> ${product.categorie}</p>
-                <p><strong>Unité :</strong> ${product.unite}</p>
-            </div>
-            <div class="col-md-6">
-                <p><strong>Quantité :</strong> ${product.quantite} ${product.unite}</p>
-                <p><strong>Seuil d'alerte :</strong> ${product.seuil} ${product.unite}</p>
-                <p><strong>Statut :</strong> <span class="badge badge-${statusClass}">${statusLabel}</span></p>
-            </div>
-        </div>
-        <hr>
-        <p><strong>Description :</strong> ${product.description}</p>
-        <p><strong>Derniers mouvements :</strong></p>
-        ${product.historique && product.historique.length > 0 ? `
-            <ul class="list-unstyled">
-                ${product.historique.slice(0, 5).map(h => `
-                    <li class="hist-item" style="border: none; padding: 4px 0;">
-                        <span class="dot ${h.type === 'entree' ? 'dot-green' : 'dot-red'}"></span>
-                        ${h.date} - ${h.type === 'entree' ? 'Entrée' : 'Sortie'} : ${h.type === 'entree' ? '+' : '-'}${h.quantite} ${product.unite} (${h.motif})
-                    </li>
-                `).join('')}
-            </ul>
-        ` : '<p class="text-muted">Aucun mouvement enregistré</p>'}
-    `;
-    
-    $('#modalVoir').modal('show');
-}
+    try {
+        const result = await fetchWithAuth(`${API_URL}/stock/produits/${productId}`);
+        console.log('📥 Résultat viewProduct:', result);
+        
+        if (result.status === 'success' && result.data) {
+            const p = result.data;
+            const status = getStockStatus(p.quantite || 0, p.seuil_alerte || 50);
+            
+            const body = document.getElementById('viewProductBody');
+            if (!body) {
+                console.error('❌ viewProductBody non trouvé');
+                showToast('Erreur: modal non trouvé', 'danger');
+                return;
+            }
+            
+            body.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Nom :</strong> ${p.nom || 'Sans nom'}</p>
+                        <p><strong>Catégorie :</strong> ${p.categorie_label || p.categorie || 'Non catégorisé'}</p>
+                        <p><strong>Unité :</strong> ${p.unite || 'Non défini'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Quantité :</strong> ${p.quantite || 0} ${p.unite || ''}</p>
+                        <p><strong>Seuil d'alerte :</strong> ${p.seuil_alerte || 0} ${p.unite || ''}</p>
+                        <p><strong>Statut :</strong> <span class="badge badge-${status.status}">${status.label}</span></p>
+                    </div>
+                </div>
+                <hr>
+                <p><strong>Description :</strong> ${p.description || 'Aucune description'}</p>
+                <p><strong>Derniers mouvements :</strong></p>
+                ${p.mouvements && p.mouvements.length > 0 ? `
+                    <ul class="list-unstyled">
+                        ${p.mouvements.slice(0, 5).map(h => `
+                            <li class="hist-item" style="border: none; padding: 4px 0;">
+                                <span class="dot ${h.type === 'entree' ? 'dot-green' : 'dot-red'}"></span>
+                                ${new Date(h.date_mouvement).toLocaleDateString('fr-FR')} - ${h.type === 'entree' ? 'Entrée' : 'Sortie'} : ${h.type === 'entree' ? '+' : '-'}${h.quantite} ${p.unite || ''} (${h.motif_label || h.motif})
+                            </li>
+                        `).join('')}
+                    </ul>
+                ` : '<p class="text-muted">Aucun mouvement enregistré</p>'}
+            `;
+            
+            // ✅ OUVERTURE DU MODAL - Version corrigée
+            const modalElement = document.getElementById('modalVoir');
+            if (!modalElement) {
+                console.error('❌ Modal #modalVoir non trouvé');
+                showToast('Erreur: modal non trouvé', 'danger');
+                return;
+            }
+            
+            console.log('📤 Ouverture du modal #modalVoir');
+            
+            // Méthode 1: Bootstrap 5 (si disponible)
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                try {
+                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (!modalInstance) {
+                        modalInstance = new bootstrap.Modal(modalElement);
+                    }
+                    modalInstance.show();
+                    console.log('✅ Modal ouvert avec Bootstrap 5');
+                } catch (e) {
+                    console.warn('⚠️ Erreur Bootstrap 5, fallback jQuery:', e);
+                    // Méthode 2: jQuery (fallback)
+                    if (window.$ && typeof $.fn.modal === 'function') {
+                        $(modalElement).modal('show');
+                        console.log('✅ Modal ouvert avec jQuery');
+                    } else {
+                        // Méthode 3: Vanilla JS (dernier recours)
+                        modalElement.style.display = 'block';
+                        modalElement.classList.add('show');
+                        document.body.classList.add('modal-open');
+                        
+                        if (!document.querySelector('.modal-backdrop')) {
+                            const backdrop = document.createElement('div');
+                            backdrop.className = 'modal-backdrop fade show';
+                            document.body.appendChild(backdrop);
+                        }
+                        console.log('✅ Modal ouvert avec Vanilla JS');
+                    }
+                }
+            } 
+            // Méthode 2: jQuery (si Bootstrap 5 n'est pas disponible)
+            else if (window.$ && typeof $.fn.modal === 'function') {
+                $(modalElement).modal('show');
+                console.log('✅ Modal ouvert avec jQuery');
+            } 
+            // Méthode 3: Vanilla JS (dernier recours)
+            else {
+                modalElement.style.display = 'block';
+                modalElement.classList.add('show');
+                document.body.classList.add('modal-open');
+                
+                if (!document.querySelector('.modal-backdrop')) {
+                    const backdrop = document.createElement('div');
+                    backdrop.className = 'modal-backdrop fade show';
+                    document.body.appendChild(backdrop);
+                }
+                console.log('✅ Modal ouvert avec Vanilla JS');
+            }
+        } else {
+            showToast(result.message || 'Erreur lors du chargement', 'danger');
+        }
+    } catch (error) {
+        console.error('❌ Erreur viewProduct:', error);
+        showToast('Erreur lors du chargement du produit', 'danger');
+    }
+};
 
 // ================= MODIFIER PRODUIT =================
-function openEditModal(productId) {
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
+window.openEditModal = async function(productId) {
+    console.log('📤 openEditModal appelé avec ID:', productId);
     
-    document.getElementById('editProductId').value = productId;
-    document.getElementById('editProductName').value = product.nom;
-    document.getElementById('editProductCategory').value = product.categorie;
-    document.getElementById('editProductUnit').value = product.unite;
-    document.getElementById('editProductQuantity').value = product.quantite;
-    document.getElementById('editProductThreshold').value = product.seuil;
-    document.getElementById('editProductDescription').value = product.description;
-    
-    $('#modalModifier').modal('show');
-}
+    try {
+        const result = await fetchWithAuth(`${API_URL}/stock/produits/${productId}`);
+        console.log('📥 Résultat openEditModal:', result);
+        
+        if (result.status === 'success' && result.data) {
+            const p = result.data;
+            
+            document.getElementById('editProductId').value = p.id;
+            document.getElementById('editProductName').value = p.nom || '';
+            document.getElementById('editProductCategory').value = p.categorie || 'aliment';
+            document.getElementById('editProductUnit').value = p.unite || 'unite';
+            document.getElementById('editProductQuantity').value = p.quantite || 0;
+            document.getElementById('editProductThreshold').value = p.seuil_alerte || 50;
+            document.getElementById('editProductDescription').value = p.description || '';
+            document.getElementById('editError').style.display = 'none';
+            
+            // ✅ OUVERTURE DU MODAL - Version corrigée
+            const modalElement = document.getElementById('modalModifier');
+            if (!modalElement) {
+                console.error('❌ Modal #modalModifier non trouvé');
+                showToast('Erreur: modal non trouvé', 'danger');
+                return;
+            }
+            
+            console.log('📤 Ouverture du modal #modalModifier');
+            
+            // Méthode 1: Bootstrap 5 (si disponible)
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                try {
+                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (!modalInstance) {
+                        modalInstance = new bootstrap.Modal(modalElement);
+                    }
+                    modalInstance.show();
+                    console.log('✅ Modal ouvert avec Bootstrap 5');
+                } catch (e) {
+                    console.warn('⚠️ Erreur Bootstrap 5, fallback jQuery:', e);
+                    if (window.$ && typeof $.fn.modal === 'function') {
+                        $(modalElement).modal('show');
+                        console.log('✅ Modal ouvert avec jQuery');
+                    } else {
+                        modalElement.style.display = 'block';
+                        modalElement.classList.add('show');
+                        document.body.classList.add('modal-open');
+                        
+                        if (!document.querySelector('.modal-backdrop')) {
+                            const backdrop = document.createElement('div');
+                            backdrop.className = 'modal-backdrop fade show';
+                            document.body.appendChild(backdrop);
+                        }
+                        console.log('✅ Modal ouvert avec Vanilla JS');
+                    }
+                }
+            } 
+            else if (window.$ && typeof $.fn.modal === 'function') {
+                $(modalElement).modal('show');
+                console.log('✅ Modal ouvert avec jQuery');
+            } 
+            else {
+                modalElement.style.display = 'block';
+                modalElement.classList.add('show');
+                document.body.classList.add('modal-open');
+                
+                if (!document.querySelector('.modal-backdrop')) {
+                    const backdrop = document.createElement('div');
+                    backdrop.className = 'modal-backdrop fade show';
+                    document.body.appendChild(backdrop);
+                }
+                console.log('✅ Modal ouvert avec Vanilla JS');
+            }
+        } else {
+            showToast(result.message || 'Erreur lors du chargement', 'danger');
+        }
+    } catch (error) {
+        console.error('❌ Erreur openEditModal:', error);
+        showToast('Erreur lors du chargement du produit', 'danger');
+    }
+};
 
-document.getElementById('editProductForm').addEventListener('submit', function(e) {
+document.getElementById('editProductForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    const productId = parseInt(document.getElementById('editProductId').value);
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
+    const submitBtn = document.getElementById('editSubmitBtn');
+    const errorDiv = document.getElementById('editError');
+    errorDiv.style.display = 'none';
     
+    const productId = parseInt(document.getElementById('editProductId').value);
     const nom = document.getElementById('editProductName').value.trim();
     const categorie = document.getElementById('editProductCategory').value;
-    const unite = document.getElementById('editProductUnit').value.trim();
+    const unite = document.getElementById('editProductUnit').value;
     const seuil = parseFloat(document.getElementById('editProductThreshold').value) || 50;
     const description = document.getElementById('editProductDescription').value.trim();
     
-    if (!nom) {
-        showToast('Veuillez saisir un nom', 'warning');
+    if (!nom || !categorie || !unite) {
+        showToast('Veuillez remplir tous les champs obligatoires', 'warning');
         return;
     }
     
-    product.nom = nom;
-    product.categorie = categorie;
-    product.unite = unite || 'unité';
-    product.seuil = seuil;
-    product.description = description || 'Aucune description';
+    const data = {
+        nom: nom,
+        categorie: categorie,
+        unite: unite,
+        seuil_alerte: seuil,
+        description: description || null
+    };
     
-    renderTable();
-    $('#modalModifier').modal('hide');
-    showToast(`Produit "${nom}" modifié avec succès !`, 'success');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> En cours...';
+    
+    try {
+        const result = await updateProduct(productId, data);
+        if (result.status === 'success') {
+            closeModalSafe('modalModifier');
+            showToast('Produit modifié avec succès !', 'success');
+            await loadData();
+        } else {
+            if (result.errors) {
+                let errorMessages = '';
+                Object.values(result.errors).forEach(errors => {
+                    errorMessages += errors.join('\n') + '\n';
+                });
+                errorDiv.textContent = errorMessages;
+                errorDiv.style.display = 'block';
+            } else {
+                errorDiv.textContent = result.message || 'Erreur lors de la modification';
+                errorDiv.style.display = 'block';
+            }
+        }
+    } catch (error) {
+        if (error.errors) {
+            let errorMessages = '';
+            Object.values(error.errors).forEach(errors => {
+                errorMessages += errors.join('\n') + '\n';
+            });
+            errorDiv.textContent = errorMessages;
+            errorDiv.style.display = 'block';
+        } else {
+            errorDiv.textContent = error.message || 'Erreur lors de la modification';
+            errorDiv.style.display = 'block';
+        }
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Enregistrer';
+    }
 });
 
 // ================= SUPPRIMER PRODUIT =================
 function openDeleteModal(productId) {
     const product = products.find(p => p.id === productId);
-    if (!product) return;
+    if (!product) {
+        showToast('Produit non trouvé', 'danger');
+        return;
+    }
     
-    document.getElementById('supprNom').textContent = product.nom;
+    document.getElementById('supprNom').textContent = product.nom || 'Sans nom';
     document.getElementById('btnSupprimerConfirmer').dataset.id = productId;
-    $('#modalSupprimer').modal('show');
+    
+    if (window.bootstrap && bootstrap.Modal) {
+        new bootstrap.Modal(document.getElementById('modalSupprimer')).show();
+    } else {
+        $('#modalSupprimer').modal('show');
+    }
 }
 
-document.getElementById('btnSupprimerConfirmer').addEventListener('click', function() {
+document.getElementById('btnSupprimerConfirmer').addEventListener('click', async function() {
     const productId = parseInt(this.dataset.id);
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
+    const btn = this;
     
-    const nom = product.nom;
-    products = products.filter(p => p.id !== productId);
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Suppression...';
     
-    renderTable();
-    $('#modalSupprimer').modal('hide');
-    showToast(`Produit "${nom}" supprimé avec succès`, 'success');
+    try {
+        const result = await deleteProduct(productId);
+        if (result.status === 'success') {
+            closeModalSafe('modalSupprimer');
+            showToast('Produit supprimé avec succès', 'success');
+            await loadData();
+        } else {
+            showToast(result.message || 'Erreur lors de la suppression', 'danger');
+        }
+    } catch (error) {
+        showToast(error.message || 'Erreur lors de la suppression', 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Supprimer';
+    }
 });
 
 // ================= RECHERCHE ET FILTRES =================
-document.getElementById('searchInput').addEventListener('input', renderTable);
+document.getElementById('searchInput').addEventListener('input', function() {
+    const searchTerm = this.value.trim();
+    if (searchTerm.length >= 2 || searchTerm.length === 0) {
+        renderTable();
+    }
+});
+
 document.getElementById('filterCategory').addEventListener('change', renderTable);
 document.getElementById('filterStatus').addEventListener('change', renderTable);
 
 // ================= RAPPORT =================
 document.getElementById('generateReport').addEventListener('click', function() {
     const total = products.length;
-    const critical = products.filter(p => getStockStatus(p.quantite, p.seuil).status === 'critical').length;
-    const low = products.filter(p => getStockStatus(p.quantite, p.seuil).status === 'low').length;
-    const good = products.filter(p => getStockStatus(p.quantite, p.seuil).status === 'good').length;
+    const critical = products.filter(p => getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'critical').length;
+    const low = products.filter(p => getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'low').length;
+    const good = products.filter(p => getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'good' || getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'medium').length;
     
     alert(
         '📊 RAPPORT DE STOCK\n' +
@@ -813,8 +1376,8 @@ document.getElementById('generateReport').addEventListener('click', function() {
 document.getElementById('exportData').addEventListener('click', function() {
     let csv = 'Produit, Catégorie, Quantité, Unité, Seuil, Statut\n';
     products.forEach(p => {
-        const status = getStockStatus(p.quantite, p.seuil);
-        csv += `${p.nom}, ${p.categorie}, ${p.quantite}, ${p.unite}, ${p.seuil}, ${status.label}\n`;
+        const status = getStockStatus(p.quantite || 0, p.seuil_alerte || 50);
+        csv += `${p.nom || 'Sans nom'}, ${p.categorie_label || p.categorie || 'Non catégorisé'}, ${p.quantite || 0}, ${p.unite || ''}, ${p.seuil_alerte || 0}, ${status.label}\n`;
     });
     
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -827,133 +1390,15 @@ document.getElementById('exportData').addEventListener('click', function() {
     showToast('Export CSV effectué avec succès !', 'success');
 });
 
-// ================= CALCUL DU NOUVEAU STOCK =================
-document.querySelectorAll('#modalMouvement input[name="mvtType"], #modalMouvement #mvtQuantite').forEach(el => {
-    el.addEventListener('change keyup', function() {
-        const modal = document.getElementById('modalMouvement');
-        const stockText = modal.querySelector('#mvtStockActuel').textContent;
-        const stockActuel = parseFloat(stockText.replace(/[^0-9.]/g, ''));
-        const quantite = parseFloat(modal.querySelector('#mvtQuantite').value);
-        const type = modal.querySelector('input[name="mvtType"]:checked').value;
-        const unite = stockText.replace(/[0-9.]/g, '').trim();
-        
-        if (!isNaN(quantite) && quantite > 0) {
-            const nouveau = type === 'entree' ? stockActuel + quantite : stockActuel - quantite;
-            modal.querySelector('#mvtNouveauStock').textContent = nouveau + ' ' + unite;
-        } else {
-            modal.querySelector('#mvtNouveauStock').textContent = stockActuel + ' ' + unite;
-        }
-    });
-});
-
 // ================= INITIALISATION =================
 document.addEventListener('DOMContentLoaded', function() {
-    renderTable();
-    renderHistory();
-    
-    // Date par défaut pour le mouvement
-    document.getElementById('mvtDate').value = new Date().toISOString().split('T')[0];
+    if (!token) {
+        showToast('Non connecté. Redirection...', 'danger');
+        setTimeout(() => window.location.href = '/auth/login', 2000);
+        return;
+    }
+    loadData();
 });
-
-// ================= STYLES ADDITIONNELS =================
-const style = document.createElement('style');
-style.textContent = `
-    .custom-toast {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        z-index: 10000;
-        transform: translateX(400px);
-        transition: transform 0.3s ease;
-    }
-    .custom-toast.show { transform: translateX(0); }
-    .custom-toast .toast-content {
-        background: #343a40;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    .custom-toast.success .toast-content { background: #28a745; }
-    .custom-toast.danger .toast-content { background: #dc3545; }
-    .custom-toast.warning .toast-content { background: #ffc107; color: #343a40; }
-    .custom-toast.info .toast-content { background: #17a2b8; color: white; }
-    
-    @media (max-width: 768px) {
-        .custom-toast {
-            left: 15px;
-            right: 15px;
-            bottom: 15px;
-            transform: translateY(100px);
-        }
-        .custom-toast.show { transform: translateY(0); }
-    }
-    
-    .badge-critical { background: #dc3545; color: white; }
-    .badge-low { background: #ffc107; color: #343a40; }
-    .badge-medium { background: #fd7e14; color: white; }
-    .badge-good { background: #28a745; color: white; }
-    
-    .stocks-stats {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-    .stat-item {
-        background: white;
-        padding: 15px;
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-        text-align: center;
-    }
-    .stat-label {
-        display: block;
-        font-size: 0.8rem;
-        color: #6c757d;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-    .stat-value {
-        display: block;
-        font-size: 1.8rem;
-        font-weight: 700;
-        margin-top: 4px;
-    }
-    .stat-value.critical { color: #dc3545; }
-    .stat-value.warning { color: #ffc107; }
-    .stat-value.good { color: #28a745; }
-    
-    .btn-export {
-        background: #17a2b8;
-        color: white;
-        border-color: #17a2b8;
-    }
-    .btn-export:hover {
-        background: #138496;
-        border-color: #138496;
-        color: white;
-    }
-    
-    @media (max-width: 768px) {
-        .stocks-stats {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-        .stat-value {
-            font-size: 1.4rem;
-        }
-    }
-    @media (max-width: 480px) {
-        .stocks-stats {
-            grid-template-columns: 1fr;
-        }
-    }
-`;
-document.head.appendChild(style);
 </script>
 
 @endsection

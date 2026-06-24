@@ -191,6 +191,7 @@ Route::middleware(['auth:api'])->prefix('animaux')->group(function () {
     Route::get('/{id}', [AnimalController::class, 'show']);
     Route::put('/{id}', [AnimalController::class, 'update']);
     Route::delete('/{id}', [AnimalController::class, 'destroy']);
+    Route::get('/all', [AnimalController::class, 'getAll']);
 });
 /*
 |--------------------------------------------------------------------------

@@ -1,3 +1,5 @@
+{{-- resources/views/taches.blade.php --}}
+
 @extends('layouts.menu')
 
 @section('title', 'Tâches')
@@ -17,8 +19,8 @@
     <h1>CALENDRIER DES TÂCHES</h1>
     <div class="task-stats">
         <span class="stat-badge total">Total: <strong id="totalTasks">0</strong></span>
-        <span class="stat-badge done">Terminées: <strong id="doneTasks">0</strong></span>
-        <span class="stat-badge pending">En attente: <strong id="pendingTasks">0</strong></span>
+        <span class="stat-badge done">📅 Aujourd'hui: <strong id="todayTasksCount">0</strong></span>
+        <span class="stat-badge pending">📋 À venir: <strong id="upcomingTasksCount">0</strong></span>
     </div>
 </div>
 
@@ -90,7 +92,7 @@
             </ul>
         </div>
 
-    </div> <!-- fin tasks-left -->
+    </div>
 
     <!-- ========================================= -->
     <!-- COLONNE DROITE -->
@@ -105,7 +107,7 @@
         <div class="today-card">
             <div class="section-header">
                 <i class="far fa-calendar-alt"></i>
-                TÂCHES DU <span id="todayDate">14 MAI 2026</span>
+                TÂCHES DU <span id="todayDate">--</span>
             </div>
             <div id="todayTasks">
                 <!-- Généré par JavaScript -->
@@ -131,53 +133,61 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer">&times;</button>
             </div>
             <div class="modal-body">
+                <div id="addError" class="alert alert-danger" style="display: none;"></div>
                 <form id="addTaskForm">
                     @csrf
+                    
                     <div class="mb-3">
                         <label class="form-label">🐄 Animal concerné <span class="text-danger">*</span></label>
                         <select class="form-select" id="addAnimal" required>
                             <option value="">Sélectionner un animal</option>
-                            <option value="1">Marguerite (n°123)</option>
-                            <option value="2">Bella (n°124)</option>
-                            <option value="3">Roussette (n°125)</option>
-                            <option value="4">Blanchette (n°126)</option>
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">🏠 Type de tâche <span class="text-danger">*</span></label>
+                        <label class="form-label">📋 Type de tâche <span class="text-danger">*</span></label>
                         <select class="form-select" id="addType" required>
                             <option value="">Choisir un type</option>
-                            <option value="Vaccination">Vaccination</option>
-                            <option value="Vermifuge">Vermifuge</option>
-                            <option value="Pesée">Pesée</option>
-                            <option value="Nettoyage enclos">Nettoyage enclos</option>
-                            <option value="Contrôle vétérinaire">Contrôle vétérinaire</option>
-                            <option value="Alimentation">Alimentation</option>
-                            <option value="Tonte">Tonte</option>
-                            <option value="Autre">Autre</option>
+                            <option value="vaccination">Vaccination</option>
+                            <option value="vermifuge">Vermifuge</option>
+                            <option value="pesee">Pesée</option>
+                            <option value="soin">Soin</option>
+                            <option value="nettoyage">Nettoyage</option>
+                            <option value="alimentation">Alimentation</option>
+                            <option value="visite_veterinaire">Visite vétérinaire</option>
+                            <option value="autre">Autre</option>
                         </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">📝 Titre de la tâche <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="addTitre" placeholder="Ex: Vaccination annuelle" required>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">📅 Date planifiée <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="addDate" required>
+                            <input type="datetime-local" class="form-control" id="addDate" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">⏰ Heure (optionnel)</label>
-                            <input type="time" class="form-control" id="addTime">
+                            <label class="form-label">🔴 Priorité</label>
+                            <select class="form-select" id="addPriorite">
+                                <option value="basse">Basse</option>
+                                <option value="moyenne" selected>Moyenne</option>
+                                <option value="haute">Haute</option>
+                                <option value="urgente">Urgente</option>
+                            </select>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">📝 Notes (optionnelle)</label>
-                        <textarea class="form-control" id="addNotes" rows="4" placeholder="Ajouter une description ou une remarque..."></textarea>
+                        <label class="form-label">📝 Description (optionnelle)</label>
+                        <textarea class="form-control" id="addDescription" rows="3" placeholder="Ajouter une description..."></textarea>
                     </div>
 
                     <div class="d-flex justify-content-center gap-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">❌ Annuler</button>
-                        <button type="submit" class="btn btn-success">✅ Ajouter</button>
+                        <button type="submit" class="btn btn-success" id="addSubmitBtn">✅ Ajouter</button>
                     </div>
                 </form>
             </div>
@@ -198,6 +208,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer">&times;</button>
             </div>
             <div class="modal-body">
+                <div id="editError" class="alert alert-danger" style="display: none;"></div>
                 <form id="editTaskForm">
                     @csrf
                     @method('PUT')
@@ -206,46 +217,61 @@
                     <div class="mb-3">
                         <label class="form-label">🐄 Animal concerné</label>
                         <select class="form-select" id="editAnimal">
-                            <option value="1">Marguerite (n°123)</option>
-                            <option value="2">Bella (n°124)</option>
-                            <option value="3">Roussette (n°125)</option>
-                            <option value="4">Blanchette (n°126)</option>
+                            <option value="">Sélectionner un animal</option>
                         </select>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">📋 Type de tâche</label>
                         <select class="form-select" id="editType">
-                            <option value="Vaccination">Vaccination</option>
-                            <option value="Vermifuge">Vermifuge</option>
-                            <option value="Pesée">Pesée</option>
-                            <option value="Nettoyage enclos">Nettoyage enclos</option>
-                            <option value="Contrôle vétérinaire">Contrôle vétérinaire</option>
-                            <option value="Alimentation">Alimentation</option>
-                            <option value="Tonte">Tonte</option>
-                            <option value="Autre">Autre</option>
+                            <option value="vaccination">Vaccination</option>
+                            <option value="vermifuge">Vermifuge</option>
+                            <option value="pesee">Pesée</option>
+                            <option value="soin">Soin</option>
+                            <option value="nettoyage">Nettoyage</option>
+                            <option value="alimentation">Alimentation</option>
+                            <option value="visite_veterinaire">Visite vétérinaire</option>
+                            <option value="autre">Autre</option>
                         </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">📝 Titre de la tâche</label>
+                        <input type="text" class="form-control" id="editTitre" placeholder="Ex: Vaccination annuelle">
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">📅 Date planifiée</label>
-                            <input type="date" class="form-control" id="editDate">
+                            <input type="datetime-local" class="form-control" id="editDate">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">⏰ Heure</label>
-                            <input type="time" class="form-control" id="editTime">
+                            <label class="form-label">🔴 Priorité</label>
+                            <select class="form-select" id="editPriorite">
+                                <option value="basse">Basse</option>
+                                <option value="moyenne">Moyenne</option>
+                                <option value="haute">Haute</option>
+                                <option value="urgente">Urgente</option>
+                            </select>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">📝 Notes</label>
-                        <textarea class="form-control" id="editNotes" rows="4"></textarea>
+                        <label class="form-label">📝 Description</label>
+                        <textarea class="form-control" id="editDescription" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">✅ Statut</label>
+                        <select class="form-select" id="editStatut">
+                            <option value="0">En attente</option>
+                            <option value="1">Terminée</option>
+                        </select>
                     </div>
 
                     <div class="d-flex justify-content-center gap-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-success">Enregistrer</button>
+                        <button type="submit" class="btn btn-success" id="editSubmitBtn">Enregistrer</button>
                     </div>
                 </form>
             </div>
@@ -253,24 +279,52 @@
     </div>
 </div>
 
-<script>
-// ================= DONNÉES =================
-let tasks = [
-    { id: 1, animal: "Marguerite (n°123)", type: "Vaccination", date: "2026-05-14", time: "09:00", notes: "Troupeau bovin - Élevage de Thiès", completed: false },
-    { id: 2, animal: "Marguerite (n°123)", type: "Pesée", date: "2026-05-14", time: "14:00", notes: "Animal : Marguerite (n°123)", completed: false },
-    { id: 3, animal: "Bella (n°124)", type: "Nettoyage enclos", date: "2026-05-14", time: "16:00", notes: "Élevage bovin - Enclos nord", completed: false },
-    { id: 4, animal: "Roussette (n°125)", type: "Vermifuge", date: "2026-05-15", time: "10:00", notes: "Vermifuge annuel", completed: false },
-    { id: 5, animal: "Blanchette (n°126)", type: "Contrôle vétérinaire", date: "2026-05-20", time: "11:30", notes: "Contrôle de routine", completed: false },
-    { id: 6, animal: "Troupeau entier", type: "Vaccination rappel", date: "2026-05-26", time: "09:00", notes: "Vaccination rappel pour tout le troupeau", completed: false }
-];
+<!-- ========================================= -->
+<!-- MODALE SUPPRESSION -->
+<!-- ========================================= -->
+<div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fw-bold" style="color: #dc3545;">
+                    <i class="fas fa-exclamation-triangle text-danger"></i> SUPPRIMER LA TÂCHE
+                </h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="fas fa-trash-alt" style="font-size: 48px; color: #dc3545; margin-bottom: 15px;"></i>
+                <h5 id="deleteTaskName">Êtes-vous sûr de vouloir supprimer cette tâche ?</h5>
+                <p class="text-muted">Cette action est irréversible.</p>
+                <input type="hidden" id="deleteTaskId">
+                <div class="d-flex justify-content-center gap-3 mt-3">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="fas fa-trash-alt"></i> Supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-let nextId = 7;
-let currentMonth = 4; // Mai = 4 (0-indexé)
-let currentYear = 2026;
+<script>
+// ================= CONFIGURATION & FIX AUTHENTIFICATION =================
+const API_URL = window.location.origin + '/api';
+const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
+const rawToken = localStorage.getItem('access_token');
+const token = rawToken ? rawToken.replace(/^"(.*)"$/, '$1') : null;
+
+console.log('🔍 Configuration Taches:', { API_URL, token: token ? '✅ Présent' : '❌ Absent' });
+
+// ================= VARIABLES =================
+let tasks = [];
+let animals = [];
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
 let currentView = 'month';
 let toastTimeout = null;
 
-// ================= TOAST =================
+// ================= FONCTIONS TOAST =================
 function showToast(message, type = 'info') {
     const existingToast = document.querySelector('.custom-toast');
     if (existingToast) existingToast.remove();
@@ -295,14 +349,228 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
+// ================= API CALLS =================
+async function fetchTasks() {
+    try {
+        console.log('📤 Récupération des tâches...');
+        
+        const response = await fetch(`${API_URL}/taches`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token,
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            }
+        });
+
+        const result = await response.json();
+        console.log('📥 Réponse brute tâches:', result);
+
+        if (!response.ok) {
+            throw result;
+        }
+
+        if (result.status === 'success' || result.success === true) {
+            const data = result.data?.data || result.data || [];
+            console.log('✅ Tâches extraites:', data.length);
+            return { status: 'success', data: data };
+        }
+
+        return { status: 'error', data: [] };
+    } catch (error) {
+        console.error('❌ Erreur fetch taches:', error);
+        throw error;
+    }
+}
+
+async function fetchAnimals() {
+    try {
+        console.log('📤 Récupération des animaux...');
+        
+        const response = await fetch(`${API_URL}/animaux?per_page=50`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token,
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            }
+        });
+
+        const result = await response.json();
+        console.log('📥 Réponse animaux:', result);
+
+        if (!response.ok) {
+            throw result;
+        }
+
+        if (result.success === true) {
+            const animalsData = result.data?.data || result.data || [];
+            console.log('✅ Animaux extraits:', animalsData.length);
+            return { success: true, data: animalsData };
+        }
+
+        return { success: false, data: [] };
+    } catch (error) {
+        console.error('❌ Erreur fetch animaux:', error);
+        throw error;
+    }
+}
+
+async function createTask(data) {
+    try {
+        const response = await fetch(`${API_URL}/taches`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token,
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw result;
+        return result;
+    } catch (error) {
+        console.error('❌ Erreur création tache:', error);
+        throw error;
+    }
+}
+
+async function updateTask(id, data) {
+    try {
+        const response = await fetch(`${API_URL}/taches/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token,
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw result;
+        return result;
+    } catch (error) {
+        console.error('❌ Erreur mise à jour tache:', error);
+        throw error;
+    }
+}
+
+async function deleteTask(id) {
+    try {
+        const response = await fetch(`${API_URL}/taches/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token,
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            }
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw result;
+        return result;
+    } catch (error) {
+        console.error('❌ Erreur suppression tache:', error);
+        throw error;
+    }
+}
+
+async function toggleTaskComplete(id) {
+    try {
+        const response = await fetch(`${API_URL}/taches/${id}/complete`, {
+            method: 'PATCH',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token,
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            }
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw result;
+        return result;
+    } catch (error) {
+        console.error('❌ Erreur toggle tache:', error);
+        throw error;
+    }
+}
+
+// ================= CHARGEMENT DES DONNÉES =================
+async function loadData() {
+    try {
+        console.log('🔄 Début chargement des données...');
+        
+        const tasksResult = await fetchTasks();
+        if (tasksResult.status === 'success') {
+            tasks = tasksResult.data || [];
+        } else {
+            tasks = [];
+        }
+
+        const animalsResult = await fetchAnimals();
+        if (animalsResult.success === true) {
+            animals = animalsResult.data || [];
+            populateAnimalSelects();
+        } else {
+            animals = [];
+        }
+
+        renderAll();
+        console.log('✅ Chargement terminé');
+    } catch (error) {
+        console.error('❌ Erreur chargement données:', error);
+        showToast('Erreur lors du chargement des données', 'danger');
+    }
+}
+
+// ================= POPULER LES SELECTS D'ANIMAUX =================
+function populateAnimalSelects() {
+    const selects = ['addAnimal', 'editAnimal'];
+    
+    selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+        
+        select.innerHTML = '';
+        
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Sélectionner un animal';
+        defaultOption.selected = true;
+        defaultOption.disabled = true;
+        select.appendChild(defaultOption);
+        
+        if (!Array.isArray(animals) || animals.length === 0) {
+            const noOption = document.createElement('option');
+            noOption.value = '';
+            noOption.textContent = '❌ Aucun animal disponible';
+            noOption.disabled = true;
+            select.appendChild(noOption);
+            return;
+        }
+        
+        animals.forEach(animal => {
+            const option = document.createElement('option');
+            option.value = animal.id;
+            const nom = animal.nom || `Animal #${animal.id}`;
+            const espece = animal.espece_label || animal.espece || '';
+            option.textContent = espece ? `${nom} (${espece})` : nom;
+            select.appendChild(option);
+        });
+    });
+}
+
 // ================= CALENDRIER =================
 function renderCalendar() {
     const firstDay = new Date(currentYear, currentMonth, 1);
     const lastDay = new Date(currentYear, currentMonth + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startDayOfWeek = firstDay.getDay(); // 0 = Dimanche
-    
-    // Ajuster pour commencer par Lundi
+    const startDayOfWeek = firstDay.getDay();
     const startOffset = (startDayOfWeek === 0) ? 6 : startDayOfWeek - 1;
     
     const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
@@ -319,13 +587,12 @@ function renderCalendar() {
         html += '<tr>';
         for (let col = 0; col < 7; col++) {
             if (row === 0 && col < startOffset) {
-                // Jours du mois précédent
                 const prevMonthDays = new Date(currentYear, currentMonth, 0).getDate();
                 const prevDay = prevMonthDays - startOffset + col + 1;
                 html += `<td class="other-month">${prevDay}</td>`;
             } else if (day <= daysInMonth) {
                 const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const hasTask = tasks.some(t => t.date === dateStr && !t.completed);
+                const hasTask = tasks.some(t => t.date_planifiee && t.date_planifiee.startsWith(dateStr) && !t.terminee);
                 const isToday = dateStr === new Date().toISOString().split('T')[0];
                 const classes = [];
                 if (hasTask) classes.push('task-day');
@@ -334,7 +601,6 @@ function renderCalendar() {
                 day++;
                 started = true;
             } else {
-                // Jours du mois suivant
                 const nextDay = day - daysInMonth;
                 html += `<td class="other-month">${nextDay}</td>`;
                 day++;
@@ -345,9 +611,6 @@ function renderCalendar() {
     }
     
     document.getElementById('calendarBody').innerHTML = html;
-    renderUpcomingTasks();
-    renderTodayTasks();
-    updateStats();
 }
 
 function changeMonth(delta) {
@@ -360,6 +623,9 @@ function changeMonth(delta) {
         currentYear++;
     }
     renderCalendar();
+    renderUpcomingTasks();
+    renderTodayTasks();
+    updateStats();
 }
 
 function switchView(view) {
@@ -372,10 +638,9 @@ function switchView(view) {
 }
 
 function selectDate(dateStr) {
-    const date = new Date(dateStr);
+    const date = new Date(dateStr + 'T00:00:00');
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     showToast(`📅 ${date.toLocaleDateString('fr-FR', options)}`, 'info');
-    // Scroll vers les tâches du jour
     document.querySelector('.today-card').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -383,10 +648,15 @@ function selectDate(dateStr) {
 function renderUpcomingTasks() {
     const container = document.getElementById('upcomingTasks');
     const today = new Date().toISOString().split('T')[0];
+    
     const upcoming = tasks
-        .filter(t => t.date >= today && !t.completed)
-        .sort((a, b) => a.date.localeCompare(b.date))
-        .slice(0, 5);
+        .filter(t => {
+            if (t.terminee) return false;
+            if (!t.date_planifiee) return false;
+            return t.date_planifiee >= today;
+        })
+        .sort((a, b) => a.date_planifiee.localeCompare(b.date_planifiee))
+        .slice(0, 10);
     
     if (upcoming.length === 0) {
         container.innerHTML = `
@@ -398,15 +668,30 @@ function renderUpcomingTasks() {
     }
     
     container.innerHTML = upcoming.map(t => {
-        const date = new Date(t.date + 'T' + (t.time || '00:00'));
+        const date = new Date(t.date_planifiee);
         const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-        const timeStr = t.time ? ` ${t.time}` : '';
+        const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const animalNom = t.animal?.nom || 'N/A';
+        const typeLabel = t.type_label || t.type || 'Tâche';
+        
         return `
-            <li>
-                <a href="#" class="upcoming-link" onclick="event.preventDefault(); selectTask(${t.id})">
-                    <i class="far fa-calendar"></i>
-                    <span>${dateStr}${timeStr} - ${t.type} (${t.animal})</span>
-                </a>
+            <li style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #f0f0f0;">
+                <div style="flex: 1; cursor: pointer;" onclick="selectTask(${t.id})">
+                    <div style="font-size: 13px; font-weight: 600; color: #198754;">
+                        ${dateStr} ${timeStr} - ${typeLabel}
+                    </div>
+                    <div style="font-size: 12px; color: #6c757d;">${t.titre || t.description || animalNom}</div>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                    <button onclick="event.stopPropagation(); openEditModal(${t.id})" 
+                            style="background: #fff3cd; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; color: #856404;">
+                        <i class="fas fa-pen" style="font-size: 11px;"></i>
+                    </button>
+                    <button onclick="event.stopPropagation(); openDeleteModal(${t.id})" 
+                            style="background: #f8d7da; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; color: #dc3545;">
+                        <i class="fas fa-trash" style="font-size: 11px;"></i>
+                    </button>
+                </div>
             </li>
         `;
     }).join('');
@@ -416,16 +701,19 @@ function renderUpcomingTasks() {
 function renderTodayTasks() {
     const container = document.getElementById('todayTasks');
     const today = new Date().toISOString().split('T')[0];
-    const todayTasks = tasks.filter(t => t.date === today);
     
-    // Mettre à jour la date
-    const dateObj = new Date(today);
+    const todayTasks = tasks.filter(t => {
+        if (!t.date_planifiee) return false;
+        return t.date_planifiee.startsWith(today);
+    });
+    
+    const dateObj = new Date(today + 'T00:00:00');
     document.getElementById('todayDate').textContent = 
         dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
     
     if (todayTasks.length === 0) {
         container.innerHTML = `
-            <div class="task-item" style="text-align: center; padding: 20px; color: #6c757d;">
+            <div style="text-align: center; padding: 20px; color: #6c757d;">
                 <i class="fas fa-calendar-check" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
                 Aucune tâche prévue aujourd'hui
             </div>
@@ -433,360 +721,367 @@ function renderTodayTasks() {
         return;
     }
     
-    container.innerHTML = todayTasks.map(t => `
-        <div class="task-item ${t.completed ? 'completed' : ''}" data-id="${t.id}">
-            <div class="task-time">
-                ⏰ ${t.time || '00:00'} - ${t.type}
-                ${t.completed ? '<span class="badge-completed">✓ Terminée</span>' : ''}
+    container.innerHTML = todayTasks.map(t => {
+        const typeIcone = t.type_icone || '📋';
+        const typeLabel = t.type_label || t.type || 'Tâche';
+        const titre = t.titre || t.description || t.animal?.nom || '';
+        const isCompleted = t.terminee || false;
+        
+        return `
+            <div class="task-item ${isCompleted ? 'completed' : ''}" data-id="${t.id}" style="border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        ${typeIcone} ${typeLabel}
+                        ${isCompleted ? '<span class="badge-completed">✓ Terminée</span>' : ''}
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <button onclick="event.stopPropagation(); openEditModal(${t.id})" 
+                                style="background: #fff3cd; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; color: #856404;">
+                            <i class="fas fa-pen" style="font-size: 11px;"></i>
+                        </button>
+                        <button onclick="event.stopPropagation(); openDeleteModal(${t.id})" 
+                                style="background: #f8d7da; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; color: #dc3545;">
+                            <i class="fas fa-trash" style="font-size: 11px;"></i>
+                        </button>
+                    </div>
+                </div>
+                <div style="font-size: 13px; color: #495057; margin: 6px 0;">${titre}</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+                    <button onclick="toggleTask(${t.id})" 
+                            style="flex: 1; padding: 6px 12px; border: 1px solid #28a745; background: #d4edda; color: #28a745; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                        <i class="fas ${isCompleted ? 'fa-undo' : 'fa-check-square'}"></i>
+                        ${isCompleted ? 'Rouvrir' : 'Marquer fait'}
+                    </button>
+                </div>
             </div>
-            <div class="task-desc">${t.notes || t.animal}</div>
-            <div class="task-actions">
-                <button class="btn-success-task" onclick="toggleTask(${t.id})">
-                    <i class="fas ${t.completed ? 'fa-undo' : 'fa-check-square'}"></i>
-                    ${t.completed ? 'Rouvrir' : 'Marquer fait'}
-                </button>
-                <button class="btn-edit-task" onclick="openEditModal(${t.id})">
-                    <i class="fas fa-pen"></i> Modifier
-                </button>
-                <button class="btn-delete-task" onclick="deleteTask(${t.id})">
-                    <i class="fas fa-trash"></i> Supprimer
-                </button>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
+// ================= STATISTIQUES  =================
+function updateStats() {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Total des tâches
+    const total = tasks.length;
+    
+    // ✅ Nombre de tâches du jour (aujourd'hui)
+    const todayTasksCount = tasks.filter(t => {
+        if (!t.date_planifiee) return false;
+        return t.date_planifiee.startsWith(today);
+    }).length;
+    
+    // ✅ Nombre de tâches à venir (futures et non terminées)
+    const upcomingTasksCount = tasks.filter(t => {
+        if (t.terminee) return false;
+        if (!t.date_planifiee) return false;
+        return t.date_planifiee > today;
+    }).length;
+    
+    document.getElementById('totalTasks').textContent = total;
+    document.getElementById('todayTasksCount').textContent = todayTasksCount;
+    document.getElementById('upcomingTasksCount').textContent = upcomingTasksCount;
+}
+
+// ================= RENDU GLOBAL =================
+function renderAll() {
+    renderCalendar();
+    renderUpcomingTasks();
+    renderTodayTasks();
+    updateStats();
+}
+
+// ================= SELECTION TÂCHE =================
 function selectTask(taskId) {
     const task = tasks.find(t => t.id === taskId);
     if (task) {
-        const date = new Date(task.date + 'T' + (task.time || '00:00'));
-        showToast(`📋 ${task.type} - ${task.animal} (${date.toLocaleDateString('fr-FR')})`, 'info');
+        const date = new Date(task.date_planifiee);
+        showToast(`📋 ${task.type_label || task.type} - ${task.animal?.nom || 'N/A'} (${date.toLocaleDateString('fr-FR')})`, 'info');
     }
 }
 
-// ================= STATISTIQUES =================
-function updateStats() {
-    const total = tasks.length;
-    const done = tasks.filter(t => t.completed).length;
-    const pending = total - done;
-    
-    document.getElementById('totalTasks').textContent = total;
-    document.getElementById('doneTasks').textContent = done;
-    document.getElementById('pendingTasks').textContent = pending;
-}
-
 // ================= TOGGLE TÂCHE =================
-function toggleTask(taskId) {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
-    
-    task.completed = !task.completed;
-    renderCalendar();
-    renderTodayTasks();
-    renderUpcomingTasks();
-    updateStats();
-    showToast(
-        task.completed ? '✅ Tâche terminée !' : '🔄 Tâche réouverte',
-        task.completed ? 'success' : 'info'
-    );
-}
-
-// ================= SUPPRIMER TÂCHE =================
-function deleteTask(taskId) {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) return;
-    
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
-    
-    tasks = tasks.filter(t => t.id !== taskId);
-    renderCalendar();
-    renderTodayTasks();
-    renderUpcomingTasks();
-    updateStats();
-    showToast(`Tâche "${task.type}" supprimée`, 'danger');
+async function toggleTask(taskId) {
+    try {
+        const result = await toggleTaskComplete(taskId);
+        if (result.status === 'success') {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.terminee = !task.terminee;
+            }
+            renderAll();
+            showToast(
+                task?.terminee ? '✅ Tâche terminée !' : '🔄 Tâche réouverte',
+                task?.terminee ? 'success' : 'info'
+            );
+        } else {
+            showToast(result.message || 'Erreur lors de la mise à jour', 'danger');
+        }
+    } catch (error) {
+        showToast('Erreur lors de la mise à jour', 'danger');
+    }
 }
 
 // ================= MODALE AJOUTER =================
 function openAddModal() {
     document.getElementById('addTaskForm').reset();
-    document.getElementById('addDate').value = new Date().toISOString().split('T')[0];
+    
+    const addAnimalSelect = document.getElementById('addAnimal');
+    if (addAnimalSelect) {
+        addAnimalSelect.value = ""; 
+    }
+
+    const now = new Date();
+    const localDatetime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 16);
+    document.getElementById('addDate').value = localDatetime;
+    document.getElementById('addError').style.display = 'none';
     $('#addTaskModal').modal('show');
 }
 
-document.getElementById('addTaskForm').addEventListener('submit', function(e) {
+// ================= MODALE AJOUTER =================
+document.getElementById('addTaskForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    const animal = document.getElementById('addAnimal').value;
+    const submitBtn = document.getElementById('addSubmitBtn');
+    const errorDiv = document.getElementById('addError');
+    errorDiv.style.display = 'none';
+    
+    const animalId = document.getElementById('addAnimal').value;
     const type = document.getElementById('addType').value;
+    const titre = document.getElementById('addTitre').value.trim();
     const date = document.getElementById('addDate').value;
-    const time = document.getElementById('addTime').value || '00:00';
-    const notes = document.getElementById('addNotes').value.trim();
+    const priorite = document.getElementById('addPriorite').value;
+    const description = document.getElementById('addDescription').value.trim();
     
+    if (!animalId || !type || !titre || !date) {
+        showToast('Veuillez remplir les champs obligatoires', 'warning');
+        return;
+    }
+    
+    const animal = animals.find(a => a.id == animalId);
     if (!animal) {
-        showToast('Veuillez sélectionner un animal', 'warning');
-        return;
-    }
-    if (!type) {
-        showToast('Veuillez sélectionner un type de tâche', 'warning');
-        return;
-    }
-    if (!date) {
-        showToast('Veuillez sélectionner une date', 'warning');
+        showToast('Animal non trouvé', 'danger');
         return;
     }
     
-    const animalName = document.querySelector(`#addAnimal option[value="${animal}"]`).text;
-    
-    const newTask = {
-        id: nextId++,
-        animal: animalName,
+    const data = {
+        animal_id: parseInt(animalId),
+        elevage_id: animal.elevage_id,
+        titre: titre,
         type: type,
-        date: date,
-        time: time,
-        notes: notes || `${type} - ${animalName}`,
-        completed: false
+        description: description || null,
+        date_planifiee: date,
+        priorite: priorite
     };
     
-    tasks.push(newTask);
-    renderCalendar();
-    renderTodayTasks();
-    renderUpcomingTasks();
-    updateStats();
-    $('#addTaskModal').modal('hide');
-    showToast(`✅ Tâche "${type}" ajoutée avec succès !`, 'success');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> En cours...';
+    
+    try {
+        const result = await createTask(data);
+        if (result.status === 'success') {
+            // ✅ Fermer le modal
+            $('#addTaskModal').modal('hide');
+            
+            // ✅ Afficher un toast de succès
+            showToast('Tâche ajoutée avec succès !', 'success');
+            
+            // ✅ Recharger les données (rafraîchir la page)
+            await loadData();
+            
+            // ✅ Optionnel : recharger la page après un court délai
+            // setTimeout(() => location.reload(), 500);
+        } else {
+            errorDiv.textContent = result.message || 'Erreur lors de la création';
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        errorDiv.textContent = error.message || 'Erreur lors de la création';
+        errorDiv.style.display = 'block';
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '✅ Ajouter';
+    }
 });
 
 // ================= MODALE MODIFIER =================
-function openEditModal(taskId) {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
+async function openEditModal(taskId) {
+    console.log('📝 Ouverture du modal de modification pour la tâche:', taskId);
     
-    document.getElementById('editTaskId').value = taskId;
-    document.getElementById('editAnimal').value = 
-        ['1', '2', '3', '4'].find((_, i) => 
-            ['Marguerite (n°123)', 'Bella (n°124)', 'Roussette (n°125)', 'Blanchette (n°126)'][i] === task.animal
-        ) || '1';
-    document.getElementById('editType').value = task.type;
-    document.getElementById('editDate').value = task.date;
-    document.getElementById('editTime').value = task.time;
-    document.getElementById('editNotes').value = task.notes;
-    
-    $('#editTaskModal').modal('show');
+    try {
+        const response = await fetch(`${API_URL}/taches/${taskId}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token
+            }
+        });
+
+        const result = await response.json();
+        console.log('📥 Résultat brut de l\'API pour la tâche:', result);
+
+        const taskData = result.data || result;
+        
+        if (taskData && taskData.id) {
+            document.getElementById('editTaskId').value = taskData.id;
+            document.getElementById('editType').value = taskData.type || '';
+            document.getElementById('editTitre').value = taskData.titre || '';
+            document.getElementById('editPriorite').value = taskData.priorite || 'moyenne';
+            document.getElementById('editDescription').value = taskData.description || '';
+            document.getElementById('editStatut').value = taskData.terminee ? '1' : '0';
+            
+            const targetAnimalId = taskData.animal_id || (taskData.animal ? taskData.animal.id : null);
+            console.log('🐖 ID de l\'animal détecté dans la tâche:', targetAnimalId);
+
+            const editAnimalSelect = document.getElementById('editAnimal');
+            if (editAnimalSelect) {
+                if (targetAnimalId !== null && targetAnimalId !== undefined) {
+                    editAnimalSelect.value = targetAnimalId.toString();
+                    
+                    if (editAnimalSelect.value === "") {
+                        console.warn(`⚠️ L'ID animal ${targetAnimalId} n'a pas été trouvé dans les options existantes du select.`);
+                        for (let option of editAnimalSelect.options) {
+                            if (option.value == targetAnimalId) {
+                                option.selected = true;
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    editAnimalSelect.value = '';
+                }
+            }
+            
+            if (taskData.date_planifiee) {
+                const date = new Date(taskData.date_planifiee);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                document.getElementById('editDate').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+            
+            document.getElementById('editError').style.display = 'none';
+            
+            const editModalEl = document.getElementById('editTaskModal');
+            if (window.bootstrap && bootstrap.Modal) {
+                let modalInstance = bootstrap.Modal.getInstance(editModalEl);
+                if (!modalInstance) modalInstance = new bootstrap.Modal(editModalEl);
+                modalInstance.show();
+            } else {
+                $(editModalEl).modal('show');
+            }
+        } else {
+            showToast(result.message || 'Erreur lors du chargement', 'danger');
+        }
+    } catch (error) {
+        console.error('❌ Erreur openEditModal:', error);
+        showToast('Erreur lors du chargement de la tâche', 'danger');
+    }
 }
 
-document.getElementById('editTaskForm').addEventListener('submit', function(e) {
+document.getElementById('editTaskForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
+    const submitBtn = document.getElementById('editSubmitBtn');
+    const errorDiv = document.getElementById('editError');
+    errorDiv.style.display = 'none';
+    
     const taskId = parseInt(document.getElementById('editTaskId').value);
+    const animalId = document.getElementById('editAnimal').value;
+    const type = document.getElementById('editType').value;
+    const titre = document.getElementById('editTitre').value.trim();
+    const date = document.getElementById('editDate').value;
+    const priorite = document.getElementById('editPriorite').value;
+    const description = document.getElementById('editDescription').value.trim();
+    const terminee = document.getElementById('editStatut').value === '1';
+    
+    if (!titre || !date) {
+        showToast('Veuillez remplir les champs requis', 'warning');
+        return;
+    }
+    
+    const data = {
+        titre: titre,
+        type: type,
+        description: description || null,
+        date_planifiee: date,
+        priorite: priorite,
+        terminee: terminee
+    };
+    
+    if (animalId) data.animal_id = parseInt(animalId);
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> En cours...';
+    
+    try {
+        const result = await updateTask(taskId, data);
+        if (result.status === 'success' || result.success === true) {
+            $('#editTaskModal').modal('hide');
+            showToast('Tâche modifiée avec succès !', 'success');
+            await loadData();
+        } else {
+            errorDiv.textContent = result.message || 'Erreur lors de la modification';
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        errorDiv.textContent = error.message || 'Erreur lors de la modification';
+        errorDiv.style.display = 'block';
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Enregistrer';
+    }
+});
+
+// ================= MODALE SUPPRESSION =================
+function openDeleteModal(taskId) {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
     
-    const animal = document.getElementById('editAnimal').value;
-    const type = document.getElementById('editType').value;
-    const date = document.getElementById('editDate').value;
-    const time = document.getElementById('editTime').value || '00:00';
-    const notes = document.getElementById('editNotes').value.trim();
+    document.getElementById('deleteTaskId').value = taskId;
+    document.getElementById('deleteTaskName').textContent = 
+        `Êtes-vous sûr de vouloir supprimer la tâche "${task.titre || task.type}" ?`;
+    $('#deleteTaskModal').modal('show');
+}
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+    const taskId = parseInt(document.getElementById('deleteTaskId').value);
+    const btn = this;
     
-    const animalName = document.querySelector(`#editAnimal option[value="${animal}"]`).text;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Suppression...';
     
-    task.animal = animalName;
-    task.type = type;
-    task.date = date;
-    task.time = time;
-    task.notes = notes || `${type} - ${animalName}`;
-    
-    renderCalendar();
-    renderTodayTasks();
-    renderUpcomingTasks();
-    updateStats();
-    $('#editTaskModal').modal('hide');
-    showToast(`✅ Tâche "${type}" modifiée avec succès !`, 'success');
+    try {
+        const result = await deleteTask(taskId);
+        if (result.status === 'success' || result.success === true) {
+            $('#deleteTaskModal').modal('hide');
+            showToast('Tâche supprimée avec succès', 'success');
+            await loadData();
+        } else {
+            showToast(result.message || 'Erreur lors de la suppression', 'danger');
+        }
+    } catch (error) {
+        showToast(error.message || 'Erreur lors de la suppression', 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-trash-alt"></i> Supprimer';
+    }
 });
 
 // ================= INITIALISATION =================
 document.addEventListener('DOMContentLoaded', function() {
-    renderCalendar();
-    renderTodayTasks();
-    renderUpcomingTasks();
-    updateStats();
+    if (!token) {
+        showToast('Non connecté. Redirection...', 'danger');
+        window.location.href = '/auth/login';
+        return;
+    }
     
-    // Gérer la fermeture des modales avec la touche Escape
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            const modals = document.querySelectorAll('.modal.show');
-            modals.forEach(modal => {
-                $(modal).modal('hide');
-            });
-        }
-    });
+    loadData();
 });
-
-// ================= STYLES ADDITIONNELS =================
-const style = document.createElement('style');
-style.textContent = `
-    .custom-toast {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        z-index: 10000;
-        transform: translateX(400px);
-        transition: transform 0.3s ease;
-    }
-    .custom-toast.show { transform: translateX(0); }
-    .custom-toast .toast-content {
-        background: #343a40;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    .custom-toast.success .toast-content { background: #28a745; }
-    .custom-toast.danger .toast-content { background: #dc3545; }
-    .custom-toast.warning .toast-content { background: #ffc107; color: #343a40; }
-    .custom-toast.info .toast-content { background: #17a2b8; color: white; }
-    
-    @media (max-width: 768px) {
-        .custom-toast {
-            left: 15px;
-            right: 15px;
-            bottom: 15px;
-            transform: translateY(100px);
-        }
-        .custom-toast.show { transform: translateY(0); }
-    }
-    
-    .task-stats {
-        display: flex;
-        gap: 15px;
-        flex-wrap: wrap;
-        margin-top: 8px;
-    }
-    .stat-badge {
-        font-size: 14px;
-        padding: 4px 12px;
-        border-radius: 20px;
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-    }
-    .stat-badge.total { background: #e9ecef; }
-    .stat-badge.done { background: #d4edda; border-color: #28a745; }
-    .stat-badge.pending { background: #fff3cd; border-color: #ffc107; }
-    .stat-badge strong { font-weight: 700; }
-    
-    .calendar-table td.today {
-        background: #198754;
-        color: white !important;
-        border-radius: 50%;
-        font-weight: 700;
-    }
-    .calendar-table td.today::after {
-        display: none;
-    }
-    .calendar-table td.today:hover {
-        background: #146c43;
-        color: white !important;
-    }
-    .calendar-table td.other-month {
-        color: #adb5bd;
-        cursor: default;
-    }
-    .calendar-table td.other-month:hover {
-        background: transparent !important;
-        box-shadow: none !important;
-    }
-    
-    .task-item.completed {
-        opacity: 0.7;
-        background: #f8f9fa;
-    }
-    .task-item.completed .task-time {
-        text-decoration: line-through;
-        color: #6c757d;
-    }
-    
-    .badge-completed {
-        background: #28a745;
-        color: white;
-        padding: 2px 10px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 600;
-        margin-left: 8px;
-    }
-    
-    .btn-delete-task {
-        flex: 1;
-        border: 1px solid #f8d7da;
-        background: #fff5f5;
-        color: #dc3545;
-        padding: 7px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    .btn-delete-task:hover {
-        background: #f8d7da;
-        border-color: #dc3545;
-    }
-    
-    .task-actions {
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-    .task-actions button {
-        flex: 1;
-        min-width: 80px;
-    }
-    
-    .modal-header .btn-close {
-        background: none;
-        border: none;
-        font-size: 28px;
-        cursor: pointer;
-        color: #6c757d;
-        transition: all 0.3s ease;
-        padding: 0 8px;
-    }
-    .modal-header .btn-close:hover {
-        color: #dc3545;
-        transform: rotate(90deg);
-    }
-    
-    @media (max-width: 768px) {
-        .task-stats {
-            gap: 8px;
-        }
-        .stat-badge {
-            font-size: 12px;
-            padding: 3px 10px;
-        }
-        .task-actions {
-            flex-direction: column;
-        }
-        .task-actions button {
-            width: 100%;
-        }
-        .page-header h1 {
-            font-size: 18px;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .stat-badge {
-            font-size: 11px;
-            padding: 2px 8px;
-        }
-        .task-stats {
-            gap: 5px;
-        }
-    }
-`;
-document.head.appendChild(style);
 </script>
 
 @endsection
