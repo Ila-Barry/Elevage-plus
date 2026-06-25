@@ -452,11 +452,9 @@ async function fetchWithAuth(url, options = {}) {
     }
 
     const result = await response.json();
-    
     if (!response.ok) {
         throw result;
     }
-
     return result;
 }
 
@@ -475,7 +473,6 @@ async function fetchElevages() {
 async function fetchProducts(search = '', category = 'all', status = 'all') {
     try {
         console.log('📤 Récupération des produits...');
-        
         let url = `${API_URL}/stock/produits?per_page=50`;
         if (search) url += `&search=${encodeURIComponent(search)}`;
         if (category !== 'all') url += `&categorie=${encodeURIComponent(category)}`;
@@ -493,17 +490,11 @@ async function fetchProducts(search = '', category = 'all', status = 'all') {
 async function fetchMovements(productId = null) {
     try {
         console.log('📤 Récupération des mouvements...');
-        
         let url = `${API_URL}/stock/mouvements?per_page=20`;
         if (productId) url += `&produit_id=${productId}`;
         
         const result = await fetchWithAuth(url);
         console.log('📥 Réponse mouvements brute:', result);
-        
-        if (result.data && result.data.data && result.data.data.length > 0) {
-            console.log('📋 Structure du premier mouvement:', result.data.data[0]);
-        }
-        
         return result;
     } catch (error) {
         console.error('❌ Erreur fetch mouvements:', error);
@@ -514,7 +505,6 @@ async function fetchMovements(productId = null) {
 // ================= FONCTIONS API PRODUITS =================
 async function createProduct(data) {
     try {
-        console.log('📤 Création produit...');
         return await fetchWithAuth(`${API_URL}/stock/produits`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -528,7 +518,6 @@ async function createProduct(data) {
 
 async function updateProduct(id, data) {
     try {
-        console.log('📤 Mise à jour produit...');
         return await fetchWithAuth(`${API_URL}/stock/produits/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -542,7 +531,6 @@ async function updateProduct(id, data) {
 
 async function deleteProduct(id) {
     try {
-        console.log('📤 Suppression produit...');
         return await fetchWithAuth(`${API_URL}/stock/produits/${id}`, {
             method: 'DELETE'
         });
@@ -554,7 +542,6 @@ async function deleteProduct(id) {
 
 async function addStock(productId, data) {
     try {
-        console.log('📤 Ajout stock...');
         return await fetchWithAuth(`${API_URL}/stock/mouvements/${productId}/entree`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -568,7 +555,6 @@ async function addStock(productId, data) {
 
 async function removeStock(productId, data) {
     try {
-        console.log('📤 Retrait stock...');
         return await fetchWithAuth(`${API_URL}/stock/mouvements/${productId}/sortie`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -580,22 +566,46 @@ async function removeStock(productId, data) {
     }
 }
 
-// ================= FONCTIONS AUXILIAIRES : FERMETURE MODAL =================
+// ================= GESTIONNAIRE UNIVERSEL DES MODALS =================
+function openModalSafe(modalId) {
+    const modalElement = document.getElementById(modalId);
+    if (!modalElement) {
+        console.error(`❌ Elément #${modalId} introuvable dans le DOM.`);
+        return;
+    }
+
+    if (window.bootstrap && bootstrap.Modal) {
+        const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+        modalInstance.show();
+    } else if (window.$ && typeof $.fn.modal === 'function') {
+        $(modalElement).modal('show');
+    } else {
+        modalElement.style.setProperty('display', 'block', 'important');
+        modalElement.classList.add('show');
+        document.body.classList.add('modal-open');
+        if (!document.querySelector('.modal-backdrop')) {
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            document.body.appendChild(backdrop);
+        }
+    }
+}
+
 function closeModalSafe(modalId) {
     const modalElement = document.getElementById(modalId);
     if (!modalElement) return;
 
     if (window.bootstrap && bootstrap.Modal) {
-        let modalInstance = bootstrap.Modal.getInstance(modalElement);
-        if (!modalInstance) {
-            modalInstance = new bootstrap.Modal(modalElement);
-        }
-        modalInstance.hide();
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) modalInstance.hide();
     } else if (window.$ && typeof $.fn.modal === 'function') {
         $(modalElement).modal('hide');
     } else {
-        const closeBtn = modalElement.querySelector('[data-bs-dismiss="modal"], [data-dismiss="modal"]');
-        if (closeBtn) closeBtn.click();
+        modalElement.style.display = 'none';
+        modalElement.classList.remove('show');
+        document.body.classList.remove('modal-open');
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) backdrop.remove();
     }
 }
 
@@ -609,12 +619,8 @@ function getStockStatus(quantite, seuil) {
 }
 
 function renderTable() {
-    console.log('📊 Rendering table...');
     const tbody = document.getElementById('stocksTableBody');
-    if (!tbody) {
-        console.error('❌ Table body non trouvé');
-        return;
-    }
+    if (!tbody) return;
     
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
     const categoryFilter = document.getElementById('filterCategory').value;
@@ -698,73 +704,40 @@ function renderHistory(movementsData) {
     if (!container) return;
     
     const data = movementsData || movements;
-    console.log('📊 Rendering history avec', data.length, 'mouvements');
-    
     if (!data || data.length === 0) {
-        container.innerHTML = `
-            <div class="hist-item">
-                <span class="text-muted">Aucun mouvement récent</span>
-            </div>
-        `;
+        container.innerHTML = `<div class="hist-item"><span class="text-muted">Aucun mouvement récent</span></div>`;
         return;
     }
     
     const productMap = {};
-    products.forEach(p => {
-        productMap[p.id] = p;
-    });
+    products.forEach(p => { productMap[p.id] = p; });
     
-    const sorted = [...data].sort((a, b) => {
-        const dateA = new Date(a.date_mouvement || a.created_at || 0);
-        const dateB = new Date(b.date_mouvement || b.created_at || 0);
-        return dateB - dateA;
-    });
+    const sorted = [...data].sort((a, b) => new Date(b.date_mouvement || b.created_at || 0) - new Date(a.date_mouvement || a.created_at || 0));
     
-    const recent = sorted.slice(0, 10);
-    container.innerHTML = recent.map(h => {
+    container.innerHTML = sorted.slice(0, 10).map(h => {
         const dotClass = h.type === 'entree' ? 'dot-green' : 'dot-red';
         const sign = h.type === 'entree' ? '+' : '-';
-        
-        let produitNom = 'Produit inconnu';
-        let unite = '';
-        
-        if (h.produit && h.produit.nom) {
-            produitNom = h.produit.nom;
-            unite = h.produit.unite || '';
-        } 
-        else if (h.produit_nom) {
-            produitNom = h.produit_nom;
-            unite = h.produit_unite || '';
-        } 
-        else if (h.produit_id && productMap[h.produit_id]) {
-            produitNom = productMap[h.produit_id].nom || 'Produit inconnu';
-            unite = productMap[h.produit_id].unite || '';
-        }
-        
-        const quantite = h.quantite || 0;
+        let produitNom = h.produit?.nom || h.produit_nom || productMap[h.produit_id]?.nom || 'Produit inconnu';
+        let unite = h.produit?.unite || h.produit_unite || productMap[h.produit_id]?.unite || '';
         const date = h.date_mouvement ? new Date(h.date_mouvement).toLocaleDateString('fr-FR') : 'N/A';
         
         return `
             <div class="hist-item">
                 <span class="dot ${dotClass}"></span>
-                <span>${date} - ${h.type === 'entree' ? 'Entrée' : 'Sortie'} : ${sign}${quantite} ${unite} ${produitNom}</span>
+                <span>${date} - ${h.type === 'entree' ? 'Entrée' : 'Sortie'} : ${sign}${h.quantite || 0} ${unite} ${produitNom}</span>
             </div>
         `;
     }).join('');
 }
 
-// ================= POPULER LE SELECT D'ÉLEVAGE =================
 function populateElevageSelect() {
     const select = document.getElementById('addElevage');
     if (!select) return;
-    
     select.innerHTML = '<option value="">Sélectionnez un élevage...</option>';
-    
     if (!elevages || elevages.length === 0) {
-        select.innerHTML += '<option value="" disabled>❌ Aucun élevage disponible - Créez-en un d\'abord</option>';
+        select.innerHTML += '<option value="" disabled>❌ Aucun élevage disponible</option>';
         return;
     }
-    
     elevages.forEach(elevage => {
         const option = document.createElement('option');
         option.value = elevage.id;
@@ -776,72 +749,34 @@ function populateElevageSelect() {
 // ================= CHARGEMENT DES DONNÉES =================
 async function loadData() {
     try {
-        console.log('🔄 Début chargement des données stocks...');
-        if (!token) {
-            showToast('Non connecté. Redirection...', 'danger');
-            setTimeout(() => window.location.href = '/auth/login', 2000);
-            return;
-        }
+        if (!token) return;
         
-        try {
-            const elevagesResult = await fetchElevages();
-            let elevagesData = [];
-            if (elevagesResult.status === 'success' || elevagesResult.success === true) {
-                if (elevagesResult.data && elevagesResult.data.data) {
-                    elevagesData = elevagesResult.data.data;
-                } else if (elevagesResult.data && Array.isArray(elevagesResult.data)) {
-                    elevagesData = elevagesResult.data;
-                }
-            }
-            elevages = elevagesData.length > 0 ? elevagesData : [];
-            console.log('✅ Élevages chargés:', elevages.length);
+        const [elevagesResult, productsResult, movementsResult] = await Promise.allSettled([
+            fetchElevages(),
+            fetchProducts(),
+            fetchMovements()
+        ]);
+        
+        if (elevagesResult.status === 'fulfilled') {
+            const res = elevagesResult.value;
+            elevages = res.data?.data || res.data || [];
             populateElevageSelect();
-        } catch (e) { 
-            console.error('❌ Erreur chargement élevages:', e);
-            elevages = []; 
         }
         
-        try {
-            const productsResult = await fetchProducts();
-            let productsData = [];
-            if (productsResult.status === 'success' || productsResult.success === true) {
-                if (productsResult.data && productsResult.data.data) {
-                    productsData = productsResult.data.data;
-                } else if (productsResult.data && Array.isArray(productsResult.data)) {
-                    productsData = productsResult.data;
-                }
-            }
-            products = productsData.length > 0 ? productsData : [];
-            console.log('✅ Produits chargés:', products.length);
-        } catch (e) { 
-            console.error('❌ Erreur chargement produits:', e);
-            products = []; 
+        if (productsResult.status === 'fulfilled') {
+            const res = productsResult.value;
+            products = res.data?.data || res.data || [];
         }
         
-        try {
-            const movementsResult = await fetchMovements();
-            let movementsData = [];
-            if (movementsResult.status === 'success' || movementsResult.success === true) {
-                if (movementsResult.data && movementsResult.data.data) {
-                    movementsData = movementsResult.data.data;
-                } else if (movementsResult.data && Array.isArray(movementsResult.data)) {
-                    movementsData = movementsResult.data;
-                }
-            }
-            movements = movementsData.length > 0 ? movementsData : [];
-            console.log('✅ Mouvements chargés:', movements.length);
-        } catch (e) { 
-            console.error('❌ Erreur chargement mouvements:', e);
-            movements = []; 
+        if (movementsResult.status === 'fulfilled') {
+            const res = movementsResult.value;
+            movements = res.data?.data || res.data || [];
         }
         
         renderTable();
         renderHistory(movements);
-        
-        console.log('✅ Chargement stocks terminé');
     } catch (error) {
         console.error('❌ Erreur globale chargement:', error);
-        showToast('Erreur lors du chargement des données', 'danger');
     }
 }
 
@@ -849,91 +784,45 @@ async function loadData() {
 document.getElementById('openAddProduct').addEventListener('click', function() {
     document.getElementById('addProductForm').reset();
     document.getElementById('addError').style.display = 'none';
-    
-    if (window.bootstrap && bootstrap.Modal) {
-        new bootstrap.Modal(document.getElementById('modalAjoutProduit')).show();
-    } else {
-        $('#modalAjoutProduit').modal('show');
-    }
+    openModalSafe('modalAjoutProduit');
 });
 
 document.getElementById('addProductForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
     const submitBtn = document.getElementById('addSubmitBtn');
     const errorDiv = document.getElementById('addError');
     errorDiv.style.display = 'none';
     
-    const nom = document.getElementById('addProductName').value.trim();
-    const categorie = document.getElementById('addProductCategory').value;
-    const unite = document.getElementById('addProductUnit').value;
-    const quantite = parseFloat(document.getElementById('addProductQuantity').value) || 0;
-    const seuil = parseFloat(document.getElementById('addProductThreshold').value) || 50;
-    const elevageId = document.getElementById('addElevage').value;
-    const description = document.getElementById('addProductDescription').value.trim();
-    
-    if (!nom || !categorie || !unite || !elevageId) {
-        showToast('Veuillez remplir tous les champs obligatoires', 'warning');
-        return;
-    }
-    
     const data = {
-        nom: nom,
-        categorie: categorie,
-        unite: unite,
-        elevage_id: parseInt(elevageId),
-        quantite_initiale: quantite,
-        seuil_alerte: seuil,
-        description: description || null
+        nom: document.getElementById('addProductName').value.trim(),
+        categorie: document.getElementById('addProductCategory').value,
+        unite: document.getElementById('addProductUnit').value,
+        elevage_id: parseInt(document.getElementById('addElevage').value),
+        quantite_initiale: parseFloat(document.getElementById('addProductQuantity').value) || 0,
+        seuil_alerte: parseFloat(document.getElementById('addProductThreshold').value) || 50,
+        description: document.getElementById('addProductDescription').value.trim() || null
     };
     
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> En cours...';
-    
     try {
         const result = await createProduct(data);
-        if (result.status === 'success') {
+        if (result.success || result.status === 'success') {
             closeModalSafe('modalAjoutProduit');
             showToast('Produit ajouté avec succès !', 'success');
             await loadData();
-        } else {
-            if (result.errors) {
-                let errorMessages = '';
-                Object.values(result.errors).forEach(errors => {
-                    errorMessages += errors.join('\n') + '\n';
-                });
-                errorDiv.textContent = errorMessages;
-                errorDiv.style.display = 'block';
-            } else {
-                errorDiv.textContent = result.message || 'Erreur lors de la création';
-                errorDiv.style.display = 'block';
-            }
         }
     } catch (error) {
-        if (error.errors) {
-            let errorMessages = '';
-            Object.values(error.errors).forEach(errors => {
-                errorMessages += errors.join('\n') + '\n';
-            });
-            errorDiv.textContent = errorMessages;
-            errorDiv.style.display = 'block';
-        } else {
-            errorDiv.textContent = error.message || 'Erreur lors de la création';
-            errorDiv.style.display = 'block';
-        }
+        errorDiv.textContent = error.message || 'Erreur lors de la création';
+        errorDiv.style.display = 'block';
     } finally {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Ajouter';
     }
 });
 
 // ================= MODAL MOUVEMENT =================
 function openMovementModal(productId) {
     const product = products.find(p => p.id === productId);
-    if (!product) {
-        showToast('Produit non trouvé', 'danger');
-        return;
-    }
+    if (!product) return;
     
     currentProductId = productId;
     document.getElementById('mvtProductId').value = productId;
@@ -946,11 +835,7 @@ function openMovementModal(productId) {
     document.getElementById('movementError').style.display = 'none';
     document.getElementById('mvtEntree').checked = true;
     
-    if (window.bootstrap && bootstrap.Modal) {
-        new bootstrap.Modal(document.getElementById('modalMouvement')).show();
-    } else {
-        $('#modalMouvement').modal('show');
-    }
+    openModalSafe('modalMouvement');
 }
 
 function updateDynamicStock() {
@@ -965,96 +850,54 @@ function updateDynamicStock() {
 }
 
 document.getElementById('mvtQuantite').addEventListener('input', updateDynamicStock);
-document.querySelectorAll('input[name="mvtType"]').forEach(radio => {
-    radio.addEventListener('change', updateDynamicStock);
-});
+document.querySelectorAll('input[name="mvtType"]').forEach(radio => radio.addEventListener('change', updateDynamicStock));
 
 document.getElementById('movementForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
     const submitBtn = document.getElementById('mvtSubmitBtn');
     const errorDiv = document.getElementById('movementError');
-    errorDiv.style.display = 'none';
     
     const productId = parseInt(document.getElementById('mvtProductId').value);
     const type = document.querySelector('input[name="mvtType"]:checked')?.value;
     const quantite = parseFloat(document.getElementById('mvtQuantite').value);
     const motif = document.getElementById('mvtMotif').value;
-    const date = document.getElementById('mvtDate').value;
-    const description = document.getElementById('mvtMotif').selectedOptions[0]?.text || '';
-    
-    if (!quantite || quantite <= 0 || !motif) {
-        showToast('Veuillez remplir les champs correctement', 'warning');
-        return;
-    }
     
     const data = {
         type: type,
         quantite: quantite,
         motif: motif,
-        description: description,
-        date_mouvement: date || null
+        description: document.getElementById('mvtMotif').selectedOptions[0]?.text || '',
+        date_mouvement: document.getElementById('mvtDate').value || null
     };
     
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> En cours...';
-    
     try {
         let result = type === 'entree' ? await addStock(productId, data) : await removeStock(productId, data);
-        
-        if (result.status === 'success') {
+        if (result.success || result.status === 'success') {
             closeModalSafe('modalMouvement');
             showToast('Mouvement enregistré avec succès !', 'success');
             await loadData();
-        } else {
-            if (result.errors) {
-                let errorMessages = '';
-                Object.values(result.errors).forEach(errors => {
-                    errorMessages += errors.join('\n') + '\n';
-                });
-                errorDiv.textContent = errorMessages;
-                errorDiv.style.display = 'block';
-            } else {
-                errorDiv.textContent = result.message || 'Erreur lors du mouvement';
-                errorDiv.style.display = 'block';
-            }
         }
     } catch (error) {
-        if (error.errors) {
-            let errorMessages = '';
-            Object.values(error.errors).forEach(errors => {
-                errorMessages += errors.join('\n') + '\n';
-            });
-            errorDiv.textContent = errorMessages;
-            errorDiv.style.display = 'block';
-        } else {
-            errorDiv.textContent = error.message || 'Erreur lors du mouvement';
-            errorDiv.style.display = 'block';
-        }
+        errorDiv.textContent = error.message || 'Erreur lors du mouvement';
+        errorDiv.style.display = 'block';
     } finally {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Valider';
     }
 });
 
 // ================= VOIR PRODUIT =================
 window.viewProduct = async function(productId) {
     console.log('📤 viewProduct appelé avec ID:', productId);
-    
     try {
         const result = await fetchWithAuth(`${API_URL}/stock/produits/${productId}`);
         console.log('📥 Résultat viewProduct:', result);
         
-        if (result.status === 'success' && result.data) {
+        if ((result.success || result.status === 'success') && result.data) {
             const p = result.data;
             const status = getStockStatus(p.quantite || 0, p.seuil_alerte || 50);
-            
             const body = document.getElementById('viewProductBody');
-            if (!body) {
-                console.error('❌ viewProductBody non trouvé');
-                showToast('Erreur: modal non trouvé', 'danger');
-                return;
-            }
+            if (!body) return;
             
             body.innerHTML = `
                 <div class="row">
@@ -1084,82 +927,21 @@ window.viewProduct = async function(productId) {
                 ` : '<p class="text-muted">Aucun mouvement enregistré</p>'}
             `;
             
-            // ✅ OUVERTURE DU MODAL - Version corrigée
-            const modalElement = document.getElementById('modalVoir');
-            if (!modalElement) {
-                console.error('❌ Modal #modalVoir non trouvé');
-                showToast('Erreur: modal non trouvé', 'danger');
-                return;
-            }
-            
-            console.log('📤 Ouverture du modal #modalVoir');
-            
-            // Méthode 1: Bootstrap 5 (si disponible)
-            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                try {
-                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
-                    if (!modalInstance) {
-                        modalInstance = new bootstrap.Modal(modalElement);
-                    }
-                    modalInstance.show();
-                    console.log('✅ Modal ouvert avec Bootstrap 5');
-                } catch (e) {
-                    console.warn('⚠️ Erreur Bootstrap 5, fallback jQuery:', e);
-                    // Méthode 2: jQuery (fallback)
-                    if (window.$ && typeof $.fn.modal === 'function') {
-                        $(modalElement).modal('show');
-                        console.log('✅ Modal ouvert avec jQuery');
-                    } else {
-                        // Méthode 3: Vanilla JS (dernier recours)
-                        modalElement.style.display = 'block';
-                        modalElement.classList.add('show');
-                        document.body.classList.add('modal-open');
-                        
-                        if (!document.querySelector('.modal-backdrop')) {
-                            const backdrop = document.createElement('div');
-                            backdrop.className = 'modal-backdrop fade show';
-                            document.body.appendChild(backdrop);
-                        }
-                        console.log('✅ Modal ouvert avec Vanilla JS');
-                    }
-                }
-            } 
-            // Méthode 2: jQuery (si Bootstrap 5 n'est pas disponible)
-            else if (window.$ && typeof $.fn.modal === 'function') {
-                $(modalElement).modal('show');
-                console.log('✅ Modal ouvert avec jQuery');
-            } 
-            // Méthode 3: Vanilla JS (dernier recours)
-            else {
-                modalElement.style.display = 'block';
-                modalElement.classList.add('show');
-                document.body.classList.add('modal-open');
-                
-                if (!document.querySelector('.modal-backdrop')) {
-                    const backdrop = document.createElement('div');
-                    backdrop.className = 'modal-backdrop fade show';
-                    document.body.appendChild(backdrop);
-                }
-                console.log('✅ Modal ouvert avec Vanilla JS');
-            }
-        } else {
-            showToast(result.message || 'Erreur lors du chargement', 'danger');
+            openModalSafe('modalVoir');
         }
     } catch (error) {
         console.error('❌ Erreur viewProduct:', error);
-        showToast('Erreur lors du chargement du produit', 'danger');
     }
 };
 
 // ================= MODIFIER PRODUIT =================
 window.openEditModal = async function(productId) {
     console.log('📤 openEditModal appelé avec ID:', productId);
-    
     try {
         const result = await fetchWithAuth(`${API_URL}/stock/produits/${productId}`);
         console.log('📥 Résultat openEditModal:', result);
         
-        if (result.status === 'success' && result.data) {
+        if ((result.success || result.status === 'success') && result.data) {
             const p = result.data;
             
             document.getElementById('editProductId').value = p.id;
@@ -1171,230 +953,83 @@ window.openEditModal = async function(productId) {
             document.getElementById('editProductDescription').value = p.description || '';
             document.getElementById('editError').style.display = 'none';
             
-            // ✅ OUVERTURE DU MODAL - Version corrigée
-            const modalElement = document.getElementById('modalModifier');
-            if (!modalElement) {
-                console.error('❌ Modal #modalModifier non trouvé');
-                showToast('Erreur: modal non trouvé', 'danger');
-                return;
-            }
-            
-            console.log('📤 Ouverture du modal #modalModifier');
-            
-            // Méthode 1: Bootstrap 5 (si disponible)
-            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                try {
-                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
-                    if (!modalInstance) {
-                        modalInstance = new bootstrap.Modal(modalElement);
-                    }
-                    modalInstance.show();
-                    console.log('✅ Modal ouvert avec Bootstrap 5');
-                } catch (e) {
-                    console.warn('⚠️ Erreur Bootstrap 5, fallback jQuery:', e);
-                    if (window.$ && typeof $.fn.modal === 'function') {
-                        $(modalElement).modal('show');
-                        console.log('✅ Modal ouvert avec jQuery');
-                    } else {
-                        modalElement.style.display = 'block';
-                        modalElement.classList.add('show');
-                        document.body.classList.add('modal-open');
-                        
-                        if (!document.querySelector('.modal-backdrop')) {
-                            const backdrop = document.createElement('div');
-                            backdrop.className = 'modal-backdrop fade show';
-                            document.body.appendChild(backdrop);
-                        }
-                        console.log('✅ Modal ouvert avec Vanilla JS');
-                    }
-                }
-            } 
-            else if (window.$ && typeof $.fn.modal === 'function') {
-                $(modalElement).modal('show');
-                console.log('✅ Modal ouvert avec jQuery');
-            } 
-            else {
-                modalElement.style.display = 'block';
-                modalElement.classList.add('show');
-                document.body.classList.add('modal-open');
-                
-                if (!document.querySelector('.modal-backdrop')) {
-                    const backdrop = document.createElement('div');
-                    backdrop.className = 'modal-backdrop fade show';
-                    document.body.appendChild(backdrop);
-                }
-                console.log('✅ Modal ouvert avec Vanilla JS');
-            }
-        } else {
-            showToast(result.message || 'Erreur lors du chargement', 'danger');
+            openModalSafe('modalModifier');
         }
     } catch (error) {
         console.error('❌ Erreur openEditModal:', error);
-        showToast('Erreur lors du chargement du produit', 'danger');
     }
 };
 
 document.getElementById('editProductForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
     const submitBtn = document.getElementById('editSubmitBtn');
     const errorDiv = document.getElementById('editError');
-    errorDiv.style.display = 'none';
     
     const productId = parseInt(document.getElementById('editProductId').value);
-    const nom = document.getElementById('editProductName').value.trim();
-    const categorie = document.getElementById('editProductCategory').value;
-    const unite = document.getElementById('editProductUnit').value;
-    const seuil = parseFloat(document.getElementById('editProductThreshold').value) || 50;
-    const description = document.getElementById('editProductDescription').value.trim();
-    
-    if (!nom || !categorie || !unite) {
-        showToast('Veuillez remplir tous les champs obligatoires', 'warning');
-        return;
-    }
-    
     const data = {
-        nom: nom,
-        categorie: categorie,
-        unite: unite,
-        seuil_alerte: seuil,
-        description: description || null
+        nom: document.getElementById('editProductName').value.trim(),
+        categorie: document.getElementById('editProductCategory').value,
+        unite: document.getElementById('editProductUnit').value,
+        seuil_alerte: parseFloat(document.getElementById('editProductThreshold').value) || 50,
+        description: document.getElementById('editProductDescription').value.trim() || null
     };
     
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> En cours...';
-    
     try {
         const result = await updateProduct(productId, data);
-        if (result.status === 'success') {
+        if (result.success || result.status === 'success') {
             closeModalSafe('modalModifier');
             showToast('Produit modifié avec succès !', 'success');
             await loadData();
-        } else {
-            if (result.errors) {
-                let errorMessages = '';
-                Object.values(result.errors).forEach(errors => {
-                    errorMessages += errors.join('\n') + '\n';
-                });
-                errorDiv.textContent = errorMessages;
-                errorDiv.style.display = 'block';
-            } else {
-                errorDiv.textContent = result.message || 'Erreur lors de la modification';
-                errorDiv.style.display = 'block';
-            }
         }
     } catch (error) {
-        if (error.errors) {
-            let errorMessages = '';
-            Object.values(error.errors).forEach(errors => {
-                errorMessages += errors.join('\n') + '\n';
-            });
-            errorDiv.textContent = errorMessages;
-            errorDiv.style.display = 'block';
-        } else {
-            errorDiv.textContent = error.message || 'Erreur lors de la modification';
-            errorDiv.style.display = 'block';
-        }
+        errorDiv.textContent = error.message || 'Erreur lors de la modification';
+        errorDiv.style.display = 'block';
     } finally {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Enregistrer';
     }
 });
 
 // ================= SUPPRIMER PRODUIT =================
 function openDeleteModal(productId) {
     const product = products.find(p => p.id === productId);
-    if (!product) {
-        showToast('Produit non trouvé', 'danger');
-        return;
-    }
+    if (!product) return;
     
     document.getElementById('supprNom').textContent = product.nom || 'Sans nom';
     document.getElementById('btnSupprimerConfirmer').dataset.id = productId;
-    
-    if (window.bootstrap && bootstrap.Modal) {
-        new bootstrap.Modal(document.getElementById('modalSupprimer')).show();
-    } else {
-        $('#modalSupprimer').modal('show');
-    }
+    openModalSafe('modalSupprimer');
 }
 
 document.getElementById('btnSupprimerConfirmer').addEventListener('click', async function() {
     const productId = parseInt(this.dataset.id);
-    const btn = this;
-    
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Suppression...';
-    
+    this.disabled = true;
     try {
         const result = await deleteProduct(productId);
-        if (result.status === 'success') {
+        if (result.success || result.status === 'success') {
             closeModalSafe('modalSupprimer');
             showToast('Produit supprimé avec succès', 'success');
             await loadData();
-        } else {
-            showToast(result.message || 'Erreur lors de la suppression', 'danger');
         }
     } catch (error) {
         showToast(error.message || 'Erreur lors de la suppression', 'danger');
     } finally {
-        btn.disabled = false;
-        btn.innerHTML = 'Supprimer';
+        this.disabled = false;
     }
 });
 
 // ================= RECHERCHE ET FILTRES =================
 document.getElementById('searchInput').addEventListener('input', function() {
-    const searchTerm = this.value.trim();
-    if (searchTerm.length >= 2 || searchTerm.length === 0) {
+    if (this.value.trim().length >= 2 || this.value.trim().length === 0) {
         renderTable();
     }
 });
-
 document.getElementById('filterCategory').addEventListener('change', renderTable);
 document.getElementById('filterStatus').addEventListener('change', renderTable);
-
-// ================= RAPPORT =================
-document.getElementById('generateReport').addEventListener('click', function() {
-    const total = products.length;
-    const critical = products.filter(p => getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'critical').length;
-    const low = products.filter(p => getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'low').length;
-    const good = products.filter(p => getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'good' || getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'medium').length;
-    
-    alert(
-        '📊 RAPPORT DE STOCK\n' +
-        '====================\n' +
-        `Total produits : ${total}\n` +
-        `Stock critique : ${critical}\n` +
-        `Stock faible : ${low}\n` +
-        `Stock bon : ${good}\n\n` +
-        'Voir les détails dans le tableau ci-dessus.'
-    );
-});
-
-// ================= EXPORTER =================
-document.getElementById('exportData').addEventListener('click', function() {
-    let csv = 'Produit, Catégorie, Quantité, Unité, Seuil, Statut\n';
-    products.forEach(p => {
-        const status = getStockStatus(p.quantite || 0, p.seuil_alerte || 50);
-        csv += `${p.nom || 'Sans nom'}, ${p.categorie_label || p.categorie || 'Non catégorisé'}, ${p.quantite || 0}, ${p.unite || ''}, ${p.seuil_alerte || 0}, ${status.label}\n`;
-    });
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `stock_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    showToast('Export CSV effectué avec succès !', 'success');
-});
 
 // ================= INITIALISATION =================
 document.addEventListener('DOMContentLoaded', function() {
     if (!token) {
-        showToast('Non connecté. Redirection...', 'danger');
-        setTimeout(() => window.location.href = '/auth/login', 2000);
+        window.location.href = '/auth/login';
         return;
     }
     loadData();

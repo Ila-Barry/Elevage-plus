@@ -123,21 +123,56 @@ class PublicationController extends Controller
             $data['user_id'] = $user->id;
             $data['published_at'] = now();
 
-            // Upload de l'image
-            if ($request->hasFile('image')) {
-                $data['image_url'] = $this->uploadFile($request->file('image'), 'publications/images');
+            // ✅ Upload des images multiples
+            if ($request->hasFile('images')) {
+                $imageUrls = [];
+                $files = $request->file('images');
+                // ✅ S'assurer que c'est un tableau
+                $files = is_array($files) ? $files : [$files];
+                
+                foreach ($files as $image) {
+                    if ($image && $image->isValid()) {
+                        $imageUrls[] = $this->uploadFile($image, 'publications/images');
+                    }
+                }
+                if (!empty($imageUrls)) {
+                    $data['image_url'] = implode(',', $imageUrls);
+                }
             }
 
-            // Upload de la vidéo
-            if ($request->hasFile('video')) {
-                $data['video_url'] = $this->uploadFile($request->file('video'), 'publications/videos');
+            // ✅ Upload des vidéos multiples
+            if ($request->hasFile('videos')) {
+                $videoUrls = [];
+                $files = $request->file('videos');
+                $files = is_array($files) ? $files : [$files];
+                
+                foreach ($files as $video) {
+                    if ($video && $video->isValid()) {
+                        $videoUrls[] = $this->uploadFile($video, 'publications/videos');
+                    }
+                }
+                if (!empty($videoUrls)) {
+                    $data['video_url'] = implode(',', $videoUrls);
+                }
             }
 
-            // Upload du fichier
-            if ($request->hasFile('fichier')) {
-                $fichier = $request->file('fichier');
-                $data['fichier_url'] = $this->uploadFile($fichier, 'publications/files');
-                $data['fichier_nom'] = $fichier->getClientOriginalName();
+            // ✅ Upload des documents multiples
+            if ($request->hasFile('documents')) {
+                $documentUrls = [];
+                $documentNames = [];
+                $files = $request->file('documents');
+                $files = is_array($files) ? $files : [$files];
+                
+                foreach ($files as $document) {
+                    if ($document && $document->isValid()) {
+                        $documentUrls[] = $this->uploadFile($document, 'publications/files');
+                        $documentNames[] = $document->getClientOriginalName();
+                    }
+                }
+                if (!empty($documentUrls)) {
+                    $data['fichier_url'] = implode(',', $documentUrls);
+                    $data['fichier_nom'] = implode(',', $documentNames);
+                }
             }
 
             $publication = Publication::create($data);
@@ -145,7 +180,7 @@ class PublicationController extends Controller
             DB::commit();
 
             return $this->successResponse(
-                PublicationResource::make($publication->load('user')),
+                new PublicationResource($publication->load('user')),
                 'Publication créée avec succès.',
                 201
             );
@@ -153,7 +188,7 @@ class PublicationController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Erreur création publication: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la création de la publication.', 500);
+            return $this->errorResponse('Erreur lors de la création de la publication: ' . $e->getMessage(), 500);
         }
     }
 
@@ -198,7 +233,6 @@ class PublicationController extends Controller
         $publication = Publication::findOrFail($id);
         $user = $request->user();
 
-        // Vérifier les permissions
         if ($user->id !== $publication->user_id && !$user->isAdmin()) {
             return $this->forbiddenResponse('Vous n\'êtes pas autorisé à modifier cette publication.');
         }
@@ -208,44 +242,93 @@ class PublicationController extends Controller
         try {
             $data = $request->validated();
 
-            // Gestion de l'image
-            if ($request->hasFile('image')) {
-                // Supprimer l'ancienne image
+            // ✅ Gestion des images multiples
+            if ($request->hasFile('images')) {
+                // Supprimer les anciennes images
                 if ($publication->image_url) {
-                    $this->deleteFile($publication->image_url);
+                    $oldImages = explode(',', $publication->image_url);
+                    foreach ($oldImages as $oldImage) {
+                        $this->deleteFile($oldImage);
+                    }
                 }
-                $data['image_url'] = $this->uploadFile($request->file('image'), 'publications/images');
-            } elseif ($request->input('delete_image')) {
+                $imageUrls = [];
+                $files = $request->file('images');
+                $files = is_array($files) ? $files : [$files];
+                foreach ($files as $image) {
+                    if ($image && $image->isValid()) {
+                        $imageUrls[] = $this->uploadFile($image, 'publications/images');
+                    }
+                }
+                if (!empty($imageUrls)) {
+                    $data['image_url'] = implode(',', $imageUrls);
+                }
+            } elseif ($request->input('delete_images')) {
                 if ($publication->image_url) {
-                    $this->deleteFile($publication->image_url);
+                    $oldImages = explode(',', $publication->image_url);
+                    foreach ($oldImages as $oldImage) {
+                        $this->deleteFile($oldImage);
+                    }
                 }
                 $data['image_url'] = null;
             }
 
-            // Gestion de la vidéo
-            if ($request->hasFile('video')) {
+            // ✅ Gestion des vidéos multiples
+            if ($request->hasFile('videos')) {
                 if ($publication->video_url) {
-                    $this->deleteFile($publication->video_url);
+                    $oldVideos = explode(',', $publication->video_url);
+                    foreach ($oldVideos as $oldVideo) {
+                        $this->deleteFile($oldVideo);
+                    }
                 }
-                $data['video_url'] = $this->uploadFile($request->file('video'), 'publications/videos');
-            } elseif ($request->input('delete_video')) {
+                $videoUrls = [];
+                $files = $request->file('videos');
+                $files = is_array($files) ? $files : [$files];
+                foreach ($files as $video) {
+                    if ($video && $video->isValid()) {
+                        $videoUrls[] = $this->uploadFile($video, 'publications/videos');
+                    }
+                }
+                if (!empty($videoUrls)) {
+                    $data['video_url'] = implode(',', $videoUrls);
+                }
+            } elseif ($request->input('delete_videos')) {
                 if ($publication->video_url) {
-                    $this->deleteFile($publication->video_url);
+                    $oldVideos = explode(',', $publication->video_url);
+                    foreach ($oldVideos as $oldVideo) {
+                        $this->deleteFile($oldVideo);
+                    }
                 }
                 $data['video_url'] = null;
             }
 
-            // Gestion du fichier
-            if ($request->hasFile('fichier')) {
+            // ✅ Gestion des documents multiples
+            if ($request->hasFile('documents')) {
                 if ($publication->fichier_url) {
-                    $this->deleteFile($publication->fichier_url);
+                    $oldDocuments = explode(',', $publication->fichier_url);
+                    foreach ($oldDocuments as $oldDocument) {
+                        $this->deleteFile($oldDocument);
+                    }
                 }
-                $fichier = $request->file('fichier');
-                $data['fichier_url'] = $this->uploadFile($fichier, 'publications/files');
-                $data['fichier_nom'] = $fichier->getClientOriginalName();
-            } elseif ($request->input('delete_fichier')) {
+                $documentUrls = [];
+                $documentNames = [];
+                $files = $request->file('documents');
+                $files = is_array($files) ? $files : [$files];
+                foreach ($files as $document) {
+                    if ($document && $document->isValid()) {
+                        $documentUrls[] = $this->uploadFile($document, 'publications/files');
+                        $documentNames[] = $document->getClientOriginalName();
+                    }
+                }
+                if (!empty($documentUrls)) {
+                    $data['fichier_url'] = implode(',', $documentUrls);
+                    $data['fichier_nom'] = implode(',', $documentNames);
+                }
+            } elseif ($request->input('delete_documents')) {
                 if ($publication->fichier_url) {
-                    $this->deleteFile($publication->fichier_url);
+                    $oldDocuments = explode(',', $publication->fichier_url);
+                    foreach ($oldDocuments as $oldDocument) {
+                        $this->deleteFile($oldDocument);
+                    }
                 }
                 $data['fichier_url'] = null;
                 $data['fichier_nom'] = null;
@@ -256,7 +339,7 @@ class PublicationController extends Controller
             DB::commit();
 
             return $this->successResponse(
-                PublicationResource::make($publication->load('user')),
+                new PublicationResource($publication->load('user')),
                 'Publication mise à jour avec succès.'
             );
 
@@ -722,8 +805,9 @@ class PublicationController extends Controller
     private function uploadFile($file, string $directory): string
     {
         $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+        // ✅ Stocker SANS le préfixe 'storage/' car asset('storage/') l'ajoute
         $path = $file->storeAs($directory, $filename, 'public');
-        return $path;
+        return $path; // Retourne par exemple "publications/images/1782329401_tiJQWxbzK1.png"
     }
 
     /**
