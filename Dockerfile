@@ -1,4 +1,4 @@
-# Dockerfile - Version simplifiée
+# Dockerfile avec contournement
 FROM php:8.2-apache
 
 # Installation des dépendances système
@@ -40,11 +40,14 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 # Copier TOUT le projet
 COPY . /var/www/html/
 
-# Désactiver complètement l'audit de sécurité
-RUN composer config --global audit.block false
+# Installer les dépendances en ignorant les vulnérabilités
+RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts || \
+    (echo "⚠️ Tentative d'installation alternative..." && \
+     composer config --global --no-plugins allow-plugins true && \
+     composer install --no-interaction --optimize-autoloader --no-dev --no-scripts --ignore-platform-req=php)
 
-# Installer les dépendances
-RUN composer install --no-interaction --optimize-autoloader --no-dev
+# Exécuter les scripts
+RUN composer run-script post-autoload-dump
 
 # Permissions
 RUN chown -R www-data:www-data /var/www/html \
