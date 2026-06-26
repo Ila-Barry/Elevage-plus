@@ -1,4 +1,4 @@
-# Dockerfile
+# Dockerfile pour Laravel 10
 FROM php:8.2-apache
 
 # Installation des dépendances système
@@ -36,21 +36,24 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Configuration pour Laravel
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# Copier les fichiers du projet
+# Copier composer.json et composer.lock d'abord
+COPY composer.json composer.lock /var/www/html/
+
+# Installer les dépendances avec gestion des vulnérabilités
+RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts \
+    && composer run-script post-autoload-dump
+
+# Copier le reste du projet
 COPY . /var/www/html/
 
-# Définir les permissions
+# Permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
-# Installer les dépendances PHP
-RUN composer install --no-interaction --optimize-autoloader --no-dev
-
-# Installer les dépendances Node et compiler les assets
+# Installer les dépendances Node
 RUN npm install && npm run build
 
 # Optimiser Laravel
@@ -58,9 +61,6 @@ RUN php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache \
     && php artisan event:cache
-
-# Créer la commande de setup
-RUN php artisan make:command SetupDatabase --force
 
 # Script de démarrage
 COPY start.sh /start.sh
