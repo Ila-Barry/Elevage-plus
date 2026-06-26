@@ -11,36 +11,27 @@ echo "  DB_HOST: $DB_HOST"
 echo "  DB_PORT: $DB_PORT"
 echo "  DB_DATABASE: $DB_DATABASE"
 echo "  DB_USERNAME: $DB_USERNAME"
-echo "  SSL_CA: $MYSQL_ATTR_SSL_CA"
 
-# Attendre que la base de données soit prête
+# Attendre que la base de données soit prête (max 60 secondes)
 echo "⏳ Attente de la base de données..."
-for i in {1..30}; do
-    if php artisan db:show > /dev/null 2>&1; then
+for i in {1..60}; do
+    if php artisan migrate:status > /dev/null 2>&1; then
         echo "✅ Base de données accessible!"
         break
     fi
-    echo "   Tentative $i/30..."
+    echo "   Tentative $i/60..."
     sleep 2
 done
 
-# Configurer la base de données
-echo "📦 Configuration de la base de données..."
-php artisan db:setup
+# Exécuter les migrations
+echo "📦 Exécution des migrations..."
+php artisan migrate --force
 
-# Vider le cache
-echo "🧹 Vidage du cache..."
-php artisan cache:clear
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-
-# Optimiser pour la production
+# Optimiser Laravel
 echo "⚡ Optimisation pour la production..."
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
-php artisan event:cache
 
 # Lancer le worker de queue en arrière-plan
 echo "🔄 Démarrage du worker de queue..."

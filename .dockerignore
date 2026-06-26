@@ -8,7 +8,6 @@
 /.env.render
 /.dockerignore
 /Dockerfile
-/start.sh
 /README.md
 /.postman
 /postman
@@ -23,3 +22,4 @@
 /.idea
 /composer.lock
 /package-lock.json
+# NE PAS EXCLURE start.sh !!!
