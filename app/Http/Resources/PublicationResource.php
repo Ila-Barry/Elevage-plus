@@ -20,42 +20,49 @@ class PublicationResource extends JsonResource
             'contenu' => $this->contenu,
             'resume' => $this->resume,
             'temps_lecture' => $this->temps_lecture,
-            // ✅ Images multiples
+            
+            // ✅ Images multiples - TABLEAU COMPLET
             'images' => $this->getImagesUrls(),
-            'image_url' => $this->image_url,
-            // ✅ Vidéos multiples
+            'images_count' => count($this->getImagesUrls()),
+            
+            // ✅ Vidéos multiples - TABLEAU COMPLET
             'videos' => $this->getVideosUrls(),
-            'video_url' => $this->video_url,
-            // ✅ Fichiers multiples
+            'videos_count' => count($this->getVideosUrls()),
+            
+            // ✅ Fichiers multiples - TABLEAU COMPLET AVEC NOMS
             'fichiers' => $this->getFichiersUrls(),
-            'fichier' => $this->fichier_url ? [
-                'url' => $this->fichier_url,
-                'nom' => $this->fichier_nom,
-            ] : null,
+            'fichiers_count' => count($this->getFichiersUrls()),
+            
+            // ✅ Statistiques complètes
             'statistiques' => [
-                'likes' => $this->nbr_likes,
-                'commentaires' => $this->nbr_commentaires,
-                'partages' => $this->nbr_partages,
-                'vues' => $this->nbr_vues,
-                'signalements' => $this->when($user?->isAdmin(), $this->nbr_signalements),
+                'likes' => (int) $this->nbr_likes,
+                'commentaires' => (int) $this->nbr_commentaires,
+                'partages' => (int) $this->nbr_partages,
+                'vues' => (int) $this->nbr_vues,
+                'signalements' => $this->when($user?->isAdmin(), (int) $this->nbr_signalements),
             ],
+            
             'interactions' => [
                 'liked_by_user' => $this->isLikedByUser($user),
                 'reported_by_user' => $this->isReportedByUser($user),
             ],
+            
             'statut' => $this->statut,
             'raison_blocage' => $this->when($this->statut === 'bloquee', $this->raison_blocage),
+            
             'auteur' => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
                 'photo_url' => $this->user->photo_url,
                 'role' => $this->user->role,
             ],
+            
             'commentaires' => CommentaireResource::collection(
                 $this->whenLoaded('commentaires', function() {
                     return $this->commentaires->whereNull('parent_id');
                 })
             ),
+            
             'published_at' => $this->published_at?->toIso8601String(),
             'published_at_human' => $this->published_at?->diffForHumans(),
             'created_at' => $this->created_at?->toIso8601String(),
@@ -73,6 +80,9 @@ class PublicationResource extends JsonResource
         };
     }
 
+    /**
+     * ✅ Retourne un tableau de toutes les images
+     */
     protected function getImagesUrls(): array
     {
         if (!$this->image_url) {
@@ -80,13 +90,17 @@ class PublicationResource extends JsonResource
         }
         $urls = explode(',', $this->image_url);
         return array_map(function ($url) {
+            $url = trim($url);
             if (filter_var($url, FILTER_VALIDATE_URL)) {
                 return $url;
             }
             return asset('storage/' . $url);
-        }, $urls);
+        }, array_filter($urls));
     }
 
+    /**
+     * ✅ Retourne un tableau de toutes les vidéos
+     */
     protected function getVideosUrls(): array
     {
         if (!$this->video_url) {
@@ -94,13 +108,17 @@ class PublicationResource extends JsonResource
         }
         $urls = explode(',', $this->video_url);
         return array_map(function ($url) {
+            $url = trim($url);
             if (filter_var($url, FILTER_VALIDATE_URL)) {
                 return $url;
             }
             return asset('storage/' . $url);
-        }, $urls);
+        }, array_filter($urls));
     }
 
+    /**
+     * ✅ Retourne un tableau de tous les fichiers avec leurs noms
+     */
     protected function getFichiersUrls(): array
     {
         if (!$this->fichier_url) {
@@ -110,9 +128,11 @@ class PublicationResource extends JsonResource
         $names = $this->fichier_nom ? explode(',', $this->fichier_nom) : [];
         
         return array_map(function ($index, $url) use ($names) {
+            $url = trim($url);
             return [
                 'url' => filter_var($url, FILTER_VALIDATE_URL) ? $url : asset('storage/' . $url),
-                'nom' => $names[$index] ?? 'Fichier ' . ($index + 1),
+                'nom' => isset($names[$index]) ? trim($names[$index]) : 'Fichier ' . ($index + 1),
+                'index' => $index,
             ];
         }, array_keys($urls), $urls);
     }

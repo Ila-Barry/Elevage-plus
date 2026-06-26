@@ -116,6 +116,9 @@
     </div>
 </div>
 
+@endsection
+
+@push('scripts')
 <script>
 // ============================================================
 // CONFIGURATION & CONSTANTES
@@ -164,22 +167,31 @@ const state = {
 // FONCTIONS UTILITAIRES
 // ============================================================
 
-function log(message, data = null) {
+function log(message, data) {
+    data = data || null;
     const timestamp = new Date().toISOString();
     if (data) {
-        console.log(`[${timestamp}] 📝 ${message}`, data);
+        console.log('[' + timestamp + '] 📝 ' + message, data);
     } else {
-        console.log(`[${timestamp}] 📝 ${message}`);
+        console.log('[' + timestamp + '] 📝 ' + message);
     }
 }
 
-function logError(message, error = null) {
+function logError(message, error) {
+    error = error || null;
     const timestamp = new Date().toISOString();
     if (error) {
-        console.error(`[${timestamp}] ❌ ${message}`, error);
+        console.error('[' + timestamp + '] ❌ ' + message, error);
     } else {
-        console.error(`[${timestamp}] ❌ ${message}`);
+        console.error('[' + timestamp + '] ❌ ' + message);
     }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 function truncateText(text, maxLength) {
@@ -188,85 +200,108 @@ function truncateText(text, maxLength) {
 }
 
 function getFileIcon(filename) {
-    const ext = filename.split('.').pop().toLowerCase();
-    const icons = {
-        'pdf': 'fas fa-file-pdf', 'doc': 'fas fa-file-word', 'docx': 'fas fa-file-word',
-        'xls': 'fas fa-file-excel', 'xlsx': 'fas fa-file-excel',
-        'ppt': 'fas fa-file-powerpoint', 'pptx': 'fas fa-file-powerpoint',
-        'txt': 'fas fa-file-alt', 'zip': 'fas fa-file-archive', 'rar': 'fas fa-file-archive',
-        'jpg': 'fas fa-file-image', 'jpeg': 'fas fa-file-image', 'png': 'fas fa-file-image',
-        'gif': 'fas fa-file-image', 'webp': 'fas fa-file-image',
-        'mp4': 'fas fa-file-video', 'avi': 'fas fa-file-video', 'mov': 'fas fa-file-video'
+    if (!filename) return 'fas fa-file';
+    var ext = filename.split('.').pop().toLowerCase();
+    var icons = {
+        'pdf': 'fas fa-file-pdf',
+        'doc': 'fas fa-file-word',
+        'docx': 'fas fa-file-word',
+        'xls': 'fas fa-file-excel',
+        'xlsx': 'fas fa-file-excel',
+        'ppt': 'fas fa-file-powerpoint',
+        'pptx': 'fas fa-file-powerpoint',
+        'txt': 'fas fa-file-alt',
+        'zip': 'fas fa-file-archive',
+        'rar': 'fas fa-file-archive',
+        'jpg': 'fas fa-file-image',
+        'jpeg': 'fas fa-file-image',
+        'png': 'fas fa-file-image',
+        'gif': 'fas fa-file-image',
+        'webp': 'fas fa-file-image',
+        'mp4': 'fas fa-file-video',
+        'avi': 'fas fa-file-video',
+        'mov': 'fas fa-file-video',
+        'mp3': 'fas fa-file-audio',
+        'wav': 'fas fa-file-audio'
     };
     return icons[ext] || 'fas fa-file';
 }
 
 function detectFileType(file) {
-    const type = file.type;
-    const ext = file.name.split('.').pop().toLowerCase();
+    var type = file.type;
+    var ext = file.name.split('.').pop().toLowerCase();
     
     if (type.startsWith('image/')) return 'images';
     if (type.startsWith('video/')) return 'videos';
     
-    const docExts = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'zip', 'rar'];
-    if (docExts.includes(ext)) return 'documents';
+    var docExts = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'zip', 'rar'];
+    if (docExts.indexOf(ext) !== -1) return 'documents';
     
-    const docMimes = ['application/pdf', 'application/msword', 
+    var docMimes = ['application/pdf', 'application/msword', 
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         'text/plain', 'application/zip', 'application/x-rar-compressed'];
-    if (docMimes.includes(type)) return 'documents';
+    if (docMimes.indexOf(type) !== -1) return 'documents';
     
     return 'unknown';
 }
 
 // ============================================================
-// ✅ FONCTION DE NORMALISATION DES URLs D'IMAGES - CORRIGÉE
+// FONCTION DE NORMALISATION DES URLs
 // ============================================================
 
 function fixImageUrl(url) {
-    if (!url) return null;
+    if (!url) return '';
     
-    let clean = url.trim();
+    var clean = url.trim();
     
     // Si l'URL est déjà complète (http ou https)
-    if (clean.startsWith('http://') || clean.startsWith('https://')) {
+    if (clean.indexOf('http://') === 0 || clean.indexOf('https://') === 0) {
         return clean;
     }
     
-    // ✅ Supprimer les doubles 'storage/' et les chemins corrompus
+    // Supprimer les doubles 'storage/'
     clean = clean.replace(/\/storage\/\/storage\//g, '/storage/');
     clean = clean.replace(/storage\/\/storage\//g, 'storage/');
     clean = clean.replace(/\/\/storage\//g, '/storage/');
     clean = clean.replace(/storage\/storage\//g, 'storage/');
     
-    // ✅ Si l'URL commence par 'storage/' ou '/storage/'
-    if (clean.startsWith('storage/')) {
+    // Si l'URL commence par 'storage/' ou '/storage/'
+    if (clean.indexOf('storage/') === 0) {
         clean = window.location.origin + '/' + clean;
-    } else if (clean.startsWith('/storage/')) {
+    } else if (clean.indexOf('/storage/') === 0) {
         clean = window.location.origin + clean;
-    } else {
-        // Fallback: ajouter le préfixe storage
+    } else if (clean && clean.indexOf('http') !== 0) {
         clean = window.location.origin + '/storage/' + clean;
     }
     
     return clean;
 }
 
+function getAvatarUrl(photoUrl, name) {
+    if (photoUrl && photoUrl.trim()) {
+        var fixed = fixImageUrl(photoUrl);
+        if (fixed) return fixed;
+    }
+    var defaultName = name || 'User';
+    return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(defaultName) + '&background=4F46E5&color=fff';
+}
+
 // ============================================================
 // FONCTIONS TOAST
 // ============================================================
 
-function showToast(message, type = 'info') {
-    const existing = document.querySelector('.custom-toast');
+function showToast(message, type) {
+    type = type || 'info';
+    var existing = document.querySelector('.custom-toast');
     if (existing) existing.remove();
     if (state.toastTimeout) clearTimeout(state.toastTimeout);
     
-    const toast = document.createElement('div');
-    toast.className = `custom-toast ${type}`;
+    var toast = document.createElement('div');
+    toast.className = 'custom-toast ' + type;
     
-    const icons = {
+    var icons = {
         success: 'fa-check-circle',
         danger: 'fa-exclamation-circle',
         warning: 'fa-exclamation-triangle',
@@ -275,65 +310,65 @@ function showToast(message, type = 'info') {
     
     toast.innerHTML = `
         <div class="toast-content">
-            <i class="fas ${icons[type] || icons.info}"></i>
-            <span>${message}</span>
+            <i class="fas ` + (icons[type] || icons.info) + `"></i>
+            <span>` + message + `</span>
         </div>
     `;
     document.body.appendChild(toast);
     
-    requestAnimationFrame(() => toast.classList.add('show'));
+    requestAnimationFrame(function() { toast.classList.add('show'); });
     
-    state.toastTimeout = setTimeout(() => {
+    state.toastTimeout = setTimeout(function() {
         toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
+        setTimeout(function() { toast.remove(); }, 300);
     }, 3000);
 }
 
 // ============================================================
-// API - COMMUNICATION AVEC LE BACKEND
+// API CALLS
 // ============================================================
 
-async function apiCall(endpoint, options = {}) {
-    const defaultHeaders = {
+async function apiCall(endpoint, options) {
+    options = options || {};
+    var defaultHeaders = {
         'Accept': 'application/json',
         'Authorization': 'Bearer ' + CONFIG.TOKEN,
         'X-CSRF-TOKEN': CONFIG.CSRF_TOKEN
     };
 
-    const isFormData = options.body instanceof FormData;
+    var isFormData = options.body instanceof FormData;
     
     if (!isFormData) {
         defaultHeaders['Content-Type'] = 'application/json';
     }
 
-    const config = {
-        ...options,
-        headers: {
-            ...defaultHeaders,
-            ...options.headers
-        }
+    var config = {
+        method: options.method || 'GET',
+        headers: Object.assign({}, defaultHeaders, options.headers || {})
     };
 
     if (config.body && !(config.body instanceof FormData) && typeof config.body === 'object') {
         config.body = JSON.stringify(config.body);
+    } else if (config.body !== undefined) {
+        config.body = config.body;
     }
 
-    const url = endpoint.startsWith('http') ? endpoint : `${CONFIG.API_URL}${endpoint}`;
-    log(`🌐 Requête ${options.method || 'GET'} ${url}`, { isFormData });
+    var url = endpoint.indexOf('http') === 0 ? endpoint : CONFIG.API_URL + endpoint;
+    log('🌐 Requête ' + (options.method || 'GET') + ' ' + url, { isFormData: isFormData });
 
     try {
-        const response = await fetch(url, config);
-        const data = await response.json();
+        var response = await fetch(url, config);
+        var data = await response.json();
 
         if (!response.ok) {
-            logError(`Erreur HTTP ${response.status}`, data);
-            const error = new Error(data.message || 'Erreur API');
+            logError('Erreur HTTP ' + response.status, data);
+            var error = new Error(data.message || 'Erreur API');
             error.status = response.status;
             error.errors = data.errors;
             throw error;
         }
 
-        log(`✅ Réponse reçue`, { status: response.status });
+        log('✅ Réponse reçue', { status: response.status });
         return data;
     } catch (error) {
         logError('Erreur API', error);
@@ -345,13 +380,15 @@ async function apiCall(endpoint, options = {}) {
 // GESTION DES PUBLICATIONS
 // ============================================================
 
-async function fetchPosts(page = 1, category = 'all') {
-    log(`📤 Récupération des publications page ${page}, catégorie ${category}`);
+async function fetchPosts(page, category) {
+    page = page || 1;
+    category = category || 'all';
+    log('📤 Récupération des publications page ' + page + ', catégorie ' + category);
     
-    let url = `/publications?page=${page}&per_page=${CONFIG.ITEMS_PER_PAGE}`;
-    if (category !== 'all') url += `&categorie=${category}`;
+    var url = '/publications?page=' + page + '&per_page=' + CONFIG.ITEMS_PER_PAGE;
+    if (category !== 'all') url += '&categorie=' + category;
     
-    const result = await apiCall(url);
+    var result = await apiCall(url);
     log('📦 Structure de la réponse:', result);
     return result;
 }
@@ -359,9 +396,9 @@ async function fetchPosts(page = 1, category = 'all') {
 async function createPost(formData) {
     log('📤 Création d\'une nouvelle publication');
     
-    const hasTitre = formData.has('titre');
-    const hasCategorie = formData.has('categorie');
-    const hasContenu = formData.has('contenu');
+    var hasTitre = formData.has('titre');
+    var hasCategorie = formData.has('categorie');
+    var hasContenu = formData.has('contenu');
     
     if (!hasTitre || !hasCategorie || !hasContenu) {
         throw new Error('Champs obligatoires manquants');
@@ -374,8 +411,8 @@ async function createPost(formData) {
 }
 
 async function updatePost(id, formData) {
-    log(`📤 Mise à jour de la publication ${id}`);
-    return apiCall(`/publications/${id}`, {
+    log('📤 Mise à jour de la publication ' + id);
+    return apiCall('/publications/' + id, {
         method: 'POST',
         body: formData,
         headers: { 'X-HTTP-Method-Override': 'PUT' }
@@ -383,44 +420,47 @@ async function updatePost(id, formData) {
 }
 
 async function deletePost(id) {
-    log(`📤 Suppression de la publication ${id}`);
-    return apiCall(`/publications/${id}`, {
+    log('📤 Suppression de la publication ' + id);
+    return apiCall('/publications/' + id, {
         method: 'DELETE'
     });
 }
 
 async function toggleLike(id) {
-    log(`📤 Like/Unlike publication ${id}`);
-    return apiCall(`/publications/${id}/like`, {
+    log('📤 Like/Unlike publication ' + id);
+    return apiCall('/publications/' + id + '/like', {
         method: 'POST'
     });
 }
 
 async function addComment(id, content) {
-    log(`📤 Ajout commentaire publication ${id}`);
-    return apiCall(`/publications/${id}/comments`, {
+    log('📤 Ajout commentaire publication ' + id);
+    return apiCall('/publications/' + id + '/comments', {
         method: 'POST',
         body: { contenu: content }
     });
 }
 
 async function sharePost(id, plateforme) {
-    log(`📤 Partage publication ${id} sur ${plateforme}`);
-    return apiCall(`/publications/${id}/share`, {
+    log('📤 Partage publication ' + id + ' sur ' + plateforme);
+    return apiCall('/publications/' + id + '/share', {
         method: 'POST',
-        body: { plateforme }
+        body: { plateforme: plateforme }
     });
 }
 
 // ============================================================
-// CHARGEMENT DES PUBLICATIONS - CORRIGÉ AVEC fixImageUrl
+// CHARGEMENT DES PUBLICATIONS
 // ============================================================
 
-async function loadPosts(page = 1, category = 'all') {
+async function loadPosts(page, category) {
+    page = page || 1;
+    category = category || 'all';
+    
     if (state.isLoading) return;
     state.isLoading = true;
     
-    const container = document.getElementById('postsFeed');
+    var container = document.getElementById('postsFeed');
     container.innerHTML = `
         <div class="text-center py-5">
             <div class="spinner-border text-success" role="status">
@@ -431,120 +471,83 @@ async function loadPosts(page = 1, category = 'all') {
     `;
     
     try {
-        const result = await fetchPosts(page, category);
+        var result = await fetchPosts(page, category);
         
-        // ✅ DEBUG DÉTAILLÉ - Afficher toute la structure
-        console.log('🔍 === DÉBOGAGE COMPLET DE LA RÉPONSE ===');
-        console.log('1. result complet:', result);
-        console.log('2. result.status:', result.status);
-        console.log('3. result.data:', result.data);
-        console.log('4. Type de result.data:', typeof result.data);
-        console.log('5. result.data est un tableau?', Array.isArray(result.data));
-        console.log('6. result.data.data:', result.data?.data);
-        console.log('7. result.data.meta:', result.data?.meta);
-        console.log('8. Clés de result.data:', result.data ? Object.keys(result.data) : 'null');
+        var postsData = [];
+        var meta = {};
         
-        let postsData = [];
-        let meta = {};
-        
-        // ✅ Vérifier si result.data existe
         if (result.data) {
-            // Cas 1: result.data.data est un tableau
             if (result.data.data && Array.isArray(result.data.data)) {
                 postsData = result.data.data;
                 meta = result.data.meta || {};
-                console.log('✅ Cas 1 - result.data.data est un tableau de', postsData.length, 'éléments');
-            }
-            // Cas 2: result.data est un tableau
-            else if (Array.isArray(result.data)) {
+                log('✅ Cas 1 - result.data.data', postsData.length, 'éléments');
+            } else if (Array.isArray(result.data)) {
                 postsData = result.data;
                 meta = { current_page: page, last_page: 1 };
-                console.log('✅ Cas 2 - result.data est un tableau de', postsData.length, 'éléments');
-            }
-            // Cas 3: result.data a une propriété qui contient un tableau
-            else if (typeof result.data === 'object') {
-                let found = false;
-                for (const key of Object.keys(result.data)) {
-                    if (Array.isArray(result.data[key]) && result.data[key].length > 0) {
+                log('✅ Cas 2 - result.data', postsData.length, 'éléments');
+            } else if (typeof result.data === 'object') {
+                for (var key in result.data) {
+                    if (result.data.hasOwnProperty(key) && Array.isArray(result.data[key]) && result.data[key].length > 0) {
                         postsData = result.data[key];
                         meta = result.data.meta || {};
-                        console.log(`✅ Cas 3 - result.data.${key} est un tableau de`, postsData.length, 'éléments');
-                        found = true;
+                        log('✅ Cas 3 - result.data.' + key, postsData.length, 'éléments');
                         break;
                     }
                 }
-                if (!found) {
-                    // ✅ Essayer de récupérer depuis result.data.data
-                    if (result.data.data) {
-                        postsData = Array.isArray(result.data.data) ? result.data.data : [];
-                        meta = result.data.meta || {};
-                        console.log('✅ Cas 3b - result.data.data (fallback) de', postsData.length, 'éléments');
-                    } else {
-                        console.warn('⚠️ Aucun tableau trouvé dans result.data');
-                    }
-                }
-            }
-        } else {
-            // ✅ Si result.data est null ou undefined
-            console.warn('⚠️ result.data est null ou undefined');
-        }
-        
-        // ✅ Si toujours vide, essayer de récupérer depuis result directement
-        if (postsData.length === 0 && result.data) {
-            // Vérifier si result a une propriété qui contient un tableau
-            for (const key of Object.keys(result)) {
-                if (Array.isArray(result[key]) && result[key].length > 0) {
-                    postsData = result[key];
-                    meta = { current_page: page, last_page: 1 };
-                    console.log(`✅ Récupéré depuis result.${key} de`, postsData.length, 'éléments');
-                    break;
+                if (postsData.length === 0 && result.data.data) {
+                    postsData = Array.isArray(result.data.data) ? result.data.data : [];
+                    meta = result.data.meta || {};
                 }
             }
         }
         
-        console.log('📋 Données finales extraites:', postsData.length, 'éléments');
-        
-        // ✅ Transformation des données
+        // Transformation des données
         if (postsData.length > 0) {
-            state.posts = postsData.map(post => {
+            state.posts = postsData.map(function(post) {
                 if (!post) return null;
                 
-                // ✅ Normaliser les images
-                let images = [];
+                // Récupération de TOUTES les images
+                var images = [];
                 if (post.images && Array.isArray(post.images)) {
-                    images = post.images.map(img => fixImageUrl(img)).filter(u => u);
+                    images = post.images.map(function(img) { return fixImageUrl(img); }).filter(function(u) { return u; });
                 } else if (post.image_url) {
                     if (typeof post.image_url === 'string') {
-                        images = post.image_url.split(',').map(url => fixImageUrl(url.trim())).filter(u => u);
+                        images = post.image_url.split(',').map(function(url) { return fixImageUrl(url.trim()); }).filter(function(u) { return u; });
                     } else if (Array.isArray(post.image_url)) {
-                        images = post.image_url.map(url => fixImageUrl(url)).filter(u => u);
+                        images = post.image_url.map(function(url) { return fixImageUrl(url); }).filter(function(u) { return u; });
                     }
                 }
                 
-                let videos = [];
+                // Récupération de TOUTES les vidéos
+                var videos = [];
                 if (post.videos && Array.isArray(post.videos)) {
-                    videos = post.videos.map(v => fixImageUrl(v)).filter(u => u);
+                    videos = post.videos.map(function(v) { return fixImageUrl(v); }).filter(function(u) { return u; });
                 } else if (post.video_url) {
                     if (typeof post.video_url === 'string') {
-                        videos = post.video_url.split(',').map(url => fixImageUrl(url.trim())).filter(u => u);
+                        videos = post.video_url.split(',').map(function(url) { return fixImageUrl(url.trim()); }).filter(function(u) { return u; });
                     } else if (Array.isArray(post.video_url)) {
-                        videos = post.video_url.map(url => fixImageUrl(url)).filter(u => u);
+                        videos = post.video_url.map(function(url) { return fixImageUrl(url); }).filter(function(u) { return u; });
                     }
                 }
                 
-                let fichiers = [];
+                // Récupération de TOUS les fichiers
+                var fichiers = [];
                 if (post.fichiers && Array.isArray(post.fichiers)) {
-                    fichiers = post.fichiers.map(f => ({
-                        ...f,
-                        url: fixImageUrl(f.url)
-                    })).filter(f => f.url);
+                    fichiers = post.fichiers.map(function(f) {
+                        return {
+                            url: fixImageUrl(f.url),
+                            nom: f.nom || 'Fichier'
+                        };
+                    }).filter(function(f) { return f.url; });
                 } else if (post.fichier_url) {
-                    const urls = typeof post.fichier_url === 'string' ? post.fichier_url.split(',').map(u => u.trim()).filter(u => u) : [];
-                    const names = post.fichier_nom ? (typeof post.fichier_nom === 'string' ? post.fichier_nom.split(',').map(n => n.trim()) : []) : [];
-                    fichiers = urls.map((url, index) => ({
-                        url: fixImageUrl(url),
-                        nom: names[index] || 'Fichier ' + (index + 1)
-                    })).filter(f => f.url);
+                    var urls = typeof post.fichier_url === 'string' ? post.fichier_url.split(',').map(function(u) { return u.trim(); }).filter(function(u) { return u; }) : [];
+                    var names = post.fichier_nom ? (typeof post.fichier_nom === 'string' ? post.fichier_nom.split(',').map(function(n) { return n.trim(); }) : []) : [];
+                    fichiers = urls.map(function(url, index) {
+                        return {
+                            url: fixImageUrl(url),
+                            nom: names[index] || 'Fichier ' + (index + 1)
+                        };
+                    }).filter(function(f) { return f.url; });
                 }
                 
                 return {
@@ -555,17 +558,21 @@ async function loadPosts(page = 1, category = 'all') {
                     contenu: post.contenu || post.content || '',
                     resume: post.resume || truncateText(post.contenu || post.content || '', 200),
                     images: images,
+                    images_count: images.length,
                     image_url: images.length > 0 ? images[0] : null,
                     videos: videos,
+                    videos_count: videos.length,
                     video_url: videos.length > 0 ? videos[0] : null,
                     fichiers: fichiers,
+                    fichiers_count: fichiers.length,
                     statistiques: {
-                        likes: post.nbr_likes || post.likes_count || post.likes || 0,
-                        commentaires: post.nbr_commentaires || post.comments_count || post.comments || 0,
-                        vues: post.nbr_vues || post.views_count || post.views || 0
+                        likes: post.statistiques?.likes || post.nbr_likes || 0,
+                        commentaires: post.statistiques?.commentaires || post.nbr_commentaires || 0,
+                        partages: post.statistiques?.partages || post.nbr_partages || 0,
+                        vues: post.statistiques?.vues || post.nbr_vues || 0
                     },
                     interactions: {
-                        liked_by_user: post.liked_by_user || post.is_liked || false
+                        liked_by_user: post.interactions?.liked_by_user || post.liked_by_user || false
                     },
                     auteur: post.user || post.auteur || post.author || {
                         name: 'Utilisateur',
@@ -577,7 +584,7 @@ async function loadPosts(page = 1, category = 'all') {
                     created_at: post.created_at,
                     updated_at: post.updated_at
                 };
-            }).filter(post => post !== null);
+            }).filter(function(post) { return post !== null; });
         } else {
             state.posts = [];
         }
@@ -585,17 +592,13 @@ async function loadPosts(page = 1, category = 'all') {
         state.currentPage = meta.current_page || page;
         state.totalPages = meta.last_page || 1;
         
-        console.log(`✅ ${state.posts.length} publications chargées`);
-        
-        if (state.posts.length > 0) {
-            console.log('📋 Première publication:', state.posts[0]);
-        }
+        log('✅ ' + state.posts.length + ' publications chargées');
         
         renderPosts();
         updatePagination();
         
     } catch (error) {
-        console.error('❌ Erreur chargement publications:', error);
+        logError('Erreur chargement publications', error);
         showToast('Erreur lors du chargement des publications', 'danger');
         state.posts = [];
         renderPosts();
@@ -606,11 +609,11 @@ async function loadPosts(page = 1, category = 'all') {
 }
 
 // ============================================================
-// AFFICHAGE DES PUBLICATIONS - AVEC FORMULAIRE DE COMMENTAIRE
+// AFFICHAGE DES PUBLICATIONS
 // ============================================================
 
 function renderPosts() {
-    const container = document.getElementById('postsFeed');
+    var container = document.getElementById('postsFeed');
     
     if (!state.posts || state.posts.length === 0) {
         container.innerHTML = `
@@ -623,129 +626,133 @@ function renderPosts() {
         return;
     }
     
-    log(`📋 Rendu de ${state.posts.length} publications`);
+    log('📋 Rendu de ' + state.posts.length + ' publications');
     
-    container.innerHTML = state.posts.map((post, index) => {
-        const displayContent = post.resume || truncateText(post.contenu || '', 200);
-        const isTruncated = (post.contenu || '').length > 200;
+    var html = '';
+    for (var i = 0; i < state.posts.length; i++) {
+        var post = state.posts[i];
         
-        const images = post.images && post.images.length > 0 ? post.images : [];
-        const videos = post.videos && post.videos.length > 0 ? post.videos : [];
-        const fichiers = post.fichiers && post.fichiers.length > 0 ? post.fichiers : [];
+        var displayContent = post.resume || truncateText(post.contenu || '', 200);
+        var isTruncated = (post.contenu || '').length > 200;
         
-        const authorName = post.auteur?.name || 'Utilisateur';
-        const authorAvatar = post.auteur?.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=4F46E5&color=fff`;
-        const authorRole = post.auteur?.role === 'admin' ? 'Administrateur' : 'Éleveur';
+        var images = post.images && post.images.length > 0 ? post.images : [];
+        var videos = post.videos && post.videos.length > 0 ? post.videos : [];
+        var fichiers = post.fichiers && post.fichiers.length > 0 ? post.fichiers : [];
         
-        const categoryIcon = post.categorie === 'experience' ? '💡' : 
+        var authorName = post.auteur?.name || 'Utilisateur';
+        var authorAvatar = getAvatarUrl(post.auteur?.photo_url, authorName);
+        var authorRole = post.auteur?.role === 'admin' ? 'Administrateur' : 'Éleveur';
+        
+        var categoryIcon = post.categorie === 'experience' ? '💡' : 
                             post.categorie === 'alerte' ? '⚠️' : '🌾';
         
-        const likes = post.statistiques?.likes || 0;
-        const comments = post.statistiques?.commentaires || 0;
-        const views = post.statistiques?.vues || 0;
-        const isLiked = post.interactions?.liked_by_user || false;
+        var likes = post.statistiques?.likes || 0;
+        var comments = post.statistiques?.commentaires || 0;
+        var views = post.statistiques?.vues || 0;
+        var partages = post.statistiques?.partages || 0;
+        var isLiked = post.interactions?.liked_by_user || false;
         
-        // ✅ Préparer le contenu avec le bouton "plus..."
-        let contentHtml = displayContent;
+        // Préparer le contenu avec le bouton "plus..."
+        var contentHtml = displayContent;
         if (isTruncated) {
-            contentHtml = `
-                ${displayContent}
-                <span class="read-more-btn" onclick="toggleFullContent(${post.id})">
-                    plus...
-                </span>
-            `;
+            contentHtml = displayContent + ' <span class="read-more-btn" onclick="toggleFullContent(' + post.id + ')">plus...</span>';
         }
         
-        // ✅ Générer un ID unique pour le formulaire de commentaire
-        const commentFormId = `comment-form-${post.id}`;
-        const commentsListId = `comments-list-${post.id}`;
+        var commentFormId = 'comment-form-' + post.id;
+        var commentsListId = 'comments-list-' + post.id;
         
-        return `
-        <article class="custom-post-card" data-id="${post.id}" data-index="${index}">
+        // Générer les images HTML
+        var imagesHtml = images.length > 0 ? renderImages(images, post.id) : '';
+        var videosHtml = videos.length > 0 ? renderVideos(videos) : '';
+        var fichiersHtml = fichiers.length > 0 ? renderFichiers(fichiers) : '';
+        
+        html += `
+        <article class="custom-post-card" data-id="` + post.id + `" data-index="` + i + `">
             <div class="custom-post-admin">
-                <button class="action-edit" onclick="editPost(${post.id})" title="Modifier">
+                <button class="action-edit" onclick="editPost(` + post.id + `)" title="Modifier">
                     <i class="fas fa-pencil-alt"></i>
                 </button>
-                <button class="action-delete" onclick="deletePostConfirm(${post.id})" title="Supprimer">
+                <button class="action-delete" onclick="deletePostConfirm(` + post.id + `)" title="Supprimer">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div class="custom-post-header">
                 <div class="author-avatar-box">
-                    <img src="${authorAvatar}" 
-                         alt="${authorName}" 
+                    <img src="` + authorAvatar + `" 
+                         alt="` + authorName + `" 
                          class="rounded-circle" 
                          onerror="this.src='https://ui-avatars.com/api/?name=User&background=4F46E5&color=fff'">
                 </div>
                 <div class="author-meta-data">
-                    <span class="user-fullname">${authorName}</span>
+                    <span class="user-fullname">` + escapeHtml(authorName) + `</span>
                     <span class="meta-separator">•</span>
-                    <span class="user-profession">${authorRole}</span>
+                    <span class="user-profession">` + authorRole + `</span>
                     <span class="meta-separator">•</span>
                     <span class="published-time">
-                        <i class="far fa-calendar-alt"></i> ${post.published_at_human || 'N/A'}
+                        <i class="far fa-calendar-alt"></i> ` + (post.published_at_human || 'N/A') + `
                     </span>
                 </div>
             </div>
 
             <div class="custom-post-body">
-                <h3 class="post-title-badge color-${post.categorie}">
-                    ${categoryIcon} ${post.categorie_label || post.categorie} - ${post.titre || 'Sans titre'}
+                <h3 class="post-title-badge color-` + post.categorie + `">
+                    ` + categoryIcon + ` ` + (post.categorie_label || post.categorie) + ` - ` + escapeHtml(post.titre || 'Sans titre') + `
                 </h3>
                 <p class="post-text-content" data-full="false">
-                    ${contentHtml}
+                    ` + contentHtml + `
                 </p>
                 
-                ${images.length > 0 ? renderImages(images, post.id) : ''}
-                ${videos.length > 0 ? renderVideos(videos) : ''}
-                ${fichiers.length > 0 ? renderFichiers(fichiers) : ''}
+                ` + imagesHtml + `
+                ` + videosHtml + `
+                ` + fichiersHtml + `
             </div>
 
             <div class="custom-post-footer">
                 <div class="post-counters">
-                    <span class="counter-item" onclick="handleLike(${post.id})" style="cursor: pointer;">
-                        <i class="${isLiked ? 'fas' : 'far'} fa-thumbs-up"></i> 
-                        <span class="likes-count" id="likes-count-${post.id}">${likes}</span>
+                    <span class="counter-item" onclick="handleLike(` + post.id + `)" style="cursor: pointer;">
+                        <i class="` + (isLiked ? 'fas' : 'far') + ` fa-thumbs-up"></i> 
+                        <span class="likes-count" id="likes-count-` + post.id + `">` + likes + `</span>
                     </span>
-                    <span class="counter-item" onclick="toggleComments(${post.id})" style="cursor: pointer;">
+                    <span class="counter-item" onclick="toggleComments(` + post.id + `)" style="cursor: pointer;">
                         <i class="far fa-comment"></i> 
-                        <span class="comments-count" id="comments-count-${post.id}">${comments}</span>
+                        <span class="comments-count" id="comments-count-` + post.id + `">` + comments + `</span>
                     </span>
                     <span class="counter-item">
-                        <i class="far fa-eye"></i> ${views}
+                        <i class="far fa-eye"></i> ` + views + `
+                    </span>
+                    <span class="counter-item" style="cursor: default;">
+                        <i class="fas fa-share-alt"></i> ` + partages + `
                     </span>
                 </div>
                 <div class="post-action-triggers">
-                    <button class="trigger-btn ${isLiked ? 'liked' : ''}" onclick="handleLike(${post.id})">
-                        <i class="${isLiked ? 'fas' : 'far'} fa-thumbs-up"></i> 
-                        ${isLiked ? 'Aimé' : 'Liker'}
+                    <button class="trigger-btn ` + (isLiked ? 'liked' : '') + `" onclick="handleLike(` + post.id + `)">
+                        <i class="` + (isLiked ? 'fas' : 'far') + ` fa-thumbs-up"></i> 
+                        ` + (isLiked ? 'Aimé' : 'Liker') + `
                     </button>
-                    <button class="trigger-btn" onclick="toggleComments(${post.id})">
+                    <button class="trigger-btn" onclick="toggleComments(` + post.id + `)">
                         <i class="far fa-comment"></i> Commenter
                     </button>
-                    <button class="trigger-btn" onclick="handleShare(${post.id})">
-                        <i class="fas fa-share"></i> Partager
+                    <button class="trigger-btn" onclick="handleShare(` + post.id + `)">
+                        <i class="fas fa-share-alt"></i> Partager
                     </button>
                 </div>
             </div>
 
-            <!-- ================= SECTION COMMENTAIRES ================= -->
-            <div class="comments-section" id="${commentsListId}" style="display: none; padding: 15px 20px; border-top: 1px solid #e9ecef; background: #f8f9fa; border-radius: 0 0 8px 8px;">
-                <!-- Liste des commentaires -->
-                <div class="comments-list" id="comments-list-inner-${post.id}">
+            <!-- SECTION COMMENTAIRES -->
+            <div class="comments-section" id="` + commentsListId + `" style="display: none; padding: 15px 20px; border-top: 1px solid #e9ecef; background: #f8f9fa; border-radius: 0 0 8px 8px;">
+                <div class="comments-list" id="comments-list-inner-` + post.id + `">
                     <div class="text-center text-muted py-2" style="font-size: 13px;">
                         <i class="fas fa-spinner fa-spin"></i> Chargement des commentaires...
                     </div>
                 </div>
                 
-                <!-- Formulaire d'ajout de commentaire -->
-                <form class="comment-form" id="${commentFormId}" data-post-id="${post.id}" style="margin-top: 12px;">
+                <form class="comment-form" id="` + commentFormId + `" data-post-id="` + post.id + `" style="margin-top: 12px;">
                     <div class="d-flex gap-2">
                         <input type="text" 
                                class="form-control form-control-sm" 
                                placeholder="Écrire un commentaire..." 
-                               id="comment-input-${post.id}"
+                               id="comment-input-` + post.id + `"
                                style="border-radius: 20px; font-size: 13px;">
                         <button type="submit" class="btn btn-sm btn-success" style="border-radius: 20px; white-space: nowrap;">
                             <i class="fas fa-paper-plane"></i> Envoyer
@@ -753,641 +760,132 @@ function renderPosts() {
                     </div>
                 </form>
             </div>
-        </article>
-    `}).join('');
+        </article>`;
+    }
     
-    // ✅ Attacher les événements des formulaires de commentaire après le rendu
+    container.innerHTML = html;
     attachCommentFormEvents();
 }
 
 // ============================================================
-// ATTACHER LES ÉVÉNEMENTS DES FORMULAIRES DE COMMENTAIRE
-// ============================================================
-
-function attachCommentFormEvents() {
-    document.querySelectorAll('.comment-form').forEach(form => {
-        // Supprimer les anciens événements pour éviter les doublons
-        form.removeEventListener('submit', handleCommentSubmit);
-        form.addEventListener('submit', handleCommentSubmit);
-    });
-}
-
-async function handleCommentSubmit(e) {
-    e.preventDefault();
-    
-    const form = e.target;
-    const postId = parseInt(form.dataset.postId);
-    const input = document.getElementById(`comment-input-${postId}`);
-    const content = input.value.trim();
-    
-    if (!content) {
-        showToast('Veuillez écrire un commentaire', 'warning');
-        return;
-    }
-    
-    // Désactiver le bouton
-    const submitBtn = form.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
-    try {
-        const result = await addComment(postId, content);
-        
-        if (result.status === 'success') {
-            showToast('Commentaire ajouté avec succès !', 'success');
-            input.value = '';
-            
-            // ✅ Mettre à jour le compteur de commentaires
-            const countSpan = document.getElementById(`comments-count-${postId}`);
-            if (countSpan) {
-                const currentCount = parseInt(countSpan.textContent) || 0;
-                countSpan.textContent = currentCount + 1;
-            }
-            
-            // ✅ Recharger les commentaires
-            await loadComments(postId);
-        } else {
-            showToast(result.message || 'Erreur lors de l\'ajout du commentaire', 'danger');
-        }
-    } catch (error) {
-        console.error('Erreur commentaire:', error);
-        showToast('Erreur lors de l\'ajout du commentaire', 'danger');
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer';
-    }
-}
-
-// ============================================================
-// CHARGER LES COMMENTAIRES D'UNE PUBLICATION
-// ============================================================
-
-async function loadComments(postId) {
-    try {
-        // ✅ Appel API pour récupérer les commentaires
-        const result = await apiCall(`/publications/${postId}`, {
-            method: 'GET'
-        });
-        
-        const commentsContainer = document.getElementById(`comments-list-inner-${postId}`);
-        if (!commentsContainer) return;
-        
-        if (result.status === 'success' && result.data) {
-            const publication = result.data;
-            const comments = publication.commentaires || [];
-            
-            if (comments.length === 0) {
-                commentsContainer.innerHTML = `
-                    <div class="text-center text-muted py-2" style="font-size: 13px;">
-                        <i class="far fa-comment-dots"></i> Aucun commentaire pour le moment
-                    </div>
-                `;
-                return;
-            }
-            
-            // ✅ Afficher les commentaires
-            commentsContainer.innerHTML = comments.map(comment => {
-                const userName = comment.user?.name || 'Utilisateur';
-                const userAvatar = comment.user?.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=4F46E5&color=fff`;
-                const date = comment.created_at ? new Date(comment.created_at).toLocaleDateString('fr-FR') : 'N/A';
-                
-                return `
-                    <div class="comment-item d-flex gap-2 py-2" style="border-bottom: 1px solid #e9ecef;">
-                        <img src="${userAvatar}" 
-                             alt="${userName}" 
-                             style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;"
-                             onerror="this.src='https://ui-avatars.com/api/?name=User&background=4F46E5&color=fff'">
-                        <div style="flex: 1;">
-                            <div class="d-flex align-items-center gap-2 flex-wrap">
-                                <strong style="font-size: 13px;">${userName}</strong>
-                                <span style="font-size: 11px; color: #6c757d;">${date}</span>
-                            </div>
-                            <p style="font-size: 13px; margin: 2px 0 0 0; color: #343a40;">${comment.contenu || ''}</p>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        } else {
-            commentsContainer.innerHTML = `
-                <div class="text-center text-muted py-2" style="font-size: 13px;">
-                    <i class="fas fa-exclamation-triangle"></i> Erreur lors du chargement des commentaires
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('Erreur chargement commentaires:', error);
-        const commentsContainer = document.getElementById(`comments-list-inner-${postId}`);
-        if (commentsContainer) {
-            commentsContainer.innerHTML = `
-                <div class="text-center text-danger py-2" style="font-size: 13px;">
-                    <i class="fas fa-exclamation-circle"></i> Erreur de chargement
-                </div>
-            `;
-        }
-    }
-}
-
-// ============================================================
-// AFFICHER/MASQUER LA SECTION COMMENTAIRES
-// ============================================================
-
-function toggleComments(postId) {
-    const commentsSection = document.getElementById(`comments-list-${postId}`);
-    if (!commentsSection) return;
-    
-    const isVisible = commentsSection.style.display !== 'none';
-    
-    if (isVisible) {
-        commentsSection.style.display = 'none';
-    } else {
-        commentsSection.style.display = 'block';
-        // ✅ Charger les commentaires si la section est vide
-        const innerContainer = document.getElementById(`comments-list-inner-${postId}`);
-        if (innerContainer && innerContainer.querySelector('.fa-spinner')) {
-            loadComments(postId);
-        }
-    }
-}
-
-// ============================================================
-// AFFICHER LE CONTENU COMPLET D'UNE PUBLICATION
-// ============================================================
-
-function toggleFullContent(postId) {
-    const post = state.posts.find(p => p.id === postId);
-    if (!post) {
-        showToast('Publication non trouvée', 'danger');
-        return;
-    }
-    
-    // Trouver l'élément du post dans le DOM
-    const postCard = document.querySelector(`.custom-post-card[data-id="${postId}"]`);
-    if (!postCard) {
-        showToast('Élément non trouvé', 'warning');
-        return;
-    }
-    
-    const contentParagraph = postCard.querySelector('.post-text-content');
-    if (!contentParagraph) return;
-    
-    // Vérifier si le contenu est déjà complet
-    const isFull = contentParagraph.dataset.full === 'true';
-    
-    if (isFull) {
-        // Réduire le contenu
-        const resume = post.resume || truncateText(post.contenu || '', 200);
-        contentParagraph.innerHTML = `
-            ${resume}
-            <span class="read-more-btn" onclick="toggleFullContent(${postId})">
-                plus...
-            </span>
-        `;
-        contentParagraph.dataset.full = 'false';
-    } else {
-        // Afficher le contenu complet
-        const fullContent = post.contenu || 'Contenu non disponible';
-        // ✅ Remplacer les sauts de ligne par des <br> pour l'affichage
-        const formattedContent = fullContent.replace(/\n/g, '<br>');
-        contentParagraph.innerHTML = `
-            ${formattedContent}
-            <span class="read-more-btn" onclick="toggleFullContent(${postId})">
-                moins...
-            </span>
-        `;
-        contentParagraph.dataset.full = 'true';
-    }
-}
-
-// ============================================================
-// RENDU DES IMAGES, VIDÉOS ET FICHIERS - AVEC NORMALISATION
+// RENDU DES IMAGES MULTIPLES
 // ============================================================
 
 function renderImages(images, postId) {
     if (!images || images.length === 0) return '';
     
-    // ✅ Les images sont déjà normalisées par fixImageUrl, mais on vérifie
-    const validImages = images.filter(img => img && img.trim() !== '');
+    var validImages = [];
+    for (var i = 0; i < images.length; i++) {
+        var img = images[i];
+        if (img && img.trim()) {
+            var fixed = fixImageUrl(img);
+            if (fixed) validImages.push(fixed);
+        }
+    }
+    
     if (validImages.length === 0) return '';
     
-    const displayImages = validImages.slice(0, 4);
-    const remaining = validImages.length - 4;
+    var displayImages = validImages.slice(0, 4);
+    var remaining = validImages.length - 4;
     
-    return `
-        <div class="image-row">
-            ${displayImages.map((img, index) => `
-                <div class="grid-img-item" onclick="openImageModal(${postId}, ${index})">
-                    <img src="${img}" alt="Image ${index + 1}" loading="lazy" onerror="this.style.display='none'">
-                    ${index === 3 && remaining > 0 ? `<div class="overlay-plus">+${remaining}</div>` : ''}
-                </div>
-            `).join('')}
-        </div>
-    `;
+    var html = '<div class="image-row">';
+    for (var j = 0; j < displayImages.length; j++) {
+        var imgSrc = displayImages[j];
+        var overlay = (j === 3 && remaining > 0) ? '<div class="overlay-plus">+' + remaining + '</div>' : '';
+        html += `
+            <div class="grid-img-item" onclick="openImageModal(` + postId + `, ` + j + `)">
+                <img src="` + imgSrc + `" alt="Image ` + (j + 1) + `" loading="lazy" onerror="this.style.display='none'">
+                ` + overlay + `
+            </div>
+        `;
+    }
+    html += '</div>';
+    
+    if (validImages.length > 4) {
+        html += '<div style="font-size: 0.7rem; color: #6c757d; margin-top: 4px;">+ ' + (validImages.length - 4) + ' autre(s) image(s)</div>';
+    }
+    
+    return html;
 }
+
+// ============================================================
+// RENDU DES VIDÉOS MULTIPLES
+// ============================================================
 
 function renderVideos(videos) {
     if (!videos || videos.length === 0) return '';
     
-    const validVideos = videos.filter(v => v && v.trim() !== '');
+    var validVideos = [];
+    for (var i = 0; i < videos.length; i++) {
+        var v = videos[i];
+        if (v && v.trim()) {
+            var fixed = fixImageUrl(v);
+            if (fixed) validVideos.push(fixed);
+        }
+    }
+    
     if (validVideos.length === 0) return '';
     
-    return `
-        <div class="post-videos-container">
-            ${validVideos.map(video => `
-                <video controls class="post-video" preload="metadata">
-                    <source src="${video}" type="video/mp4">
+    var html = '<div class="post-videos-container" style="margin-top: 10px;">';
+    for (var j = 0; j < validVideos.length; j++) {
+        var videoSrc = validVideos[j];
+        html += `
+            <div style="margin-bottom: 8px;">
+                <video controls class="post-video" preload="metadata" style="width: 100%; max-height: 400px; border-radius: 8px; background: #000;">
+                    <source src="` + videoSrc + `" type="video/mp4">
                     Votre navigateur ne supporte pas la lecture de vidéos.
                 </video>
-            `).join('')}
-        </div>
-    `;
+                <div style="font-size: 0.7rem; color: #6c757d; margin-top: 2px;">Vidéo ` + (j + 1) + `</div>
+            </div>
+        `;
+    }
+    html += '<div style="font-size: 0.7rem; color: #6c757d; margin-top: 4px;">' + validVideos.length + ' vidéo(s)</div>';
+    html += '</div>';
+    
+    return html;
 }
+
+// ============================================================
+// RENDU DES FICHIERS MULTIPLES
+// ============================================================
 
 function renderFichiers(fichiers) {
     if (!fichiers || fichiers.length === 0) return '';
     
-    const validFichiers = fichiers.filter(f => f && f.url);
+    var validFichiers = [];
+    for (var i = 0; i < fichiers.length; i++) {
+        var f = fichiers[i];
+        if (f && f.url) {
+            var fixedUrl = fixImageUrl(f.url);
+            if (fixedUrl) {
+                validFichiers.push({
+                    url: fixedUrl,
+                    nom: f.nom || 'Fichier ' + (i + 1)
+                });
+            }
+        }
+    }
+    
     if (validFichiers.length === 0) return '';
     
-    return `
-        <div class="post-files-container">
-            ${validFichiers.map(fichier => {
-                const icon = getFileIcon(fichier.nom || '');
-                return `
-                    <a href="${fichier.url}" target="_blank" class="file-download-link" download>
-                        <i class="${icon}"></i>
-                        <span>${fichier.nom || 'Télécharger'}</span>
-                        <i class="fas fa-download"></i>
-                    </a>
-                `;
-            }).join('')}
-        </div>
-    `;
-}
-
-// ============================================================
-// PAGINATION
-// ============================================================
-
-function updatePagination() {
-    const pageNumbers = document.getElementById('pageNumbers');
-    const prevBtn = document.getElementById('prevPage');
-    const nextBtn = document.getElementById('nextPage');
-    
-    if (state.totalPages <= 1) {
-        pageNumbers.innerHTML = '';
-        prevBtn.disabled = true;
-        nextBtn.disabled = true;
-        return;
-    }
-    
-    let html = '';
-    const maxVisible = 5;
-    let start = Math.max(1, state.currentPage - Math.floor(maxVisible / 2));
-    let end = Math.min(state.totalPages, start + maxVisible - 1);
-    
-    if (end - start < maxVisible - 1) {
-        start = Math.max(1, end - maxVisible + 1);
-    }
-    
-    if (start > 1) {
-        html += `<span class="num-item" onclick="goToPage(1)">1</span>`;
-        if (start > 2) html += `<span class="num-item">...</span>`;
-    }
-    
-    for (let i = start; i <= end; i++) {
-        html += `<span class="num-item ${i === state.currentPage ? 'active-num' : ''}" onclick="goToPage(${i})">${i}</span>`;
-    }
-    
-    if (end < state.totalPages) {
-        if (end < state.totalPages - 1) html += `<span class="num-item">...</span>`;
-        html += `<span class="num-item" onclick="goToPage(${state.totalPages})">${state.totalPages}</span>`;
-    }
-    
-    pageNumbers.innerHTML = html;
-    prevBtn.disabled = state.currentPage === 1;
-    nextBtn.disabled = state.currentPage === state.totalPages;
-}
-
-function goToPage(page) {
-    if (page === state.currentPage || state.isLoading) return;
-    state.currentPage = page;
-    loadPosts(page, state.currentCategory);
-    document.getElementById('postsFeed').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// ============================================================
-// HANDLE LIKE - AVEC MISE À JOUR UI
-// ============================================================
-
-async function handleLike(postId) {
-    try {
-        const result = await toggleLike(postId);
-        if (result.status === 'success') {
-            // ✅ Mettre à jour le compteur de likes dans l'UI
-            const countSpan = document.getElementById(`likes-count-${postId}`);
-            if (countSpan && result.data) {
-                countSpan.textContent = result.data.total_likes || 0;
-            }
-            
-            // ✅ Mettre à jour le bouton like
-            const postCard = document.querySelector(`.custom-post-card[data-id="${postId}"]`);
-            if (postCard) {
-                const likeBtn = postCard.querySelector('.trigger-btn:first-child');
-                const counterItem = postCard.querySelector('.counter-item:first-child');
-                
-                if (likeBtn) {
-                    const isLiked = result.data.liked || false;
-                    likeBtn.innerHTML = `
-                        <i class="${isLiked ? 'fas' : 'far'} fa-thumbs-up"></i> 
-                        ${isLiked ? 'Aimé' : 'Liker'}
-                    `;
-                    likeBtn.classList.toggle('liked', isLiked);
-                }
-                
-                if (counterItem) {
-                    const icon = counterItem.querySelector('i');
-                    if (icon) {
-                        icon.className = result.data.liked ? 'fas fa-thumbs-up' : 'far fa-thumbs-up';
-                    }
-                }
-            }
-            
-            showToast(result.message, 'success');
-        } else {
-            showToast(result.message || 'Erreur lors du like', 'danger');
-        }
-    } catch (error) {
-        logError('Erreur like', error);
-        showToast('Erreur lors du like', 'danger');
-    }
-}
-
-function handleComment(postId) {
-    const post = state.posts.find(p => p.id === postId);
-    if (!post) {
-        showToast('Publication non trouvée', 'danger');
-        return;
-    }
-    
-    const content = prompt(`Laissez un commentaire sur "${post.titre}" :`);
-    if (!content || !content.trim()) {
-        if (content !== null) showToast('Le commentaire ne peut pas être vide', 'warning');
-        return;
-    }
-    
-    addComment(postId, content.trim())
-        .then(result => {
-            if (result.status === 'success') {
-                showToast('Commentaire ajouté avec succès !', 'success');
-                loadPosts(state.currentPage, state.currentCategory);
-            } else {
-                showToast(result.message || 'Erreur lors de l\'ajout', 'danger');
-            }
-        })
-        .catch(() => showToast('Erreur lors de l\'ajout du commentaire', 'danger'));
-}
-
-async function handleShare(postId) {
-    const post = state.posts.find(p => p.id === postId);
-    if (!post) {
-        showToast('Publication non trouvée', 'danger');
-        return;
-    }
-    
-    const choix = prompt(
-        'Choisissez une plateforme de partage :\n\n' +
-        '1. WhatsApp\n2. Facebook\n3. Twitter\n4. Copier le lien\n\n' +
-        'Entrez le numéro (1-4) :'
-    );
-    
-    const plateformes = { '1': 'whatsapp', '2': 'facebook', '3': 'twitter', '4': 'copie_lien' };
-    const plateforme = plateformes[choix];
-    
-    if (!plateforme) {
-        if (choix !== null) showToast('Option invalide', 'warning');
-        return;
-    }
-    
-    try {
-        const result = await sharePost(postId, plateforme);
-        if (result.status === 'success') {
-            const url = result.data?.share_url || window.location.href;
-            if (plateforme === 'copie_lien') {
-                try {
-                    await navigator.clipboard.writeText(url);
-                    showToast('Lien copié dans le presse-papier !', 'success');
-                } catch {
-                    prompt('Copiez ce lien pour partager :', url);
-                }
-            } else {
-                window.open(url, '_blank');
-                showToast('Partage effectué !', 'success');
-            }
-            await loadPosts(state.currentPage, state.currentCategory);
-        } else {
-            showToast(result.message || 'Erreur lors du partage', 'danger');
-        }
-    } catch (error) {
-        logError('Erreur partage', error);
-        showToast('Erreur lors du partage', 'danger');
-    }
-}
-
-// ============================================================
-// GESTION DES PUBLICATIONS (CRUD)
-// ============================================================
-
-function editPost(postId) {
-    const post = state.posts.find(p => p.id === postId);
-    if (!post) {
-        showToast('Publication non trouvée', 'danger');
-        return;
-    }
-    
-    document.getElementById('postTitle').value = post.titre || '';
-    document.getElementById('postCategory').value = post.categorie || 'conseil';
-    document.getElementById('postContent').value = post.contenu || '';
-    document.getElementById('publishError').style.display = 'none';
-    
-    resetFiles();
-    
-    const submitBtn = document.getElementById('publishSubmitBtn');
-    submitBtn.innerHTML = '<i class="fas fa-save"></i> Mettre à jour';
-    submitBtn.dataset.editId = postId;
-    
-    openPublishModal();
-}
-
-function deletePostConfirm(postId) {
-    const post = state.posts.find(p => p.id === postId);
-    if (!post) {
-        showToast('Publication non trouvée', 'danger');
-        return;
-    }
-    
-    if (confirm(`Êtes-vous sûr de vouloir supprimer "${post.titre}" ?`)) {
-        deletePost(postId)
-            .then(result => {
-                if (result.status === 'success') {
-                    showToast('Publication supprimée avec succès', 'success');
-                    loadPosts(state.currentPage, state.currentCategory);
-                } else {
-                    showToast(result.message || 'Erreur lors de la suppression', 'danger');
-                }
-            })
-            .catch(() => showToast('Erreur lors de la suppression', 'danger'));
-    }
-}
-
-// ============================================================
-// GESTION DES FICHIERS (UPLOAD)
-// ============================================================
-
-function handleFiles(files) {
-    const fileArray = files instanceof FileList ? Array.from(files) : files;
-    let errors = [];
-    let validCount = 0;
-    
-    const currentCounts = {
-        images: state.uploadedFiles.images.length,
-        videos: state.uploadedFiles.videos.length,
-        documents: state.uploadedFiles.documents.length
-    };
-    
-    for (const file of fileArray) {
-        const type = detectFileType(file);
-        
-        if (type === 'unknown') {
-            errors.push(`❌ ${file.name}: Type non supporté`);
-            continue;
-        }
-        
-        const limit = FILE_LIMITS[type];
-        if (currentCounts[type] >= limit.max) {
-            errors.push(`❌ ${file.name}: Limite de ${limit.max} ${type} atteinte`);
-            continue;
-        }
-        
-        if (file.size > limit.maxSize) {
-            const sizeMB = (limit.maxSize / (1024 * 1024)).toFixed(0);
-            errors.push(`❌ ${file.name}: Taille max ${sizeMB} Mo dépassée`);
-            continue;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const fileData = {
-                name: file.name,
-                size: file.size,
-                type: type,
-                mimeType: file.type,
-                data: e.target.result,
-                file: file,
-                id: Date.now() + '_' + Math.random().toString(36).substr(2, 5)
-            };
-            
-            state.uploadedFiles[type].push(fileData);
-            currentCounts[type]++;
-            validCount++;
-            addFilePreview(fileData);
-            updateFileStats();
-        };
-        reader.readAsDataURL(file);
-    }
-    
-    errors.forEach(err => showToast(err, 'warning'));
-    if (validCount === 0 && fileArray.length > 0) {
-        showToast('⚠️ Aucun fichier valide ajouté', 'warning');
-    }
-}
-
-function addFilePreview(fileData) {
-    const container = document.getElementById('filePreviewContainer');
-    
-    const div = document.createElement('div');
-    div.className = `file-preview-item file-type-${fileData.type}`;
-    div.dataset.fileId = fileData.id;
-    
-    let previewContent = '';
-    if (fileData.type === 'images') {
-        previewContent = `<img src="${fileData.data}" alt="${fileData.name}" class="file-preview-image">`;
-    } else if (fileData.type === 'videos') {
-        previewContent = `
-            <div class="file-preview-video">
-                <i class="fas fa-play-circle"></i>
-                <span>${fileData.name}</span>
-            </div>
-        `;
-    } else {
-        const icon = getFileIcon(fileData.name);
-        previewContent = `
-            <div class="file-preview-document">
-                <i class="fas ${icon}"></i>
-                <span class="file-name">${fileData.name}</span>
-            </div>
+    var html = '<div class="post-files-container" style="margin-top: 10px;">';
+    for (var j = 0; j < validFichiers.length; j++) {
+        var fichier = validFichiers[j];
+        var icon = getFileIcon(fichier.nom);
+        var displayName = fichier.nom || 'Fichier ' + (j + 1);
+        html += `
+            <a href="` + fichier.url + `" target="_blank" class="file-download-link" download 
+               style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 15px; margin-bottom: 6px; background: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6; text-decoration: none; color: #343a40; transition: all 0.3s;">
+                <i class="` + icon + `" style="font-size: 18px; color: #198754;"></i>
+                <span style="font-weight: 500;">` + escapeHtml(displayName) + `</span>
+                <i class="fas fa-download" style="margin-left: auto; color: #6c757d;"></i>
+            </a>
         `;
     }
+    html += '<div style="font-size: 0.7rem; color: #6c757d; margin-top: 4px;">' + validFichiers.length + ' fichier(s) joint(s)</div>';
+    html += '</div>';
     
-    const sizeLabel = fileData.size > 1024 * 1024 
-        ? (fileData.size / (1024 * 1024)).toFixed(1) + ' Mo' 
-        : (fileData.size / 1024).toFixed(1) + ' Ko';
-    
-    div.innerHTML = `
-        <div class="file-preview-content">
-            ${previewContent}
-            <div class="file-info">
-                <span class="file-name">${fileData.name}</span>
-                <span class="file-size">${sizeLabel}</span>
-            </div>
-            <button class="remove-file" onclick="removeFile('${fileData.id}')" title="Supprimer">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-    
-    container.appendChild(div);
-}
-
-function removeFile(fileId) {
-    for (const type of ['images', 'videos', 'documents']) {
-        const index = state.uploadedFiles[type].findIndex(f => f.id === fileId);
-        if (index > -1) {
-            state.uploadedFiles[type].splice(index, 1);
-            break;
-        }
-    }
-    
-    const item = document.querySelector(`.file-preview-item[data-file-id="${fileId}"]`);
-    if (item) item.remove();
-    updateFileStats();
-}
-
-function updateFileStats() {
-    const total = state.uploadedFiles.images.length + 
-                  state.uploadedFiles.videos.length + 
-                  state.uploadedFiles.documents.length;
-    
-    const stats = document.getElementById('fileStats');
-    if (total === 0) {
-        stats.style.display = 'none';
-        return;
-    }
-    
-    stats.style.display = 'block';
-    document.getElementById('fileCount').textContent = total;
-    
-    let totalSize = 0;
-    ['images', 'videos', 'documents'].forEach(type => {
-        state.uploadedFiles[type].forEach(f => totalSize += f.size);
-    });
-    document.getElementById('fileSize').textContent = (totalSize / (1024 * 1024)).toFixed(1) + ' Mo';
-}
-
-function resetFiles() {
-    state.uploadedFiles = { images: [], videos: [], documents: [] };
-    document.getElementById('filePreviewContainer').innerHTML = '';
-    document.getElementById('fileStats').style.display = 'none';
-    document.getElementById('postFiles').value = '';
+    return html;
 }
 
 // ============================================================
@@ -1395,10 +893,17 @@ function resetFiles() {
 // ============================================================
 
 function openImageModal(postId, imageIndex) {
-    const post = state.posts.find(p => p.id === postId);
+    var post = null;
+    for (var i = 0; i < state.posts.length; i++) {
+        if (state.posts[i].id === postId) {
+            post = state.posts[i];
+            break;
+        }
+    }
     if (!post) return;
     
     state.currentImages = post.images || [];
+    
     if (state.currentImages.length === 0) {
         showToast('Aucune image à afficher', 'info');
         return;
@@ -1406,9 +911,15 @@ function openImageModal(postId, imageIndex) {
     
     state.currentImageIndex = Math.min(imageIndex, state.currentImages.length - 1);
     
-    const modal = document.getElementById('imageModal');
-    document.getElementById('modalImage').src = state.currentImages[state.currentImageIndex] || '';
-    document.getElementById('imageCounter').textContent = `${state.currentImageIndex + 1} / ${state.currentImages.length}`;
+    var modal = document.getElementById('imageModal');
+    var img = document.getElementById('modalImage');
+    var counter = document.getElementById('imageCounter');
+    
+    img.src = state.currentImages[state.currentImageIndex] || '';
+    counter.textContent = (state.currentImageIndex + 1) + ' / ' + state.currentImages.length;
+    
+    document.getElementById('prevImageBtn').style.display = state.currentImages.length > 1 ? 'flex' : 'none';
+    document.getElementById('nextImageBtn').style.display = state.currentImages.length > 1 ? 'flex' : 'none';
     
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -1427,11 +938,637 @@ function navigateImage(direction) {
     if (state.currentImageIndex >= state.currentImages.length) state.currentImageIndex = 0;
     
     document.getElementById('modalImage').src = state.currentImages[state.currentImageIndex] || '';
-    document.getElementById('imageCounter').textContent = `${state.currentImageIndex + 1} / ${state.currentImages.length}`;
+    document.getElementById('imageCounter').textContent = (state.currentImageIndex + 1) + ' / ' + state.currentImages.length;
 }
 
 // ============================================================
-// MODALE PUBLIER
+// PAGINATION
+// ============================================================
+
+function updatePagination() {
+    var pageNumbers = document.getElementById('pageNumbers');
+    var prevBtn = document.getElementById('prevPage');
+    var nextBtn = document.getElementById('nextPage');
+    
+    if (state.totalPages <= 1) {
+        pageNumbers.innerHTML = '';
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        return;
+    }
+    
+    var html = '';
+    var maxVisible = 5;
+    var start = Math.max(1, state.currentPage - Math.floor(maxVisible / 2));
+    var end = Math.min(state.totalPages, start + maxVisible - 1);
+    
+    if (end - start < maxVisible - 1) {
+        start = Math.max(1, end - maxVisible + 1);
+    }
+    
+    if (start > 1) {
+        html += '<span class="num-item" onclick="goToPage(1)">1</span>';
+        if (start > 2) html += '<span class="num-item">...</span>';
+    }
+    
+    for (var i = start; i <= end; i++) {
+        html += '<span class="num-item ' + (i === state.currentPage ? 'active-num' : '') + '" onclick="goToPage(' + i + ')">' + i + '</span>';
+    }
+    
+    if (end < state.totalPages) {
+        if (end < state.totalPages - 1) html += '<span class="num-item">...</span>';
+        html += '<span class="num-item" onclick="goToPage(' + state.totalPages + ')">' + state.totalPages + '</span>';
+    }
+    
+    pageNumbers.innerHTML = html;
+    prevBtn.disabled = state.currentPage === 1;
+    nextBtn.disabled = state.currentPage === state.totalPages;
+}
+
+function goToPage(page) {
+    if (page === state.currentPage || state.isLoading) return;
+    state.currentPage = page;
+    loadPosts(page, state.currentCategory);
+    document.getElementById('postsFeed').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ============================================================
+// INTERACTIONS
+// ============================================================
+
+async function handleLike(postId) {
+    try {
+        var result = await toggleLike(postId);
+        if (result.status === 'success') {
+            var countSpan = document.getElementById('likes-count-' + postId);
+            if (countSpan && result.data) {
+                countSpan.textContent = result.data.total_likes || 0;
+            }
+            
+            var postCard = document.querySelector('.custom-post-card[data-id="' + postId + '"]');
+            if (postCard) {
+                var likeBtn = postCard.querySelector('.trigger-btn:first-child');
+                var counterItem = postCard.querySelector('.counter-item:first-child');
+                
+                if (likeBtn) {
+                    var isLiked = result.data.liked || false;
+                    likeBtn.innerHTML = '<i class="' + (isLiked ? 'fas' : 'far') + ' fa-thumbs-up"></i> ' + (isLiked ? 'Aimé' : 'Liker');
+                    likeBtn.classList.toggle('liked', isLiked);
+                }
+                
+                if (counterItem) {
+                    var icon = counterItem.querySelector('i');
+                    if (icon) {
+                        icon.className = result.data.liked ? 'fas fa-thumbs-up' : 'far fa-thumbs-up';
+                    }
+                }
+            }
+            
+            showToast(result.message, 'success');
+        } else {
+            showToast(result.message || 'Erreur lors du like', 'danger');
+        }
+    } catch (error) {
+        logError('Erreur like', error);
+        showToast('Erreur lors du like', 'danger');
+    }
+}
+
+function toggleComments(postId) {
+    var commentsSection = document.getElementById('comments-list-' + postId);
+    if (!commentsSection) return;
+    
+    var isVisible = commentsSection.style.display !== 'none';
+    
+    if (isVisible) {
+        commentsSection.style.display = 'none';
+    } else {
+        commentsSection.style.display = 'block';
+        var innerContainer = document.getElementById('comments-list-inner-' + postId);
+        if (innerContainer && innerContainer.querySelector('.fa-spinner')) {
+            loadComments(postId);
+        }
+    }
+}
+
+async function loadComments(postId) {
+    try {
+        var result = await apiCall('/publications/' + postId, {
+            method: 'GET'
+        });
+        
+        var commentsContainer = document.getElementById('comments-list-inner-' + postId);
+        if (!commentsContainer) return;
+        
+        if (result.status === 'success' && result.data) {
+            var publication = result.data;
+            var comments = publication.commentaires || [];
+            
+            if (comments.length === 0) {
+                commentsContainer.innerHTML = `
+                    <div class="text-center text-muted py-2" style="font-size: 13px;">
+                        <i class="far fa-comment-dots"></i> Aucun commentaire pour le moment
+                    </div>
+                `;
+                return;
+            }
+            
+            var html = '';
+            for (var i = 0; i < comments.length; i++) {
+                var comment = comments[i];
+                var userName = comment.user?.name || 'Utilisateur';
+                var userAvatar = getAvatarUrl(comment.user?.photo_url, userName);
+                var date = comment.created_at ? new Date(comment.created_at).toLocaleDateString('fr-FR') : 'N/A';
+                
+                html += `
+                    <div class="comment-item d-flex gap-2 py-2" style="border-bottom: 1px solid #e9ecef;">
+                        <img src="` + userAvatar + `" 
+                             alt="` + userName + `" 
+                             style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;"
+                             onerror="this.src='https://ui-avatars.com/api/?name=User&background=4F46E5&color=fff'">
+                        <div style="flex: 1;">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <strong style="font-size: 13px;">` + escapeHtml(userName) + `</strong>
+                                <span style="font-size: 11px; color: #6c757d;">` + date + `</span>
+                            </div>
+                            <p style="font-size: 13px; margin: 2px 0 0 0; color: #343a40;">` + escapeHtml(comment.contenu || '') + `</p>
+                        </div>
+                    </div>
+                `;
+            }
+            commentsContainer.innerHTML = html;
+        } else {
+            commentsContainer.innerHTML = `
+                <div class="text-center text-muted py-2" style="font-size: 13px;">
+                    <i class="fas fa-exclamation-triangle"></i> Erreur lors du chargement des commentaires
+                </div>
+            `;
+        }
+    } catch (error) {
+        logError('Erreur chargement commentaires', error);
+        var commentsContainer = document.getElementById('comments-list-inner-' + postId);
+        if (commentsContainer) {
+            commentsContainer.innerHTML = `
+                <div class="text-center text-danger py-2" style="font-size: 13px;">
+                    <i class="fas fa-exclamation-circle"></i> Erreur de chargement
+                </div>
+            `;
+        }
+    }
+}
+
+function attachCommentFormEvents() {
+    var forms = document.querySelectorAll('.comment-form');
+    for (var i = 0; i < forms.length; i++) {
+        var form = forms[i];
+        form.removeEventListener('submit', handleCommentSubmit);
+        form.addEventListener('submit', handleCommentSubmit);
+    }
+}
+
+async function handleCommentSubmit(e) {
+    e.preventDefault();
+    
+    var form = e.target;
+    var postId = parseInt(form.dataset.postId, 10);
+    var input = document.getElementById('comment-input-' + postId);
+    var content = input.value.trim();
+    
+    if (!content) {
+        showToast('Veuillez écrire un commentaire', 'warning');
+        return;
+    }
+    
+    // ✅ Vérifier que content est une chaîne non vide
+    if (content.length < 1) {
+        showToast('Le commentaire est trop court', 'warning');
+        return;
+    }
+    
+    var submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    try {
+        // ✅ Correction : S'assurer que le champ est bien 'contenu'
+        var payload = {
+            contenu: content
+        };
+        
+        log('📤 Envoi commentaire pour le post ' + postId, payload);
+        
+        var result = await apiCall('/publications/' + postId + '/comments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (result.status === 'success') {
+            showToast('Commentaire ajouté avec succès !', 'success');
+            input.value = '';
+            
+            var countSpan = document.getElementById('comments-count-' + postId);
+            if (countSpan) {
+                var currentCount = parseInt(countSpan.textContent, 10) || 0;
+                countSpan.textContent = currentCount + 1;
+            }
+            
+            // Recharger les commentaires
+            await loadComments(postId);
+        } else {
+            // ✅ Afficher les erreurs de validation
+            var errorMsg = result.message || 'Erreur lors de l\'ajout du commentaire';
+            if (result.errors) {
+                var errors = [];
+                for (var field in result.errors) {
+                    if (result.errors.hasOwnProperty(field)) {
+                        errors.push(field + ': ' + result.errors[field].join(', '));
+                    }
+                }
+                errorMsg = errors.join('\n');
+            }
+            showToast(errorMsg, 'danger');
+        }
+    } catch (error) {
+        logError('Erreur commentaire', error);
+        var errorMsg = error.message || 'Erreur lors de l\'ajout du commentaire';
+        if (error.errors) {
+            var errors = [];
+            for (var field in error.errors) {
+                if (error.errors.hasOwnProperty(field)) {
+                    errors.push(field + ': ' + error.errors[field].join(', '));
+                }
+            }
+            errorMsg = errors.join('\n');
+        }
+        showToast(errorMsg, 'danger');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer';
+    }
+}
+
+function toggleFullContent(postId) {
+    var post = null;
+    for (var i = 0; i < state.posts.length; i++) {
+        if (state.posts[i].id === postId) {
+            post = state.posts[i];
+            break;
+        }
+    }
+    if (!post) {
+        showToast('Publication non trouvée', 'danger');
+        return;
+    }
+    
+    var postCard = document.querySelector('.custom-post-card[data-id="' + postId + '"]');
+    if (!postCard) {
+        showToast('Élément non trouvé', 'warning');
+        return;
+    }
+    
+    var contentParagraph = postCard.querySelector('.post-text-content');
+    if (!contentParagraph) return;
+    
+    var isFull = contentParagraph.dataset.full === 'true';
+    
+    if (isFull) {
+        var resume = post.resume || truncateText(post.contenu || '', 200);
+        contentParagraph.innerHTML = resume + ' <span class="read-more-btn" onclick="toggleFullContent(' + postId + ')">plus...</span>';
+        contentParagraph.dataset.full = 'false';
+    } else {
+        var fullContent = post.contenu || 'Contenu non disponible';
+        var formattedContent = fullContent.replace(/\n/g, '<br>');
+        contentParagraph.innerHTML = formattedContent + ' <span class="read-more-btn" onclick="toggleFullContent(' + postId + ')">moins...</span>';
+        contentParagraph.dataset.full = 'true';
+    }
+}
+
+async function handleShare(postId) {
+    var post = null;
+    for (var i = 0; i < state.posts.length; i++) {
+        if (state.posts[i].id === postId) {
+            post = state.posts[i];
+            break;
+        }
+    }
+    if (!post) {
+        showToast('Publication non trouvée', 'danger');
+        return;
+    }
+    
+    // ✅ Utiliser une interface plus moderne
+    var choix = prompt(
+        'Choisissez une plateforme de partage :\n\n' +
+        '1. WhatsApp\n2. Facebook\n3. Twitter\n4. Copier le lien\n\n' +
+        'Entrez le numéro (1-4) :'
+    );
+    
+    // ✅ Gérer l'annulation
+    if (choix === null) {
+        showToast('Partage annulé', 'info');
+        return;
+    }
+    
+    var plateformes = {
+        '1': 'whatsapp',
+        '2': 'facebook', 
+        '3': 'twitter',
+        '4': 'copie_lien'
+    };
+    var plateforme = plateformes[choix.trim()];
+    
+    if (!plateforme) {
+        showToast('Option invalide. Veuillez choisir entre 1 et 4.', 'warning');
+        return;
+    }
+    
+    // ✅ Correction : Envoyer le bon format pour le partage
+    var payload = {
+        plateforme: plateforme
+    };
+    
+    log('📤 Partage publication ' + postId + ' sur ' + plateforme, payload);
+    
+    try {
+        var result = await apiCall('/publications/' + postId + '/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (result.status === 'success') {
+            var url = result.data?.share_url || window.location.href;
+            
+            if (plateforme === 'copie_lien') {
+                try {
+                    await navigator.clipboard.writeText(url);
+                    showToast('Lien copié dans le presse-papier !', 'success');
+                } catch {
+                    // Fallback: proposer de copier manuellement
+                    var copyInput = document.createElement('input');
+                    copyInput.value = url;
+                    document.body.appendChild(copyInput);
+                    copyInput.select();
+                    document.execCommand('copy');
+                    copyInput.remove();
+                    showToast('Lien copié !', 'success');
+                }
+            } else {
+                window.open(url, '_blank');
+                showToast('Partage effectué !', 'success');
+            }
+            
+            // ✅ Recharger pour mettre à jour le compteur de partages
+            await loadPosts(state.currentPage, state.currentCategory);
+        } else {
+            // ✅ Afficher les erreurs de validation
+            var errorMsg = result.message || 'Erreur lors du partage';
+            if (result.errors) {
+                var errors = [];
+                for (var field in result.errors) {
+                    if (result.errors.hasOwnProperty(field)) {
+                        errors.push(field + ': ' + result.errors[field].join(', '));
+                    }
+                }
+                errorMsg = errors.join('\n');
+            }
+            showToast(errorMsg, 'danger');
+        }
+    } catch (error) {
+        logError('Erreur partage', error);
+        var errorMsg = error.message || 'Erreur lors du partage';
+        if (error.errors) {
+            var errors = [];
+            for (var field in error.errors) {
+                if (error.errors.hasOwnProperty(field)) {
+                    errors.push(field + ': ' + error.errors[field].join(', '));
+                }
+            }
+            errorMsg = errors.join('\n');
+        }
+        showToast(errorMsg, 'danger');
+    }
+}
+
+// ============================================================
+// CRUD PUBLICATIONS
+// ============================================================
+
+function editPost(postId) {
+    var post = null;
+    for (var i = 0; i < state.posts.length; i++) {
+        if (state.posts[i].id === postId) {
+            post = state.posts[i];
+            break;
+        }
+    }
+    if (!post) {
+        showToast('Publication non trouvée', 'danger');
+        return;
+    }
+    
+    document.getElementById('postTitle').value = post.titre || '';
+    document.getElementById('postCategory').value = post.categorie || 'conseil';
+    document.getElementById('postContent').value = post.contenu || '';
+    document.getElementById('publishError').style.display = 'none';
+    
+    resetFiles();
+    
+    var submitBtn = document.getElementById('publishSubmitBtn');
+    submitBtn.innerHTML = '<i class="fas fa-save"></i> Mettre à jour';
+    submitBtn.dataset.editId = postId;
+    
+    openPublishModal();
+}
+
+function deletePostConfirm(postId) {
+    var post = null;
+    for (var i = 0; i < state.posts.length; i++) {
+        if (state.posts[i].id === postId) {
+            post = state.posts[i];
+            break;
+        }
+    }
+    if (!post) {
+        showToast('Publication non trouvée', 'danger');
+        return;
+    }
+    
+    if (confirm('Êtes-vous sûr de vouloir supprimer "' + post.titre + '" ?')) {
+        deletePost(postId)
+            .then(function(result) {
+                if (result.status === 'success') {
+                    showToast('Publication supprimée avec succès', 'success');
+                    loadPosts(state.currentPage, state.currentCategory);
+                } else {
+                    showToast(result.message || 'Erreur lors de la suppression', 'danger');
+                }
+            })
+            .catch(function() {
+                showToast('Erreur lors de la suppression', 'danger');
+            });
+    }
+}
+
+// ============================================================
+// GESTION DES FICHIERS (UPLOAD)
+// ============================================================
+
+function handleFiles(files) {
+    var fileArray = files instanceof FileList ? Array.from(files) : files;
+    var errors = [];
+    var validCount = 0;
+    
+    var currentCounts = {
+        images: state.uploadedFiles.images.length,
+        videos: state.uploadedFiles.videos.length,
+        documents: state.uploadedFiles.documents.length
+    };
+    
+    for (var i = 0; i < fileArray.length; i++) {
+        var file = fileArray[i];
+        var type = detectFileType(file);
+        
+        if (type === 'unknown') {
+            errors.push('❌ ' + file.name + ': Type non supporté');
+            continue;
+        }
+        
+        var limit = FILE_LIMITS[type];
+        if (currentCounts[type] >= limit.max) {
+            errors.push('❌ ' + file.name + ': Limite de ' + limit.max + ' ' + type + ' atteinte');
+            continue;
+        }
+        
+        if (file.size > limit.maxSize) {
+            var sizeMB = (limit.maxSize / (1024 * 1024)).toFixed(0);
+            errors.push('❌ ' + file.name + ': Taille max ' + sizeMB + ' Mo dépassée');
+            continue;
+        }
+        
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var fileData = {
+                name: file.name,
+                size: file.size,
+                type: type,
+                mimeType: file.type,
+                data: e.target.result,
+                file: file,
+                id: Date.now() + '_' + Math.random().toString(36).substr(2, 5)
+            };
+            
+            state.uploadedFiles[type].push(fileData);
+            currentCounts[type]++;
+            validCount++;
+            addFilePreview(fileData);
+            updateFileStats();
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    for (var j = 0; j < errors.length; j++) {
+        showToast(errors[j], 'warning');
+    }
+    if (validCount === 0 && fileArray.length > 0) {
+        showToast('⚠️ Aucun fichier valide ajouté', 'warning');
+    }
+}
+
+function addFilePreview(fileData) {
+    var container = document.getElementById('filePreviewContainer');
+    
+    var div = document.createElement('div');
+    div.className = 'file-preview-item file-type-' + fileData.type;
+    div.dataset.fileId = fileData.id;
+    
+    var previewContent = '';
+    if (fileData.type === 'images') {
+        previewContent = '<img src="' + fileData.data + '" alt="' + fileData.name + '" class="file-preview-image">';
+    } else if (fileData.type === 'videos') {
+        previewContent = `
+            <div class="file-preview-video">
+                <i class="fas fa-play-circle"></i>
+                <span>` + fileData.name + `</span>
+            </div>
+        `;
+    } else {
+        var icon = getFileIcon(fileData.name);
+        previewContent = `
+            <div class="file-preview-document">
+                <i class="fas ` + icon + `"></i>
+                <span class="file-name">` + fileData.name + `</span>
+            </div>
+        `;
+    }
+    
+    var sizeLabel = fileData.size > 1024 * 1024 
+        ? (fileData.size / (1024 * 1024)).toFixed(1) + ' Mo' 
+        : (fileData.size / 1024).toFixed(1) + ' Ko';
+    
+    div.innerHTML = `
+        <div class="file-preview-content">
+            ` + previewContent + `
+            <div class="file-info">
+                <span class="file-name">` + fileData.name + `</span>
+                <span class="file-size">` + sizeLabel + `</span>
+            </div>
+            <button class="remove-file" onclick="removeFile('` + fileData.id + `')" title="Supprimer">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    container.appendChild(div);
+}
+
+function removeFile(fileId) {
+    for (var type in state.uploadedFiles) {
+        if (state.uploadedFiles.hasOwnProperty(type)) {
+            var index = state.uploadedFiles[type].findIndex(function(f) { return f.id === fileId; });
+            if (index > -1) {
+                state.uploadedFiles[type].splice(index, 1);
+                break;
+            }
+        }
+    }
+    
+    var item = document.querySelector('.file-preview-item[data-file-id="' + fileId + '"]');
+    if (item) item.remove();
+    updateFileStats();
+}
+
+function updateFileStats() {
+    var total = state.uploadedFiles.images.length + 
+                state.uploadedFiles.videos.length + 
+                state.uploadedFiles.documents.length;
+    
+    var stats = document.getElementById('fileStats');
+    if (total === 0) {
+        stats.style.display = 'none';
+        return;
+    }
+    
+    stats.style.display = 'block';
+    document.getElementById('fileCount').textContent = total;
+    
+    var totalSize = 0;
+    ['images', 'videos', 'documents'].forEach(function(type) {
+        state.uploadedFiles[type].forEach(function(f) { totalSize += f.size; });
+    });
+    document.getElementById('fileSize').textContent = (totalSize / (1024 * 1024)).toFixed(1) + ' Mo';
+}
+
+function resetFiles() {
+    state.uploadedFiles = { images: [], videos: [], documents: [] };
+    document.getElementById('filePreviewContainer').innerHTML = '';
+    document.getElementById('fileStats').style.display = 'none';
+    document.getElementById('postFiles').value = '';
+}
+
+// ============================================================
+// MODALES
 // ============================================================
 
 function openPublishModal() {
@@ -1443,7 +1580,7 @@ function closePublishModal() {
     document.getElementById('publishModal').style.display = 'none';
     document.body.style.overflow = '';
     
-    const submitBtn = document.getElementById('publishSubmitBtn');
+    var submitBtn = document.getElementById('publishSubmitBtn');
     submitBtn.dataset.editId = '';
     submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publier';
     document.getElementById('publishError').style.display = 'none';
@@ -1456,15 +1593,15 @@ function closePublishModal() {
 document.getElementById('publishForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    const submitBtn = document.getElementById('publishSubmitBtn');
-    const errorDiv = document.getElementById('publishError');
+    var submitBtn = document.getElementById('publishSubmitBtn');
+    var errorDiv = document.getElementById('publishError');
     errorDiv.style.display = 'none';
     errorDiv.className = 'alert alert-danger';
     
-    const title = document.getElementById('postTitle').value.trim();
-    const category = document.getElementById('postCategory').value;
-    const content = document.getElementById('postContent').value.trim();
-    const editId = submitBtn.dataset.editId;
+    var title = document.getElementById('postTitle').value.trim();
+    var category = document.getElementById('postCategory').value;
+    var content = document.getElementById('postContent').value.trim();
+    var editId = submitBtn.dataset.editId;
     
     if (!title) {
         showToast('⚠️ Veuillez saisir un titre', 'warning');
@@ -1490,25 +1627,25 @@ document.getElementById('publishForm').addEventListener('submit', async function
         return;
     }
     
-    const formData = new FormData();
+    var formData = new FormData();
     formData.append('titre', title);
     formData.append('categorie', category);
     formData.append('contenu', content);
     
     if (state.uploadedFiles.images.length > 0) {
-        state.uploadedFiles.images.forEach(file => {
+        state.uploadedFiles.images.forEach(function(file) {
             formData.append('images[]', file.file);
         });
     }
     
     if (state.uploadedFiles.videos.length > 0) {
-        state.uploadedFiles.videos.forEach(file => {
+        state.uploadedFiles.videos.forEach(function(file) {
             formData.append('videos[]', file.file);
         });
     }
     
     if (state.uploadedFiles.documents.length > 0) {
-        state.uploadedFiles.documents.forEach(file => {
+        state.uploadedFiles.documents.forEach(function(file) {
             formData.append('documents[]', file.file);
         });
     }
@@ -1521,9 +1658,9 @@ document.getElementById('publishForm').addEventListener('submit', async function
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> En cours...';
     
     try {
-        let endpoint = editId ? `/publications/${editId}` : '/publications';
+        var endpoint = editId ? '/publications/' + editId : '/publications';
         
-        const result = await apiCall(endpoint, {
+        var result = await apiCall(endpoint, {
             method: 'POST',
             body: formData
         });
@@ -1535,15 +1672,19 @@ document.getElementById('publishForm').addEventListener('submit', async function
             document.getElementById('postContent').value = '';
             submitBtn.dataset.editId = '';
             
-            const msg = editId ? '✅ Publication mise à jour avec succès !' : '✅ Article publié avec succès !';
+            var msg = editId ? '✅ Publication mise à jour avec succès !' : '✅ Article publié avec succès !';
             showToast(msg, 'success');
             
-            setTimeout(() => loadPosts(1, state.currentCategory), 500);
+            setTimeout(function() {
+                loadPosts(1, state.currentCategory);
+            }, 500);
         } else {
             if (result.errors) {
-                let messages = [];
-                for (const [field, errors] of Object.entries(result.errors)) {
-                    messages.push(`📌 ${field}: ${errors.join(', ')}`);
+                var messages = [];
+                for (var field in result.errors) {
+                    if (result.errors.hasOwnProperty(field)) {
+                        messages.push('📌 ' + field + ': ' + result.errors[field].join(', '));
+                    }
                 }
                 errorDiv.innerHTML = messages.join('<br>');
                 errorDiv.style.display = 'block';
@@ -1565,9 +1706,11 @@ document.getElementById('publishForm').addEventListener('submit', async function
         logError('Erreur publication', error);
         
         if (error.errors) {
-            let messages = [];
-            for (const [field, errors] of Object.entries(error.errors)) {
-                messages.push(`📌 ${field}: ${errors.join(', ')}`);
+            var messages = [];
+            for (var field in error.errors) {
+                if (error.errors.hasOwnProperty(field)) {
+                    messages.push('📌 ' + field + ': ' + error.errors[field].join(', '));
+                }
             }
             errorDiv.innerHTML = messages.join('<br>');
             errorDiv.style.display = 'block';
@@ -1594,17 +1737,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (!CONFIG.TOKEN) {
         showToast('Non connecté. Redirection...', 'danger');
-        setTimeout(() => window.location.href = '/auth/login', 2000);
+        setTimeout(function() {
+            window.location.href = '/auth/login';
+        }, 2000);
         return;
     }
     
     loadPosts(1, 'all');
     
-    // Événements des onglets
-    document.querySelectorAll('.tab-item').forEach(tab => {
+    document.querySelectorAll('.tab-item').forEach(function(tab) {
         tab.addEventListener('click', function(e) {
             e.preventDefault();
-            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active-tab'));
+            document.querySelectorAll('.tab-item').forEach(function(t) { t.classList.remove('active-tab'); });
             this.classList.add('active-tab');
             
             state.currentCategory = this.dataset.tab;
@@ -1613,23 +1757,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Événements des modales
     document.getElementById('openPublishModal').addEventListener('click', openPublishModal);
     document.getElementById('closePublishModal').addEventListener('click', closePublishModal);
     document.getElementById('cancelPublish').addEventListener('click', closePublishModal);
     document.getElementById('closeImageModal').addEventListener('click', closeImageModal);
     
-    // Navigation image
-    document.getElementById('prevImageBtn').addEventListener('click', () => navigateImage(-1));
-    document.getElementById('nextImageBtn').addEventListener('click', () => navigateImage(1));
+    document.getElementById('prevImageBtn').addEventListener('click', function() { navigateImage(-1); });
+    document.getElementById('nextImageBtn').addEventListener('click', function() { navigateImage(1); });
     
-    // Fermeture modales sur clic externe
     window.addEventListener('click', function(e) {
         if (e.target === document.getElementById('publishModal')) closePublishModal();
         if (e.target === document.getElementById('imageModal')) closeImageModal();
     });
     
-    // Raccourcis clavier
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             if (document.getElementById('publishModal').style.display === 'flex') closePublishModal();
@@ -1643,20 +1783,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Pagination
-    document.getElementById('prevPage').addEventListener('click', () => {
+    document.getElementById('prevPage').addEventListener('click', function() {
         if (state.currentPage > 1) goToPage(state.currentPage - 1);
     });
-    document.getElementById('nextPage').addEventListener('click', () => {
+    document.getElementById('nextPage').addEventListener('click', function() {
         goToPage(state.currentPage + 1);
     });
     
-    // Upload de fichiers
-    const fileUploadArea = document.getElementById('fileUploadArea');
-    const postFiles = document.getElementById('postFiles');
+    var fileUploadArea = document.getElementById('fileUploadArea');
+    var postFiles = document.getElementById('postFiles');
     
     if (fileUploadArea) {
-        fileUploadArea.addEventListener('click', () => postFiles.click());
+        fileUploadArea.addEventListener('click', function() { postFiles.click(); });
         fileUploadArea.addEventListener('dragover', function(e) {
             e.preventDefault();
             this.style.borderColor = '#198754';
@@ -1686,38 +1824,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // ✅ Fonction de debug dans la console
-    window.testFetchPosts = async function() {
-        console.log('🧪 TEST DE RÉCUPÉRATION DES PUBLICATIONS');
-        try {
-            const result = await fetchPosts(1, 'all');
-            console.log('📦 Résultat complet:', result);
-            
-            console.log('🔍 Structures possibles:');
-            console.log('  - result.data:', result.data);
-            console.log('  - result.data.data:', result.data?.data);
-            console.log('  - result.data.data[0]:', result.data?.data?.[0]);
-            console.log('  - result.data[0]:', result.data?.[0]);
-            
-            let count = 0;
-            if (Array.isArray(result.data)) {
-                count = result.data.length;
-            } else if (result.data && typeof result.data === 'object') {
-                for (const key of Object.keys(result.data)) {
-                    if (Array.isArray(result.data[key])) {
-                        console.log(`  - result.data.${key}: ${result.data[key].length} éléments`);
-                        count += result.data[key].length;
-                    }
-                }
-            }
-            console.log(`📊 Total éléments trouvés: ${count}`);
-            
-            return result;
-        } catch (error) {
-            console.error('❌ Erreur test:', error);
-        }
-    };
-    
     log('✅ Blog initialisé avec succès');
 });
 
@@ -1725,7 +1831,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // STYLES DYNAMIQUES
 // ============================================================
 
-const style = document.createElement('style');
+var style = document.createElement('style');
 style.textContent = `
     .custom-toast {
         position: fixed;
@@ -1974,6 +2080,36 @@ style.textContent = `
     .liked i { font-weight: 900 !important; }
     .trigger-btn.liked { background: rgba(220, 53, 69, 0.1); }
     
+    .counter-item {
+        cursor: pointer;
+        transition: all 0.2s;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+    .counter-item:hover {
+        background: rgba(0,0,0,0.05);
+    }
+    .counter-item i {
+        transition: all 0.2s;
+    }
+    .counter-item:hover i {
+        transform: scale(1.1);
+    }
+    
+    .comments-section {
+        animation: slideDown 0.3s ease;
+    }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .comment-item:last-child { border-bottom: none !important; }
+    .comment-item:hover { background: rgba(0,0,0,0.02); }
+    .comment-form input:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
+    }
+    
     @media (max-width: 768px) {
         .image-row { grid-template-columns: repeat(2, 1fr); }
         .blog-main-title { font-size: 1.2rem; }
@@ -1985,55 +2121,7 @@ style.textContent = `
     @media (max-width: 480px) {
         .image-row { grid-template-columns: 1fr 1fr; gap: 4px; }
     }
-        
-    .comments-section {
-        animation: slideDown 0.3s ease;
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .comment-item:last-child {
-        border-bottom: none !important;
-    }
-
-    .comment-item:hover {
-        background: rgba(0,0,0,0.02);
-    }
-
-    .counter-item {
-        cursor: pointer;
-        transition: all 0.2s;
-        padding: 2px 6px;
-        border-radius: 4px;
-    }
-
-    .counter-item:hover {
-        background: rgba(0,0,0,0.05);
-    }
-
-    .counter-item i {
-        transition: all 0.2s;
-    }
-
-    .counter-item:hover i {
-        transform: scale(1.1);
-    }
-
-    .comment-form input:focus {
-        border-color: #198754;
-        box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
-    }
 `;
 document.head.appendChild(style);
 </script>
-
-@endsection
+@endpush

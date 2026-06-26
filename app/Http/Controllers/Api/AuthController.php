@@ -634,6 +634,23 @@ class AuthController extends Controller
         }
     }
 
+    /**
+ * Récupérer la liste des utilisateurs (pour la messagerie)
+ */
+public function getUsers(Request $request): JsonResponse
+{
+    $excludeId = $request->get('exclude', auth()->id());
+    
+    $users = User::where('id', '!=', $excludeId)
+        ->where('status', 'active')
+        ->select('id', 'name', 'email', 'photo_url', 'role', 'type_elevage', 'commune')
+        ->orderBy('name')
+        ->limit(50)
+        ->get();
+    
+    return $this->successResponse($users);
+}
+
     // ========== MÉTHODES PRIVÉES ==========
 
     /**

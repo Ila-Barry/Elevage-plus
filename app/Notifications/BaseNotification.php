@@ -6,7 +6,7 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Messages\MailMessage; // ← AJOUT
+use Illuminate\Notifications\Messages\MailMessage;
 use NotificationChannels\WebPush\WebPushMessage;
 
 abstract class BaseNotification extends Notification implements ShouldQueue
@@ -19,6 +19,7 @@ abstract class BaseNotification extends Notification implements ShouldQueue
     protected string $type = 'info';
     protected ?string $url = null;
     protected ?string $icon = null;
+    protected array $actions = [];
 
     public function via($notifiable): array
     {
@@ -28,7 +29,7 @@ abstract class BaseNotification extends Notification implements ShouldQueue
             $channels[] = 'mail';
         }
         
-        if ($notifiable->web_notifications ?? false) {
+        if (config('webpush.enabled', false) && ($notifiable->web_notifications ?? false)) {
             $channels[] = 'webpush';
         }
         
@@ -38,11 +39,13 @@ abstract class BaseNotification extends Notification implements ShouldQueue
     public function toDatabase($notifiable): array
     {
         return [
+            'id' => uniqid(),
             'title' => $this->title,
             'message' => $this->message,
             'type' => $this->type,
             'icon' => $this->getIcon(),
             'url' => $this->url,
+            'actions' => $this->actions,
             'timestamp' => now()->toIso8601String(),
         ];
     }
@@ -51,7 +54,7 @@ abstract class BaseNotification extends Notification implements ShouldQueue
     {
         $mail = (new MailMessage)
             ->subject($this->title)
-            ->greeting('Bonjour ' . $notifiable->name . ' !')
+            ->greeting('Bonjour ' . ($notifiable->name ?? 'Utilisateur') . ' !')
             ->line($this->message)
             ->line($this->getAdditionalInfo());
         
@@ -59,7 +62,7 @@ abstract class BaseNotification extends Notification implements ShouldQueue
             $mail->action('Voir les détails', url($this->url));
         }
         
-        return $mail;
+        return $mail->salutation('L\'équipe Élevage+');
     }
 
     public function toWebPush($notifiable, $notification): WebPushMessage

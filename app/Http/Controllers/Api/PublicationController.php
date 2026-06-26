@@ -634,8 +634,9 @@ class PublicationController extends Controller
         $publication = Publication::findOrFail($id);
         $user = $request->user();
 
-        $request->validate([
-            'plateforme' => 'required|string|in:' . implode(',', Share::PLATEFORMES),
+        // ✅ Validation des données
+        $validated = $request->validate([
+            'plateforme' => 'required|string|in:whatsapp,facebook,twitter,copie_lien,linkedin',
         ]);
 
         DB::beginTransaction();
@@ -644,7 +645,7 @@ class PublicationController extends Controller
             Share::create([
                 'publication_id' => $publication->id,
                 'user_id' => $user->id,
-                'plateforme' => $request->plateforme,
+                'plateforme' => $validated['plateforme'],
             ]);
 
             $publication->incrementPartages();
@@ -652,7 +653,7 @@ class PublicationController extends Controller
             DB::commit();
 
             // Générer l'URL de partage
-            $shareUrl = $this->generateShareUrl($publication, $request->plateforme);
+            $shareUrl = $this->generateShareUrl($publication, $validated['plateforme']);
 
             return $this->successResponse([
                 'share_url' => $shareUrl,

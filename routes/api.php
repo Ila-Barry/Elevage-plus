@@ -53,6 +53,7 @@ Route::prefix('auth')->group(function () {
 
 // Routes protégées (nécessitent authentification)
 Route::middleware(['auth:api'])->prefix('auth')->group(function () {
+    Route::get('/users', [AuthController::class, 'getUsers'])->name('api.auth.users');
     // Gestion de session
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
@@ -220,6 +221,7 @@ Route::middleware(['auth:api'])->prefix('taches')->group(function () {
 */
 
 Route::middleware(['auth:api'])->prefix('messaging')->group(function () {
+    Route::get('/users', [MessageController::class, 'getAllUsersForMessaging']); 
     Route::get('/conversations', [MessageController::class, 'getConversations']);
     Route::get('/conversations/{conversationId}/messages', [MessageController::class, 'getMessages']);
     Route::post('/conversations/{conversationId}/read', [MessageController::class, 'markConversationAsRead']);
@@ -230,20 +232,19 @@ Route::middleware(['auth:api'])->prefix('messaging')->group(function () {
     Route::get('/unread-count', [MessageController::class, 'getUnreadCount']);
 });
 
-/*
-|--------------------------------------------------------------------------
-| API Routes - Notifications
-|--------------------------------------------------------------------------
-*/
+// ============================================================
+// ROUTES DE NOTIFICATIONS
+// ============================================================
 
 Route::middleware(['auth:api'])->prefix('notifications')->group(function () {
-    Route::get('/', [NotificationController::class, 'index']);
-    Route::get('/unread', [NotificationController::class, 'unread']);
-    Route::get('/stats', [NotificationController::class, 'stats']);
-    Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
-    Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
-    Route::delete('/{id}', [NotificationController::class, 'destroy']);
-    Route::delete('/', [NotificationController::class, 'destroyAll']);
+    Route::get('/', [App\Http\Controllers\Api\NotificationController::class, 'index']);
+    Route::get('/unread', [App\Http\Controllers\Api\NotificationController::class, 'unread']);
+    Route::get('/stats', [App\Http\Controllers\Api\NotificationController::class, 'stats']);
+    Route::post('/{id}/read', [App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
+    Route::post('/read-all', [App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
+    Route::delete('/{id}', [App\Http\Controllers\Api\NotificationController::class, 'destroy']);
+    Route::delete('/', [App\Http\Controllers\Api\NotificationController::class, 'destroyAll']);
+    Route::get('/by-type/{type}', [App\Http\Controllers\Api\NotificationController::class, 'byType']);
 });
 
 
