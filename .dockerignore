@@ -7,7 +7,6 @@
 /.env.example
 /.env.render
 /.dockerignore
-/Dockerfile
 /README.md
 /.postman
 /postman
@@ -20,5 +19,4 @@
 /.phpunit.result.cache
 /.vscode
 /.idea
-/package-lock.json
 # NE PAS EXCLURE start.sh !!!
