@@ -1,0 +1,25 @@
+# .dockerignore
+/node_modules
+/.env
+/.git
+/.github
+/.gitignore
+/.env.example
+/.env.render
+/.dockerignore
+/Dockerfile
+/start.sh
+/README.md
+/.postman
+/postman
+/tests
+/storage/*.log
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/app/*
+/.phpunit.result.cache
+/.vscode
+/.idea
+/composer.lock
+/package-lock.json
