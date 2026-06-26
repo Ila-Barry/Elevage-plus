@@ -11,9 +11,7 @@ use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\ElevageController;
 use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\TacheController;
-
 use App\Http\Controllers\Api\MessageController;
-
 use App\Http\Controllers\Api\NotificationController;
 
 // api admin controllers
@@ -23,11 +21,8 @@ use App\Http\Controllers\Api\Admin\AdminReportController;
 use App\Http\Controllers\Api\Admin\AdminDashboardController;
 use App\Http\Controllers\Api\Admin\AdminNewsletterController;
 
-
 use Illuminate\Http\Request;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
-
-
+use Illuminate\Foundation\Auth\EmailVerificationNotification;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,25 +34,26 @@ Route::prefix('home')->group(function () {
     Route::get('/posts', [HomeController::class, 'getPosts']);
     Route::get('/stats', [HomeController::class, 'getStats']);
 });
+
 Route::prefix('profile')->group(function () {
     Route::get('/{id}', [ProfileController::class, 'apiShow']);
     Route::get('/{id}/posts', [ProfileController::class, 'apiPosts']);
     Route::post('/{id}/follow', [ProfileController::class, 'toggleFollow'])->middleware('auth:api');
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | API Routes - Authentification
 |--------------------------------------------------------------------------
 */
-// gere la redirection vers la route de login pour les utilisateurs non authentifiés
-Route::get('/login', function () {
+
+// ✅ CHANGEMENT ICI : Renommer la route pour éviter le conflit
+Route::get('/unauthorized', function () {
     return response()->json([
         'success' => false,
         'message' => 'Non authentifié. Veuillez vous connecter.'
     ], 401);
-})->name('login');
+})->name('api.unauthorized'); // ✅ Nom unique
 
 // Routes publiques (sans authentification)
 Route::prefix('auth')->group(function () {
@@ -95,7 +91,6 @@ Route::middleware(['auth:api'])->prefix('auth')->group(function () {
 
 // Routes réservées aux administrateurs
 Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
-    // Les routes admin seront ajoutées plus tard
     Route::get('/dashboard', function () {
         return response()->json(['message' => 'Bienvenue administrateur']);
     });
@@ -143,7 +138,6 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin/publications')->group(fu
     Route::delete('/reports/{id}', [PublicationController::class, 'adminDeleteReport']);
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | API Routes - Produits et Stocks
@@ -176,7 +170,6 @@ Route::middleware(['auth:api'])->prefix('stock')->group(function () {
     Route::get('/rapport', [StockController::class, 'rapport']);
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | API Routes - Élevages
@@ -196,7 +189,6 @@ Route::middleware(['auth:api'])->prefix('elevages')->group(function () {
     Route::patch('/{id}/statut', [ElevageController::class, 'changeStatut']);
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | API Routes - Animaux
@@ -213,6 +205,7 @@ Route::middleware(['auth:api'])->prefix('animaux')->group(function () {
     Route::delete('/{id}', [AnimalController::class, 'destroy']);
     Route::get('/all', [AnimalController::class, 'getAll']);
 });
+
 /*
 |--------------------------------------------------------------------------
 | API Routes - Tâches
@@ -230,7 +223,7 @@ Route::middleware(['auth:api'])->prefix('taches')->group(function () {
     Route::delete('/{id}', [TacheController::class, 'destroy']);
     
     // Actions spécifiques
-  Route::patch('/{id}/complete', [TacheController::class, 'complete']);
+    Route::patch('/{id}/complete', [TacheController::class, 'complete']);
 });
 
 /*
@@ -265,7 +258,6 @@ Route::middleware(['auth:api'])->prefix('notifications')->group(function () {
     Route::delete('/', [App\Http\Controllers\Api\NotificationController::class, 'destroyAll']);
     Route::get('/by-type/{type}', [App\Http\Controllers\Api\NotificationController::class, 'byType']);
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -323,8 +315,6 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
     });
 });
 
-
-
 // Route pour renvoyer l'email de vérification
 Route::post('/email/resend', function (Request $request) {
     $user = $request->user();
@@ -351,7 +341,6 @@ Route::post('/email/resend', function (Request $request) {
     ]);
 })->middleware('auth:api')->name('verification.send');
 
-
 Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
     try {
         \Log::info('Tentative de vérification email', ['user_id' => $id, 'hash' => $hash]);
@@ -370,7 +359,6 @@ Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
             ], 403);
         }
         
-        // ✅ FORCER la mise à jour du statut même si déjà vérifié
         $user->email_verified_at = now();
         $user->status = 'active';
         $user->save();
@@ -390,6 +378,7 @@ Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
         ], 500);
     }
 })->middleware(['signed'])->name('verification.verify');
+
 /*
 |--------------------------------------------------------------------------
 | API Routes - Dashboard et Statistiques

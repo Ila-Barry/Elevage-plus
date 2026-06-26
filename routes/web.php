@@ -18,15 +18,15 @@ use Illuminate\Support\Facades\Auth;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/profilEleveur/{id}', [ProfileController::class, 'show'])->name('profile.show');
 
-
 // ========== ROUTES D'AUTHENTIFICATION ==========
+// ✅ CHANGEMENT ICI : Renommer pour éviter le conflit
 Route::get('/auth/login', function () {
     return view('auth/login');
-})->name('login');
+})->name('web.login'); // ✅ Nom unique
 
 Route::get('/auth/register', function () {
     return view('auth/register');
-})->name('register');
+})->name('web.register'); // ✅ Nom unique
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/logout', function () {
@@ -49,7 +49,7 @@ Route::middleware(['auth'])->group(function () {
         $user = Auth::user();
         
         if (!$user) {
-            return redirect('/auth/login');
+            return redirect()->route('web.login'); // ✅ Utiliser le nouveau nom
         }
         
         // Statistiques
@@ -68,7 +68,7 @@ Route::middleware(['auth'])->group(function () {
         $user = Auth::user();
         
         if (!$user) {
-            return redirect('/auth/login');
+            return redirect()->route('web.login'); // ✅ Utiliser le nouveau nom
         }
         
         // Récupérer les statistiques
@@ -87,7 +87,7 @@ Route::middleware(['auth'])->group(function () {
         $user = Auth::user();
         
         if (!$user) {
-            return redirect('/auth/login');
+            return redirect()->route('web.login');
         }
         
         return view('elevages', compact('user'));
@@ -120,28 +120,27 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // ========== ROUTES ADMIN (AUTHENTIFIÉ + ADMIN) ==========
-// Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    
-    Route::get('/admin/dashboard', function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', function () {
         return view('admin/dashboard');
     })->name('admin.dashboard');
     
-    Route::get('/admin/utilisateur', function () {
+    Route::get('/utilisateur', function () {
         return view('admin/utilisateur');
     });
     
-    Route::get('/admin/publication', function () {
+    Route::get('/publication', function () {
         return view('admin/publication');
     });
     
-    Route::get('/admin/signale', function () {
+    Route::get('/signale', function () {
         return view('admin/signale');
     });
     
-    Route::get('/admin/statistique', function () {
+    Route::get('/statistique', function () {
         return view('admin/statistique');
     });
-// });
+});
 
 // ========== VÉRIFICATION D'EMAIL ==========
 Route::get('/verify-email', function (Request $request) {
