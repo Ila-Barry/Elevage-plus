@@ -1,4 +1,4 @@
-# Dockerfile pour Laravel 10
+# Dockerfile simplifié
 FROM php:8.2-apache
 
 # Installation des dépendances système
@@ -31,29 +31,24 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Configuration d'Apache
 RUN a2enmod rewrite
 
-# Configuration du DocumentRoot
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# Copier composer.json et composer.lock d'abord
-COPY composer.json composer.lock /var/www/html/
-
-# Installer les dépendances avec gestion des vulnérabilités
-RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts \
-    && composer run-script post-autoload-dump
-
-# Copier le reste du projet
+# Copier TOUT le projet en une seule fois
 COPY . /var/www/html/
+
+# Installer les dépendances (maintenant artisan existe)
+RUN composer install --no-interaction --optimize-autoloader --no-dev
 
 # Permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
-# Installer les dépendances Node
+# Node.js
 RUN npm install && npm run build
 
 # Optimiser Laravel
@@ -62,7 +57,6 @@ RUN php artisan config:cache \
     && php artisan view:cache \
     && php artisan event:cache
 
-# Script de démarrage
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
