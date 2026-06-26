@@ -4,6 +4,8 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Web\AuthController;
+use App\Http\Controllers\Web\HomeController;
+use App\Http\Controllers\Web\ProfileController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -13,9 +15,9 @@ use Illuminate\Support\Facades\Auth;
 */
 
 // ========== ROUTES PUBLIQUES ==========
-Route::get('/', function () {
-    return view('home');
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/profilEleveur/{id}', [ProfileController::class, 'show'])->name('profile.show');
+
 
 // ========== ROUTES D'AUTHENTIFICATION ==========
 Route::get('/auth/login', function () {
@@ -42,11 +44,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
-    
-    // Profil
-    Route::get('/profilEleveur', function () {
-        return view('profilEleveur');
-    });
     
     Route::get('/auth/profile', function () {
         $user = Auth::user();

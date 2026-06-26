@@ -2,6 +2,8 @@
 
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Web\HomeController;
+use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PublicationController;
 use App\Http\Controllers\Api\ProduitController;
@@ -25,6 +27,23 @@ use App\Http\Controllers\Api\Admin\AdminNewsletterController;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
+
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Home (Public)
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('home')->group(function () {
+    Route::get('/posts', [HomeController::class, 'getPosts']);
+    Route::get('/stats', [HomeController::class, 'getStats']);
+});
+Route::prefix('profile')->group(function () {
+    Route::get('/{id}', [ProfileController::class, 'apiShow']);
+    Route::get('/{id}/posts', [ProfileController::class, 'apiPosts']);
+    Route::post('/{id}/follow', [ProfileController::class, 'toggleFollow'])->middleware('auth:api');
+});
 
 
 /*
