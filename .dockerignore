@@ -20,6 +20,5 @@
 /.phpunit.result.cache
 /.vscode
 /.idea
-/composer.lock
 /package-lock.json
 # NE PAS EXCLURE start.sh !!!
