@@ -25,6 +25,8 @@ use App\Notifications\{
     NewShareNotification,
     PublicationReportedNotification,
     ReportResolvedNotification,
+    BaseNotification,
+    AdminAlertNotification,
 };
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -221,14 +223,7 @@ class AlertService
         try {
             $admins = User::where('role', 'admin')->get();
             foreach ($admins as $admin) {
-                $admin->notify(new class($title, $message, $type) extends BaseNotification {
-                    public function __construct(string $title, string $message, string $type)
-                    {
-                        $this->title = $title;
-                        $this->message = $message;
-                        $this->type = $type;
-                    }
-                });
+                $admin->notify(new AdminAlertNotification($title, $message, $type));
             }
             Log::info("Alerte admin envoyée: {$title}");
         } catch (\Exception $e) {

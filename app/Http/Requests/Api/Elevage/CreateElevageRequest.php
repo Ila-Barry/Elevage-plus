@@ -90,7 +90,7 @@ class CreateElevageRequest extends ApiRequest
                 'nullable',
                 'image',
                 'mimes:jpeg,png,jpg,webp',
-                'max:2048',
+                'max:5048',
             ],
         ];
     }
@@ -123,7 +123,7 @@ class CreateElevageRequest extends ApiRequest
             'email_contact.email' => 'L\'email de contact n\'est pas valide.',
             
             'image.image' => 'Le fichier doit être une image.',
-            'image.max' => 'L\'image ne doit pas dépasser 2 Mo.',
+            'image.max' => 'L\'image ne doit pas dépasser 5 Mo.',
         ];
     }
 
