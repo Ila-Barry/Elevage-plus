@@ -4,21 +4,27 @@
 echo "🚀 Démarrage de l'application Élevage+ sur Render"
 echo "=================================================="
 
-# 1. Nettoyer les caches de build Docker pour forcer la lecture des variables Render
+# 1. Créer physiquement tous les dossiers requis par le framework s'ils manquent
+echo "📂 Vérification et création des dossiers de stockage..."
+mkdir -p /var/www/html/storage/framework/cache/data
+mkdir -p /var/www/html/storage/framework/views
+mkdir -p /var/www/html/storage/framework/sessions
+mkdir -p /var/www/html/storage/logs
+
+# 2. Nettoyer les caches de build Docker pour forcer la lecture des variables Render
 php artisan config:clear
 php artisan cache:clear
 php artisan route:clear
 
-# 2. Configuration injectée (Vérification dans les logs)
+# 3. Configuration injectée (Vérification dans les logs)
 echo "📋 Configuration lue depuis Render :"
 echo "  APP_ENV: $APP_ENV"
 echo "  DB_HOST: $DB_HOST"
 echo "  DB_PORT: $DB_PORT"
 echo "  DB_DATABASE: $DB_DATABASE"
 echo "  DB_USERNAME: $DB_USERNAME"
-echo "  MYSQL_ATTR_SSL_CA: $MYSQL_ATTR_SSL_CA"
 
-# 3. Fonction native PHP pour tester la connexion avec le bon chemin SSL
+# 4. Fonction native PHP pour tester la connexion avec le bon chemin SSL
 check_database() {
     php -r "
     try {
@@ -34,7 +40,7 @@ check_database() {
     "
 }
 
-# 4. Attendre la base de données Aiven
+# 5. Attendre la base de données Aiven
 echo "⏳ Attente de la base de données Aiven..."
 for i in {1..20}; do
     if check_database; then
@@ -45,22 +51,27 @@ for i in {1..20}; do
     sleep 3
 done
 
-# 5. Exécuter les migrations
+# 6. Exécuter les migrations
 echo "📦 Exécution des migrations..."
 php artisan migrate --force
 
-# 6. Recréer l'optimisation proprement pour la production (sans view:cache)
+# 7. Recréer l'optimisation proprement pour la production
 echo "⚡ Optimisation finale de Laravel..."
 php artisan config:cache
 php artisan route:cache
 
-# 7. Lancer les services d'arrière-plan
+# 🚨 FIX CRITIQUE PERMISSIONS : Réattribuer tout le stockage à Apache (www-data)
+echo "🔐 Application des permissions www-data sur storage..."
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# 8. Lancer les services d'arrière-plan
 echo "🔄 Démarrage du worker de queue..."
 php artisan queue:work --daemon --quiet &
 
 echo "⏰ Démarrage du scheduler..."
 nohup php artisan schedule:work > /var/log/scheduler.log 2>&1 &
 
-# 8. Démarrer Apache au premier plan
+# 9. Démarrer Apache au premier plan
 echo "🌐 Démarrage du serveur Apache..."
 exec apache2-foreground
