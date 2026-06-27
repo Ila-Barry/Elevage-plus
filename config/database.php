@@ -23,9 +23,8 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => filter_var(env('MYSQL_ATTR_SSL_VERIFY_SERVER_CERT', false), FILTER_VALIDATE_BOOLEAN),
                 PDO::ATTR_EMULATE_PREPARES => true,
-                PDO::ATTR_TIMEOUT => 30,
+                PDO::ATTR_TIMEOUT => 5,
             ]) : [],
         ],
     ],
