@@ -19,6 +19,11 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/profilEleveur/{id}', [ProfileController::class, 'show'])->name('profile.show');
 
 // ========== ROUTES D'AUTHENTIFICATION ==========
+Route::get('/login', function () {
+    return view('auth/login');
+})->name('login');
+
+
 // ✅ CHANGEMENT ICI : Renommer pour éviter le conflit
 Route::get('/auth/login', function () {
     return view('auth/login');
