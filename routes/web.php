@@ -19,6 +19,11 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/profilEleveur/{id}', [ProfileController::class, 'show'])->name('profile.show');
 
 // ========== ROUTES D'AUTHENTIFICATION ==========
+Route::get('/login', function () {
+    return view('auth/login');
+})->name('login');
+
+
 // ✅ CHANGEMENT ICI : Renommer pour éviter le conflit
 Route::get('/auth/login', function () {
     return view('auth/login');
@@ -120,27 +125,27 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // ========== ROUTES ADMIN (AUTHENTIFIÉ + ADMIN) ==========
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', function () {
+// Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/admin/dashboard', function () {
         return view('admin/dashboard');
     })->name('admin.dashboard');
     
-    Route::get('/utilisateur', function () {
+    Route::get('/admin/utilisateur', function () {
         return view('admin/utilisateur');
     });
     
-    Route::get('/publication', function () {
+    Route::get('/admin/publication', function () {
         return view('admin/publication');
     });
     
-    Route::get('/signale', function () {
+    Route::get('/admin/signale', function () {
         return view('admin/signale');
     });
     
-    Route::get('/statistique', function () {
+    Route::get('/admin/statistique', function () {
         return view('admin/statistique');
     });
-});
+// });
 
 // ========== VÉRIFICATION D'EMAIL ==========
 Route::get('/verify-email', function (Request $request) {
