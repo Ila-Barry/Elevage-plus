@@ -1115,117 +1115,488 @@ Suivante →
 
 </div>
 
-            <div class="modal" id="editUserModal">
+                <!-- ==========================================
+                    MODALE MODIFIER UTILISATEUR
+                ========================================== -->
+
+                <!-- La fenêtre complète de la modale -->
+                <div class="modal" id="editUserModal">
 
 
-            <div class="modal-content">
-
-
-            <h2>
-            ✏️ Modifier l'utilisateur :
-            <span id="editNameTitle"></span>
-            </h2>
-
-
-
-            <form>
-
-
-            <label>
-            Nom complet
-            </label>
-
-            <input 
-            type="text"
-            id="editName"
-            >
+                    <!-- Contenu blanc de la fenêtre -->
+                    <div class="modal-content edit-modal">
 
 
 
-            <label>
-            Email
-            </label>
-
-            <input 
-            type="email"
-            id="editEmail"
-            >
-
-
-
-            <label>
-            📍 Localisation
-            </label>
-
-            <input 
-            type="text"
-            id="editLocalisation"
-            >
-
-
-
-            <label>
-            🐄 Type d'élevage
-            </label>
-
-            <input 
-            type="text"
-            id="editElevage"
-            >
-
-
-
-            <label>
-            👑 Rôle
-            </label>
-
-            <select id="editRole">
-
-            <option>Eleveur</option>
-
-            <option>Visiteur</option>
-
-            <option>Admin</option>
-
-            </select>
+                        <!-- Titre dynamique :
+                            Le nom sera remplacé automatiquement par JS -->
+                        <h2>
+                            ✏️ Modifier l'utilisateur :
+                            <span id="editNameTitle"></span>
+                        </h2>
 
 
 
 
-            <div class="modal-buttons">
-
-
-            <button 
-            type="button"
-            class="btn-close"
-            id="closeEditModal">
-
-            Annuler
-
-            </button>
+                        <!-- Formulaire modification -->
+                        <form>
 
 
 
-            <button 
-            type="submit"
-            class="btn-save">
+                            <!-- =========================
+                                NOM UTILISATEUR
+                            ========================== -->
 
-            Enregistrer
-
-            </button>
-
-
-            </div>
+                            <label>
+                                👤 Nom complet <span>*</span>
+                            </label>
 
 
+                            <!--
+                                L'id permet au JavaScript
+                                de récupérer et modifier cette valeur
+                            -->
+                            <input 
+                            id="editName"
+                            type="text">
 
-            </form>
 
 
-            </div>
 
 
-            </div>
+                            <!-- =========================
+                                EMAIL
+                            ========================== -->
+
+                            <label>
+                                📧 Email <span>*</span>
+                            </label>
+
+
+                            <input 
+                            id="editEmail"
+                            type="email">
+
+
+
+
+
+
+                            <!-- =========================
+                                LOCALISATION
+                            ========================== -->
+
+
+                            <label>
+                                📍 LOCALISATION <span>*</span>
+                            </label>
+
+ <select name="localisation">
+
+
+               <option value="">
+                  -- Choisir une ville --
+               </option>
+
+
+
+               <!-- REGION DAKAR -->
+
+               <optgroup label="🌆 Région de Dakar">
+
+                  <option value="dakar">Dakar</option>
+                  <option value="pikine">Pikine</option>
+                  <option value="guediawaye">Guédiawaye</option>
+                  <option value="rufisque">Rufisque</option>
+                  <option value="keur-massar">Keur Massar</option>
+                  <option value="bargny">Bargny</option>
+                  <option value="diamniadio">Diamniadio</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION THIES -->
+
+               <optgroup label="🏖️ Région de Thiès">
+
+                  <option value="thies">Thiès</option>
+                  <option value="mbour">Mbour</option>
+                  <option value="tivaouane">Tivaouane</option>
+                  <option value="joal">Joal-Fadiouth</option>
+                  <option value="khombole">Khombole</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION DIOURBEL -->
+
+               <optgroup label="🕌 Région de Diourbel">
+
+                  <option value="diourbel">Diourbel</option>
+                  <option value="touba">Touba</option>
+                  <option value="mbacke">Mbacké</option>
+                  <option value="bambey">Bambey</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION SAINT-LOUIS -->
+
+               <optgroup label="🌊 Région de Saint-Louis">
+
+                  <option value="saint-louis">Saint-Louis</option>
+                  <option value="podor">Podor</option>
+                  <option value="dagana">Dagana</option>
+                  <option value="richard-toll">Richard-Toll</option>
+                  <option value="rosso">Rosso</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION KAOLACK -->
+
+               <optgroup label="🌿 Région de Kaolack">
+
+                  <option value="kaolack">Kaolack</option>
+                  <option value="nioro">Nioro du Rip</option>
+                  <option value="guinguineo">Guinguinéo</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION FATICK -->
+
+               <optgroup label="🌴 Région de Fatick">
+
+                  <option value="fatick">Fatick</option>
+                  <option value="foundiougne">Foundiougne</option>
+                  <option value="gossas">Gossas</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION LOUGA -->
+
+               <optgroup label="🐪 Région de Louga">
+
+                  <option value="louga">Louga</option>
+                  <option value="kebemer">Kébémer</option>
+                  <option value="linguere">Linguère</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION ZIGUINCHOR -->
+
+               <optgroup label="🌴 Région de Ziguinchor">
+
+                  <option value="ziguinchor">Ziguinchor</option>
+                  <option value="bignona">Bignona</option>
+                  <option value="oussouye">Oussouye</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION KOLDA -->
+
+               <optgroup label="🌳 Région de Kolda">
+
+                  <option value="kolda">Kolda</option>
+                  <option value="velingara">Vélingara</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION MATAM -->
+
+               <optgroup label="🐫 Région de Matam">
+
+                  <option value="matam">Matam</option>
+                  <option value="ourossogui">Ourossogui</option>
+                  <option value="kanel">Kanel</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION TAMBACOUNDA -->
+
+               <optgroup label="🌍 Région de Tambacounda">
+
+                  <option value="tambacounda">Tambacounda</option>
+                  <option value="bake">Bakel</option>
+                  <option value="koumpentoum">Koumpentoum</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION KAFFRINE -->
+
+               <optgroup label="🌾 Région de Kaffrine">
+
+                  <option value="kaffrine">Kaffrine</option>
+                  <option value="koungheul">Koungheul</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION KEDOUGOU -->
+
+               <optgroup label="⛰️ Région de Kédougou">
+
+                  <option value="kedougou">Kédougou</option>
+
+               </optgroup>
+
+
+
+
+               <!-- REGION SEDHIOU -->
+
+               <optgroup label="🌿 Région de Sédhiou">
+
+                  <option value="sedhiou">Sédhiou</option>
+                  <option value="goudomp">Goudomp</option>
+                  <option value="bounkiling">Bounkiling</option>
+
+               </optgroup>
+
+
+
+               </select>
+
+
+
+
+
+                            <!-- =========================
+                                TYPE ELEVAGE
+                            ========================== -->
+
+
+                            <label>
+                                🐄 TYPE(s) ELEVAGE <span>*</span>
+                            </label>
+
+
+
+                            <select id="editElevage">
+
+
+                                <option>Bovin</option>
+
+                                <option>Volaille</option>
+
+                                <option>Ovin</option>
+
+                                <option>Caprin</option>
+
+                                <option>Pisciculture</option>
+
+
+                            </select>
+
+
+
+
+
+
+
+
+                            <!-- =========================
+                                ROLE UTILISATEUR
+                            ========================== -->
+
+
+                            <label>
+                                👑 Rôle <span>*</span>
+                            </label>
+
+
+
+                            <select id="editRole">
+
+
+                                <option>Eleveur</option>
+
+                                <option>Visiteur</option>
+
+                                <option>Admin</option>
+
+
+                            </select>
+
+
+
+
+
+
+
+                            <!-- Séparation visuelle -->
+                            <hr>
+
+
+
+
+
+
+
+
+                            <!-- =========================
+                                STATUT DU COMPTE
+                            ========================== -->
+
+
+                            <label>
+                                🔒 Statut du compte
+                            </label>
+
+
+
+
+                            <div class="status-choice">
+
+
+                                <!-- Compte actif -->
+
+                                <label>
+
+                                    Actif
+
+
+                                    <input 
+                                    type="radio"
+                                    name="status"
+                                    value="actif"
+                                    checked
+                                    >
+
+                                </label>
+
+
+
+
+                                <!-- Compte banni -->
+
+                                <label>
+
+                                    Banni
+
+
+                                    <input 
+                                    type="radio"
+                                    name="status"
+                                    value="banni"
+                                    >
+
+                                </label>
+
+
+
+                            </div>
+
+
+
+
+
+
+
+                            <!-- =========================
+                                MOTIF DU BANNISSEMENT
+                            ========================== -->
+
+
+                            <label>
+                                📝 Motif du bannissement
+                                (si banni)
+                            </label>
+
+
+
+                            <textarea 
+                            id="banReason"
+                            placeholder="Publications inappropriées répétées">
+                            </textarea>
+
+
+
+
+
+
+
+
+                            <!-- =========================
+                                BOUTONS
+                            ========================== -->
+
+
+                            <div class="modal-buttons">
+
+
+                                <!-- Fermer la fenêtre -->
+
+                                <button 
+                                type="button"
+                                id="closeEditModal"
+                                class="btn-close">
+
+                                    ANNULER
+
+                                </button>
+
+
+
+
+
+                                <!-- Sauvegarder -->
+
+                                <button 
+                                type="submit"
+                                class="btn-save">
+
+
+                                    ENREGISTRER
+
+
+                                </button>
+
+
+
+                            </div>
+
+
+
+                        </form>
+
+
+
+                    </div>
+
+
+                </div>
 
 <script>
 
@@ -1309,6 +1680,90 @@ function togglePasswords(){
     }
 
 }
+
+</script>
+<script>
+
+
+const editModal = document.getElementById('editUserModal');
+
+
+const editName = document.getElementById('editName');
+const editEmail = document.getElementById('editEmail');
+const editLocalisation = document.getElementById('editLocalisation');
+const editElevage = document.getElementById('editElevage');
+const editRole = document.getElementById('editRole');
+
+const editTitle = document.getElementById('editNameTitle');
+
+
+
+document.addEventListener('click', function(e){
+
+
+    const button = e.target.closest('.btn-edit');
+
+
+    if(button){
+
+
+        editModal.classList.add('show');
+
+        document.body.classList.add('modal-open');
+
+
+        editName.value = button.dataset.name;
+
+        editEmail.value = button.dataset.email;
+
+        editLocalisation.value = button.dataset.localisation;
+
+        editElevage.value = button.dataset.elevage;
+
+        editRole.value = button.dataset.role;
+
+
+        editTitle.textContent = button.dataset.name;
+
+
+    }
+
+
+});
+
+
+
+
+
+document.getElementById('closeEditModal')
+.addEventListener('click',()=>{
+
+
+    editModal.classList.remove('show');
+
+    document.body.classList.remove('modal-open');
+
+
+});
+
+
+
+window.addEventListener('click',(e)=>{
+
+
+    if(e.target === editModal){
+
+
+        editModal.classList.remove('show');
+
+        document.body.classList.remove('modal-open');
+
+
+    }
+
+
+});
+
 
 </script>
 @endsection
