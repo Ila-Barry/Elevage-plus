@@ -4,32 +4,27 @@
 echo "🚀 Démarrage de l'application Élevage+ sur Render"
 echo "=================================================="
 
-# 1. Utiliser le bon fichier d'environnement pour la production
-if [ -f "/var/www/html/.env.render" ]; then
-    echo "📝 Application du fichier .env.render..."
-    cp /var/www/html/.env.render /var/www/html/.env
-fi
-
-# 2. Forcer le nettoyage des caches générés pendant le build Docker
+# 1. Nettoyer les caches de build Docker pour forcer la lecture des variables Render
 php artisan config:clear
 php artisan cache:clear
 php artisan route:clear
 
-# 3. Charger les variables d'environnement à jour pour l'affichage de contrôle
-echo "📋 Configuration injectée :"
+# 2. Configuration injectée (Vérification dans les logs)
+echo "📋 Configuration lue depuis Render :"
 echo "  APP_ENV: $APP_ENV"
-echo "  DB_HOST: mysql-35ac8206-barryila20-f192.h.aivencloud.com"
-echo "  DB_PORT: 12747"
-echo "  DB_DATABASE: defaultdb"
-echo "  DB_USERNAME: avnadmin"
+echo "  DB_HOST: $DB_HOST"
+echo "  DB_PORT: $DB_PORT"
+echo "  DB_DATABASE: $DB_DATABASE"
+echo "  DB_USERNAME: $DB_USERNAME"
+echo "  MYSQL_ATTR_SSL_CA: $MYSQL_ATTR_SSL_CA"
 
-# 4. Fonction native PHP pour tester la connexion avec SSL obligatoire pour Aiven
+# 3. Fonction native PHP pour tester la connexion avec le bon chemin SSL
 check_database() {
     php -r "
     try {
         \$db = new PDO('mysql:host=' . getenv('DB_HOST') . ';port=' . getenv('DB_PORT') . ';dbname=' . getenv('DB_DATABASE'), getenv('DB_USERNAME'), getenv('DB_PASSWORD'), [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::MYSQL_ATTR_SSL_CA => getenv('MYSQL_ATTR_SSL_CA')
+            PDO::MYSQL_ATTR_SSL_CA => getenv('MYSQL_ATTR_SSL_CA') ?: '/var/www/html/aiven-ca.pem'
         ]);
         exit(0);
     } catch (Exception \$e) {
@@ -39,28 +34,22 @@ check_database() {
     "
 }
 
-# 5. Attendre la base de données
+# 4. Attendre la base de données Aiven
 echo "⏳ Attente de la base de données Aiven..."
-DB_SUCCESS=false
-for i in {1..15}; do
+for i in {1..20}; do
     if check_database; then
         echo "✅ Base de données accessible !"
-        DB_SUCCESS=true
         break
     fi
-    echo "   Tentative $i/15... (Vérification réseau/DNS)"
+    echo "   Tentative $i/20... (Vérification SSL/Réseau)"
     sleep 3
 done
 
-# 6. Exécuter les migrations seulement si la DB a répondu
-if [ "$DB_SUCCESS" = true ]; then
-    echo "📦 Exécution des migrations..."
-    php artisan migrate --force
-else
-    echo "⚠️ La base de données n'est pas encore prête, les migrations seront exécutées au premier plan plus tard."
-fi
+# 5. Exécuter les migrations
+echo "📦 Exécution des migrations..."
+php artisan migrate --force
 
-# 7. Recréer l'optimisation proprement pour la production
+# 6. Recréer l'optimisation proprement pour la production
 echo "⚡ Optimisation finale de Laravel..."
 php artisan config:cache
 php artisan route:cache
@@ -69,13 +58,13 @@ if [ -d "/var/www/html/resources/views" ]; then
     php artisan view:cache
 fi
 
-# 8. Lancer les services d'arrière-plan
+# 7. Lancer les services d'arrière-plan
 echo "🔄 Démarrage du worker de queue..."
 php artisan queue:work --daemon --quiet &
 
 echo "⏰ Démarrage du scheduler..."
 nohup php artisan schedule:work > /var/log/scheduler.log 2>&1 &
 
-# 9. Démarrer Apache au premier plan
+# 8. Démarrer Apache au premier plan
 echo "🌐 Démarrage du serveur Apache..."
 exec apache2-foreground
