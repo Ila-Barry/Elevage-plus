@@ -41,18 +41,24 @@ check_database() {
 
 # 5. Attendre la base de données
 echo "⏳ Attente de la base de données Aiven..."
-for i in {1..30}; do
+DB_SUCCESS=false
+for i in {1..15}; do
     if check_database; then
         echo "✅ Base de données accessible !"
+        DB_SUCCESS=true
         break
     fi
-    echo "   Tentative $i/30..."
+    echo "   Tentative $i/15... (Vérification réseau/DNS)"
     sleep 3
 done
 
-# 6. Exécuter les migrations
-echo "📦 Exécution des migrations..."
-php artisan migrate --force
+# 6. Exécuter les migrations seulement si la DB a répondu
+if [ "$DB_SUCCESS" = true ]; then
+    echo "📦 Exécution des migrations..."
+    php artisan migrate --force
+else
+    echo "⚠️ La base de données n'est pas encore prête, les migrations seront exécutées au premier plan plus tard."
+fi
 
 # 7. Recréer l'optimisation proprement pour la production
 echo "⚡ Optimisation finale de Laravel..."
