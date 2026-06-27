@@ -197,9 +197,18 @@
 
 
         <!-- Modifier utilisateur -->
-        <button class="btn-edit">
+                    <button 
+            class="btn-edit"
+
+            data-name="Jean Dupont"
+            data-email="jean@email.com"
+            data-localisation="Thiès, Sénégal"
+            data-elevage="Bovin"
+            data-role="Eleveur"
+
+            >
             ✏️
-        </button>
+            </button>
 
 
 
@@ -264,9 +273,18 @@
         </button>
 
 
-        <button class="btn-edit">
+                                <button 
+            class="btn-edit"
+
+            data-name="Marie Diop"
+            data-email="marie@email.com"
+            data-localisation="Dakar, Sénégal"
+            data-elevage="Volaille"
+            data-role="Eleveur">
+
             ✏️
-        </button>
+
+            </button>
 
 
         <button class="btn-lock">
@@ -328,9 +346,18 @@
         </button>
 
 
-        <button class="btn-edit">
+                    <button 
+            class="btn-edit"
+
+            data-name="Jean Dupont"
+            data-email="jean@email.com"
+            data-localisation="Thiès, Sénégal"
+            data-elevage="Bovin"
+            data-role="Eleveur"
+
+            >
             ✏️
-        </button>
+            </button>
 
 
         <button class="btn-lock">
@@ -393,9 +420,18 @@
             👁️
         </button>
 
-        <button class="btn-edit">
+                    <button 
+            class="btn-edit"
+
+            data-name="Jean Dupont"
+            data-email="jean@email.com"
+            data-localisation="Thiès, Sénégal"
+            data-elevage="Bovin"
+            data-role="Eleveur"
+
+            >
             ✏️
-        </button>
+            </button>
 
         <button class="btn-lock">
             🔒
@@ -459,9 +495,18 @@
         </button>
 
 
-        <button class="btn-edit">
+                    <button 
+            class="btn-edit"
+
+            data-name="Jean Dupont"
+            data-email="jean@email.com"
+            data-localisation="Thiès, Sénégal"
+            data-elevage="Bovin"
+            data-role="Eleveur"
+
+            >
             ✏️
-        </button>
+            </button>
 
 
         <button class="btn-lock">
@@ -537,9 +582,18 @@
 
 
         <!-- Modifier le profil admin -->
-        <button class="btn-edit">
+                    <button 
+            class="btn-edit"
+
+            data-name="Jean Dupont"
+            data-email="jean@email.com"
+            data-localisation="Thiès, Sénégal"
+            data-elevage="Bovin"
+            data-role="Eleveur"
+
+            >
             ✏️
-        </button>
+            </button>
 
 
 
@@ -1060,6 +1114,118 @@ Suivante →
 
 
 </div>
+
+            <div class="modal" id="editUserModal">
+
+
+            <div class="modal-content">
+
+
+            <h2>
+            ✏️ Modifier l'utilisateur :
+            <span id="editNameTitle"></span>
+            </h2>
+
+
+
+            <form>
+
+
+            <label>
+            Nom complet
+            </label>
+
+            <input 
+            type="text"
+            id="editName"
+            >
+
+
+
+            <label>
+            Email
+            </label>
+
+            <input 
+            type="email"
+            id="editEmail"
+            >
+
+
+
+            <label>
+            📍 Localisation
+            </label>
+
+            <input 
+            type="text"
+            id="editLocalisation"
+            >
+
+
+
+            <label>
+            🐄 Type d'élevage
+            </label>
+
+            <input 
+            type="text"
+            id="editElevage"
+            >
+
+
+
+            <label>
+            👑 Rôle
+            </label>
+
+            <select id="editRole">
+
+            <option>Eleveur</option>
+
+            <option>Visiteur</option>
+
+            <option>Admin</option>
+
+            </select>
+
+
+
+
+            <div class="modal-buttons">
+
+
+            <button 
+            type="button"
+            class="btn-close"
+            id="closeEditModal">
+
+            Annuler
+
+            </button>
+
+
+
+            <button 
+            type="submit"
+            class="btn-save">
+
+            Enregistrer
+
+            </button>
+
+
+            </div>
+
+
+
+            </form>
+
+
+            </div>
+
+
+            </div>
 
 <script>
 

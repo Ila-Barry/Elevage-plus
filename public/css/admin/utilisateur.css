@@ -833,3 +833,68 @@ body.modal-open {
     background:#ddd;
 
 }
+
+
+const editButtons = document.querySelectorAll('.btn-edit');
+
+const editModal = document.getElementById('editUserModal');
+
+
+const editName = document.getElementById('editName');
+const editEmail = document.getElementById('editEmail');
+const editLocalisation = document.getElementById('editLocalisation');
+const editElevage = document.getElementById('editElevage');
+const editRole = document.getElementById('editRole');
+
+const editTitle = document.getElementById('editNameTitle');
+
+
+
+editButtons.forEach(button => {
+
+
+button.addEventListener('click', function(){
+
+
+
+editModal.classList.add('show');
+
+document.body.classList.add('modal-open');
+
+
+
+editName.value = this.dataset.name;
+
+editEmail.value = this.dataset.email;
+
+editLocalisation.value = this.dataset.localisation;
+
+editElevage.value = this.dataset.elevage;
+
+editRole.value = this.dataset.role;
+
+
+editTitle.textContent = this.dataset.name;
+
+
+
+});
+
+
+
+});
+
+
+
+
+
+document.getElementById ('closeEditModal')
+.addEventListener('click',()=>{
+
+
+editModal.classList.remove('show');
+
+document.body.classList.remove('modal-open');
+
+
+});
