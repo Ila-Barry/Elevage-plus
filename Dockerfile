@@ -46,7 +46,7 @@ RUN chmod +x /start.sh
 COPY . /var/www/html/
 
 # Désactiver HTTP2 pour Composer (Règle définitivement l'erreur HTTP/2 400 sur Render)
-RUN composer config --global http2 --false
+RUN composer config --global http2 false
 
 # Installer les dépendances PHP de production proprement
 RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
