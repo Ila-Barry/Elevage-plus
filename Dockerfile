@@ -45,11 +45,11 @@ RUN chmod +x /start.sh
 # Copier TOUT le projet
 COPY . /var/www/html/
 
-# Désactiver HTTP2 pour Composer (Règle définitivement l'erreur HTTP/2 400 sur Render)
-RUN composer config --global http2 false
+# Forcer l'utilisation de HTTP/1.1 via curl pour tout le build Docker (Règle l'erreur HTTP/2 400 de Render)
+ENV CURL_HTTP_VERSION=2
 
 # Installer les dépendances PHP de production proprement
-RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
+RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts --prefer-dist
 
 # Exécuter les scripts post-installation
 RUN composer run-script post-autoload-dump
