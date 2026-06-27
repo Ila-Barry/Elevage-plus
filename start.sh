@@ -49,14 +49,10 @@ done
 echo "📦 Exécution des migrations..."
 php artisan migrate --force
 
-# 6. Recréer l'optimisation proprement pour la production
+# 6. Recréer l'optimisation proprement pour la production (sans view:cache)
 echo "⚡ Optimisation finale de Laravel..."
 php artisan config:cache
 php artisan route:cache
-
-if [ -d "/var/www/html/resources/views" ]; then
-    php artisan view:cache
-fi
 
 # 7. Lancer les services d'arrière-plan
 echo "🔄 Démarrage du worker de queue..."
