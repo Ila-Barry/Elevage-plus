@@ -1,7 +1,8 @@
-<<<<<<< HEAD
-h1{
+/* Correction du conflit initial : fermeture de la règle h1 */
+h1 {
     color: red;
-=======
+}
+
 /* ====================================================
    publication.css – Gestion des publications
    Styles spécifiques à la page admin/publication
@@ -398,5 +399,4 @@ h1{
         height: 30px;
         font-size: 0.8rem;
     }
->>>>>>> aeff1979b9ca37eba48a485d9202e40972e4ce38
 }
