@@ -3,11 +3,15 @@ h1 {
     color: red;
 }
 
+ h1{
+    color: red;
+  }  
 /* ====================================================
    publication.css – Gestion des publications
    Styles spécifiques à la page admin/publication
    ==================================================== */
 
+   
 /* ---------- EN-TÊTE ---------- */
 .page-header {
     margin-bottom: 1.75rem;
