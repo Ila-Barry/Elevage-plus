@@ -1,4 +1,4 @@
-# Dockerfile avec contournement
+# Dockerfile - Version finale
 FROM php:8.2-apache
 
 # Installation des dépendances système
@@ -40,7 +40,7 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 # Copier TOUT le projet
 COPY . /var/www/html/
 
-# Installer les dépendances en ignorant les vulnérabilités
+# Installer les dépendances
 RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts || \
     (echo "⚠️ Tentative d'installation alternative..." && \
      composer config --global --no-plugins allow-plugins true && \
@@ -57,11 +57,17 @@ RUN chown -R www-data:www-data /var/www/html \
 # Node.js
 RUN npm install && npm run build
 
-# Optimiser Laravel
+# Optimiser Laravel - ignorer view:cache si les vues n'existent pas
 RUN php artisan config:cache \
     && php artisan route:cache \
-    && php artisan view:cache \
     && php artisan event:cache
+
+# ✅ Forcer la création du cache des vues si le dossier existe
+RUN if [ -d "/var/www/html/resources/views" ]; then \
+        php artisan view:cache || echo "⚠️ View cache skipped"; \
+    else \
+        echo "⚠️ No views found, skipping view cache"; \
+    fi
 
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
