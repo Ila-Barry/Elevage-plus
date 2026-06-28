@@ -13,10 +13,9 @@ return [
     */
 
     'defaults' => [
-        'guard' => 'web',  // Garde par défaut pour les sessions web
+        'guard' => 'api',  // ← Changer 'web' par 'api' pour utiliser JWT par défaut
         'passwords' => 'users',
     ],
-
 
     /*
     |--------------------------------------------------------------------------
@@ -40,12 +39,13 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        
+        // ✅ AJOUTER CE GUARD POUR JWT
         'api' => [
-            'driver' => 'jwt',
-            'provider' => 'users',
+            'driver' => 'jwt',        // Utilise JWT comme driver
+            'provider' => 'users',    // Utilise le provider 'users'
         ],
     ],
-
 
     /*
     |--------------------------------------------------------------------------

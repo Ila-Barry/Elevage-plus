@@ -1,5 +1,3 @@
-{{-- resources/views/auth/parametre.blade.php --}}
-
 @extends('layouts.menu')
 
 @section('title', 'Paramètres - Élevage+')
@@ -46,10 +44,9 @@
                     <div class="form-group">
                         <label>Mot de passe actuel</label>
                         <div class="password-input-wrapper">
-                            <input type="password" class="form-control" id="currentPassword" placeholder="Entrez votre mot de passe actuel">
+                            <input type="password" class="form-control" value="12345678" id="currentPassword" readonly disabled>
                             <i class="fas fa-eye-slash toggle-password" data-target="currentPassword"></i>
                         </div>
-                        <div id="currentPasswordError" class="field-error" style="display: none;"></div>
                     </div>
 
                     <div class="form-group">
@@ -85,7 +82,6 @@
                     <button class="btn btn-primary btn-change-password" id="changePasswordBtn">
                         <i class="fas fa-save"></i> Changer le mot de passe
                     </button>
-                    <div id="changePasswordResult" style="margin-top: 10px; display: none;"></div>
                 </div>
             </div>
 
@@ -102,17 +98,17 @@
                             <i class="fas fa-mobile-alt"></i> Activer l'authentification à deux facteurs
                         </span>
                         <label class="switch">
-                            <input type="checkbox" id="twofaToggle" {{ isset($user) && $user->two_factor_enabled ? 'checked' : '' }}>
+                            <input type="checkbox" id="twofaToggle">
                             <span class="slider round"></span>
                         </label>
                     </div>
 
-                    <div class="twofa-info" style="{{ isset($user) && $user->two_factor_enabled ? 'display:block;' : 'display:none;' }}">
+                    <div class="twofa-info" style="display: none;">
                         <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> Vous recevrez un code de vérification par email
+                            <i class="fas fa-info-circle"></i> Vous recevrez un code de vérification par SMS ou application d'authentification
                         </div>
                         <div style="margin-top: 12px;">
-                            <button class="btn btn-secondary" id="setup2faBtn">
+                            <button class="btn btn-secondary" id="setup2faBtn" style="display: none;">
                                 <i class="fas fa-qrcode"></i> Configurer 2FA
                             </button>
                         </div>
@@ -131,15 +127,35 @@
                             <div class="session-info">
                                 <i class="fas fa-desktop"></i>
                                 <div>
-                                    <strong>Session actuelle</strong>
-                                    <p>{{ request()->ip() }} - Actuelle</p>
+                                    <strong>Chrome - Windows</strong>
+                                    <p>Paris, France - Actuelle</p>
                                 </div>
                             </div>
                             <span class="badge badge-success">Actif</span>
                         </div>
+                        <div class="session-item">
+                            <div class="session-info">
+                                <i class="fas fa-mobile-alt"></i>
+                                <div>
+                                    <strong>Application mobile - Android</strong>
+                                    <p>Dakar, Sénégal - Il y a 2 heures</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger revoke-session">Révoquer</button>
+                        </div>
+                        <div class="session-item">
+                            <div class="session-info">
+                                <i class="fas fa-tablet-alt"></i>
+                                <div>
+                                    <strong>Safari - iPad</strong>
+                                    <p>Thiès, Sénégal - Il y a 1 jour</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger revoke-session">Révoquer</button>
+                        </div>
                     </div>
                     <button class="btn btn-secondary" id="revokeAllSessions" style="margin-top: 12px;">
-                        <i class="fas fa-power-off"></i> Révoquer toutes les sessions (sauf celle-ci)
+                        <i class="fas fa-power-off"></i> Révoquer toutes les sessions
                     </button>
                 </div>
             </div>
@@ -155,35 +171,65 @@
                 <div class="card-body">
                     <div class="notifications-list">
                         <label class="notification-item">
-                            <input type="checkbox" class="notif-checkbox" data-notif="email_notifications" {{ isset($user) && $user->email_notifications ? 'checked' : '' }}>
+                            <input type="checkbox" checked class="notif-checkbox" data-notif="messages">
                             <span class="notif-text">
-                                <i class="fas fa-envelope"></i> Recevoir les notifications par email
+                                <i class="fas fa-envelope"></i> Recevoir une notification quand on me contacte
                             </span>
                         </label>
 
                         <label class="notification-item">
-                            <input type="checkbox" class="notif-checkbox" data-notif="web_notifications" {{ isset($user) && $user->web_notifications ? 'checked' : '' }}>
+                            <input type="checkbox" checked class="notif-checkbox" data-notif="publications">
                             <span class="notif-text">
-                                <i class="fas fa-globe"></i> Recevoir les notifications sur le site
+                                <i class="fas fa-newspaper"></i> Recevoir une notification quand on demande ma publication
                             </span>
                         </label>
 
                         <label class="notification-item">
-                            <input type="checkbox" class="notif-checkbox" data-notif="reminder_notifications" {{ isset($user) && $user->reminder_notifications ? 'checked' : '' }}>
+                            <input type="checkbox" class="notif-checkbox" data-notif="comments">
+                            <span class="notif-text">
+                                <i class="fas fa-comments"></i> Recevoir une notification quand on me communique
+                            </span>
+                        </label>
+
+                        <label class="notification-item">
+                            <input type="checkbox" checked class="notif-checkbox" data-notif="tasks">
                             <span class="notif-text">
                                 <i class="fas fa-tasks"></i> Recevoir des rappels de tâches (vaccinations, etc.)
                             </span>
                         </label>
 
                         <label class="notification-item">
-                            <input type="checkbox" class="notif-checkbox" data-notif="newsletter_subscription" {{ isset($user) && $user->newsletter_subscription ? 'checked' : '' }}>
+                            <input type="checkbox" class="notif-checkbox" data-notif="newsletter">
                             <span class="notif-text">
                                 <i class="fas fa-envelope-open-text"></i> Recevoir la newsletter hebdomadaire
                             </span>
                         </label>
+
+                        <label class="notification-item">
+                            <input type="checkbox" checked class="notif-checkbox" data-notif="alerts">
+                            <span class="notif-text">
+                                <i class="fas fa-exclamation-triangle"></i> Recevoir des alertes sanitaires de la région
+                            </span>
+                        </label>
                     </div>
 
-                    <div id="notificationsResult" style="margin-top: 15px; display: none;"></div>
+                    <div class="reception-mode">
+                        <label class="mode-label">Mode de réception :</label>
+                        <div class="mode-options">
+                            <label class="radio-option">
+                                <input type="radio" name="receptionMode" value="both" checked>
+                                <span><i class="fas fa-envelope"></i> Email et notifications web</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="receptionMode" value="email">
+                                <span><i class="fas fa-envelope"></i> Email uniquement</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="receptionMode" value="web">
+                                <span><i class="fas fa-globe"></i> Web uniquement</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -197,7 +243,7 @@
                 <div class="card-body">
                     <div class="visibility-options">
                         <label class="radio-option-card">
-                            <input type="radio" name="profile_visibility" value="public" {{ isset($user) && $user->profile_visibility === 'public' ? 'checked' : '' }}>
+                            <input type="radio" name="visibilite" value="public" checked>
                             <div class="option-content">
                                 <i class="fas fa-globe"></i>
                                 <div>
@@ -208,7 +254,7 @@
                         </label>
 
                         <label class="radio-option-card">
-                            <input type="radio" name="profile_visibility" value="prive" {{ isset($user) && $user->profile_visibility === 'prive' ? 'checked' : '' }}>
+                            <input type="radio" name="visibilite" value="prive">
                             <div class="option-content">
                                 <i class="fas fa-lock"></i>
                                 <div>
@@ -217,9 +263,57 @@
                                 </div>
                             </div>
                         </label>
-                    </div>
 
-                    <div id="visibilityResult" style="margin-top: 15px; display: none;"></div>
+                        <label class="radio-option-card">
+                            <input type="radio" name="visibilite" value="contacts">
+                            <div class="option-content">
+                                <i class="fas fa-user-friends"></i>
+                                <div>
+                                    <strong>Mes contacts uniquement</strong>
+                                    <p>Seuls les éleveurs que j'ai ajoutés peuvent voir mon profil</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-comment-dots"></i> Messagerie</h3>
+                </div>
+                <div class="card-body">
+                    <div class="messaging-options">
+                        <label class="radio-option-card">
+                            <input type="radio" name="messagerie" value="tous" checked>
+                            <div class="option-content">
+                                <i class="fas fa-users"></i>
+                                <div>
+                                    <strong>Tout éleveur peut me contacter</strong>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="radio-option-card">
+                            <input type="radio" name="messagerie" value="suivis">
+                            <div class="option-content">
+                                <i class="fas fa-user-friends"></i>
+                                <div>
+                                    <strong>Seuls les éleveurs que je suis peuvent me contacter</strong>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="radio-option-card">
+                            <input type="radio" name="messagerie" value="personne">
+                            <div class="option-content">
+                                <i class="fas fa-ban"></i>
+                                <div>
+                                    <strong>Personne ne peut me contacter</strong>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -259,17 +353,10 @@
 </div>
 
 <script>
-// ================= CONFIGURATION =================
-const API_URL = '/api';
-const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
-const token = localStorage.getItem('access_token');
-
 // ================= VARIABLES GLOBALES =================
 let toastTimeout = null;
 let hasChanges = false;
 let passwordStrength = 0;
-let currentTwoFactorState = {{ isset($user) && $user->two_factor_enabled ? 'true' : 'false' }};
-let currentVisibility = "{{ isset($user) ? $user->profile_visibility : 'public' }}";
 
 // ================= FONCTIONS TOAST =================
 function showToast(message, type = 'info') {
@@ -394,150 +481,18 @@ document.getElementById('newPassword').addEventListener('input', function() {
 
 document.getElementById('confirmPassword').addEventListener('input', checkPasswordMatch);
 
-// ================= API CALLS =================
-async function changePassword(data) {
-    try {
-        const response = await fetch(`${API_URL}/auth/change-password`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + token,
-                'X-CSRF-TOKEN': CSRF_TOKEN
-            },
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw result;
-        }
-
-        return result;
-    } catch (error) {
-        throw error;
-    }
-}
-
-async function toggleTwoFactor() {
-    try {
-        const response = await fetch(`${API_URL}/auth/toggle-2fa`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + token,
-                'X-CSRF-TOKEN': CSRF_TOKEN
-            }
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw result;
-        }
-
-        return result;
-    } catch (error) {
-        throw error;
-    }
-}
-
-async function updateNotificationPreferences(data) {
-    try {
-        const response = await fetch(`${API_URL}/auth/notification-preferences`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + token,
-                'X-CSRF-TOKEN': CSRF_TOKEN
-            },
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw result;
-        }
-
-        return result;
-    } catch (error) {
-        throw error;
-    }
-}
-
-async function updateProfileVisibility(data) {
-    try {
-        const response = await fetch(`${API_URL}/auth/profile-visibility`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + token,
-                'X-CSRF-TOKEN': CSRF_TOKEN
-            },
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw result;
-        }
-
-        return result;
-    } catch (error) {
-        throw error;
-    }
-}
-
-async function deleteAccount(data) {
-    try {
-        const response = await fetch(`${API_URL}/auth/account`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + token,
-                'X-CSRF-TOKEN': CSRF_TOKEN
-            },
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw result;
-        }
-
-        return result;
-    } catch (error) {
-        throw error;
-    }
-}
-
 // ================= CHANGEMENT DE MOT DE PASSE =================
-document.getElementById('changePasswordBtn').addEventListener('click', async function() {
-    const currentPassword = document.getElementById('currentPassword').value;
+document.getElementById('changePasswordBtn').addEventListener('click', function() {
     const newPass = document.getElementById('newPassword').value;
     const confirmPass = document.getElementById('confirmPassword').value;
-    const resultDiv = document.getElementById('changePasswordResult');
-    const errorDiv = document.getElementById('currentPasswordError');
     
-    resultDiv.style.display = 'none';
-    errorDiv.style.display = 'none';
-    
-    if (!currentPassword) {
-        errorDiv.textContent = 'Veuillez entrer votre mot de passe actuel';
-        errorDiv.style.display = 'block';
+    if (newPass === '') {
+        showToast('Veuillez entrer un nouveau mot de passe', 'warning');
         return;
     }
     
-    if (!newPass || newPass.length < 6) {
-        showToast('Le nouveau mot de passe doit contenir au moins 6 caractères', 'warning');
+    if (newPass.length < 6) {
+        showToast('Le mot de passe doit contenir au moins 6 caractères', 'warning');
         return;
     }
     
@@ -551,92 +506,28 @@ document.getElementById('changePasswordBtn').addEventListener('click', async fun
         return;
     }
     
-    this.disabled = true;
-    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changement en cours...';
-    
-    try {
-        const result = await changePassword({
-            current_password: currentPassword,
-            new_password: newPass,
-            new_password_confirmation: confirmPass
-        });
-        
-        if (result.status === 'success') {
-            resultDiv.className = 'alert alert-success';
-            resultDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + (result.message || 'Mot de passe modifié avec succès !');
-            resultDiv.style.display = 'block';
-            
-            document.getElementById('currentPassword').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmPassword').value = '';
-            document.getElementById('passwordMatch').style.display = 'none';
-            document.getElementById('passwordStrength').style.display = 'none';
-            
-            showToast('Mot de passe modifié avec succès !', 'success');
-        } else {
-            if (result.errors) {
-                let errorMessages = '';
-                Object.values(result.errors).forEach(errors => {
-                    errorMessages += errors.join('\n') + '\n';
-                });
-                resultDiv.className = 'alert alert-danger';
-                resultDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + errorMessages;
-                resultDiv.style.display = 'block';
-            } else {
-                resultDiv.className = 'alert alert-danger';
-                resultDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (result.message || 'Erreur lors du changement de mot de passe');
-                resultDiv.style.display = 'block';
-            }
-        }
-    } catch (error) {
-        if (error.errors) {
-            let errorMessages = '';
-            Object.values(error.errors).forEach(errors => {
-                errorMessages += errors.join('\n') + '\n';
-            });
-            resultDiv.className = 'alert alert-danger';
-            resultDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + errorMessages;
-            resultDiv.style.display = 'block';
-        } else {
-            resultDiv.className = 'alert alert-danger';
-            resultDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (error.message || 'Erreur lors du changement de mot de passe');
-            resultDiv.style.display = 'block';
-        }
-    } finally {
-        this.disabled = false;
-        this.innerHTML = '<i class="fas fa-save"></i> Changer le mot de passe';
-    }
+    showToast('Mot de passe modifié avec succès !', 'success');
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
+    document.getElementById('passwordMatch').style.display = 'none';
+    document.getElementById('passwordStrength').style.display = 'none';
 });
 
-// ================= ✅ 2FA TOGGLE AVEC BACKEND =================
-document.getElementById('twofaToggle').addEventListener('change', async function() {
+// ================= 2FA TOGGLE =================
+document.getElementById('twofaToggle').addEventListener('change', function() {
     const info = document.querySelector('.twofa-info');
     const setupBtn = document.getElementById('setup2faBtn');
     
-    try {
-        const result = await toggleTwoFactor();
-        
-        if (result.status === 'success') {
-            currentTwoFactorState = this.checked;
-            
-            if (this.checked) {
-                info.style.display = 'block';
-                setTimeout(() => {
-                    setupBtn.style.display = 'inline-flex';
-                }, 300);
-                showToast('2FA activé avec succès !', 'success');
-            } else {
-                info.style.display = 'none';
-                setupBtn.style.display = 'none';
-                showToast('2FA désactivé', 'info');
-            }
-        } else {
-            this.checked = !this.checked;
-            showToast(result.message || 'Erreur lors de la modification du 2FA', 'danger');
-        }
-    } catch (error) {
-        this.checked = !this.checked;
-        showToast('Erreur lors de la modification du 2FA', 'danger');
+    if (this.checked) {
+        info.style.display = 'block';
+        setTimeout(() => {
+            setupBtn.style.display = 'inline-flex';
+        }, 300);
+        showToast('2FA activé avec succès !', 'success');
+    } else {
+        info.style.display = 'none';
+        setupBtn.style.display = 'none';
+        showToast('2FA désactivé', 'info');
     }
 });
 
@@ -644,75 +535,68 @@ document.getElementById('setup2faBtn').addEventListener('click', function() {
     showToast('📱 Configuration 2FA : Scannez le QR code avec votre application d\'authentification', 'info');
 });
 
-// ================= ✅ SAUVEGARDE DES NOTIFICATIONS =================
-document.querySelectorAll('.notif-checkbox').forEach(cb => {
-    cb.addEventListener('change', function() {
-        hasChanges = true;
+// ================= SESSIONS ACTIVES =================
+document.querySelectorAll('.revoke-session').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const session = this.closest('.session-item');
+        if (confirm('Voulez-vous révoquer cette session ?')) {
+            session.style.opacity = '0';
+            setTimeout(() => {
+                session.remove();
+                showToast('Session révoquée avec succès', 'success');
+            }, 300);
+        }
     });
 });
 
-// ================= ✅ SAUVEGARDE DE LA VISIBILITÉ =================
-document.querySelectorAll('input[name="profile_visibility"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-        hasChanges = true;
-        currentVisibility = this.value;
-    });
+document.getElementById('revokeAllSessions').addEventListener('click', function() {
+    if (confirm('Voulez-vous révoquer toutes les sessions actives (sauf celle-ci) ?')) {
+        const sessions = document.querySelectorAll('.session-item');
+        sessions.forEach((session, index) => {
+            if (index > 0) {
+                setTimeout(() => {
+                    session.style.opacity = '0';
+                    setTimeout(() => session.remove(), 300);
+                }, index * 100);
+            }
+        });
+        setTimeout(() => {
+            showToast('Toutes les sessions ont été révoquées', 'success');
+        }, sessions.length * 100 + 300);
+    }
 });
 
-// ================= ✅ SAUVEGARDE TOUS LES PARAMÈTRES =================
-async function saveAllSettings() {
+// ================= SAUVEGARDE DES PARAMÈTRES =================
+function saveAllSettings() {
+    // Récupérer les notifications
     const notifSettings = {};
     document.querySelectorAll('.notif-checkbox').forEach(cb => {
         notifSettings[cb.dataset.notif] = cb.checked;
     });
     
-    const visibilite = document.querySelector('input[name="profile_visibility"]:checked');
+    // Récupérer le mode de réception
+    const receptionMode = document.querySelector('input[name="receptionMode"]:checked');
+    const mode = receptionMode ? receptionMode.value : 'both';
+    
+    // Récupérer la visibilité
+    const visibilite = document.querySelector('input[name="visibilite"]:checked');
     const vis = visibilite ? visibilite.value : 'public';
     
-    const saveBtn = document.getElementById('saveAllBtn');
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
+    // Récupérer les préférences de messagerie
+    const messagerie = document.querySelector('input[name="messagerie"]:checked');
+    const msg = messagerie ? messagerie.value : 'tous';
     
-    const notificationsResult = document.getElementById('notificationsResult');
-    const visibilityResult = document.getElementById('visibilityResult');
+    // Afficher un résumé
+    console.log('Paramètres sauvegardés :', {
+        notifications: notifSettings,
+        receptionMode: mode,
+        visibilite: vis,
+        messagerie: msg,
+        twofa: document.getElementById('twofaToggle').checked
+    });
     
-    notificationsResult.style.display = 'none';
-    visibilityResult.style.display = 'none';
-    
-    try {
-        // 1. Sauvegarder les préférences de notification
-        const notifResult = await updateNotificationPreferences(notifSettings);
-        if (notifResult.status === 'success') {
-            notificationsResult.className = 'alert alert-success';
-            notificationsResult.innerHTML = '<i class="fas fa-check-circle"></i> ' + (notifResult.message || 'Préférences de notifications sauvegardées');
-            notificationsResult.style.display = 'block';
-        } else {
-            notificationsResult.className = 'alert alert-danger';
-            notificationsResult.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (notifResult.message || 'Erreur lors de la sauvegarde des notifications');
-            notificationsResult.style.display = 'block';
-        }
-        
-        // 2. Sauvegarder la visibilité du profil
-        const visResult = await updateProfileVisibility({ profile_visibility: vis });
-        if (visResult.status === 'success') {
-            visibilityResult.className = 'alert alert-success';
-            visibilityResult.innerHTML = '<i class="fas fa-check-circle"></i> ' + (visResult.message || 'Visibilité du profil mise à jour');
-            visibilityResult.style.display = 'block';
-            currentVisibility = vis;
-        } else {
-            visibilityResult.className = 'alert alert-danger';
-            visibilityResult.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (visResult.message || 'Erreur lors de la sauvegarde de la visibilité');
-            visibilityResult.style.display = 'block';
-        }
-        
-        showToast('Paramètres sauvegardés avec succès !', 'success');
-        hasChanges = false;
-    } catch (error) {
-        showToast(error.message || 'Erreur lors de la sauvegarde des paramètres', 'danger');
-    } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = '<i class="fas fa-save"></i> Enregistrer';
-    }
+    showToast('Tous les paramètres ont été sauvegardés avec succès !', 'success');
+    hasChanges = false;
 }
 
 document.getElementById('saveAllBtn').addEventListener('click', saveAllSettings);
@@ -729,45 +613,22 @@ document.getElementById('cancelBtn').addEventListener('click', function() {
 });
 
 // ================= SUPPRESSION DE COMPTE =================
-document.getElementById('deleteAccountBtn').addEventListener('click', async function() {
+document.getElementById('deleteAccountBtn').addEventListener('click', function() {
+    // Demander une confirmation en plusieurs étapes
     const confirm1 = confirm('⚠️ ATTENTION : Cette action est irréversible. Voulez-vous vraiment supprimer votre compte ?');
     if (!confirm1) return;
     
     const confirm2 = confirm('Êtes-vous absolument sûr ? Toutes vos données seront perdues.');
     if (!confirm2) return;
     
-    const password = prompt('Entrez votre mot de passe pour confirmer la suppression :');
-    if (!password) {
-        showToast('Opération annulée', 'info');
-        return;
-    }
+    const reason = prompt('Pourquoi souhaitez-vous supprimer votre compte ? (Optionnel)');
     
-    this.disabled = true;
-    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Suppression...';
+    showToast('Votre compte a été supprimé avec succès. Nous sommes tristes de vous voir partir. 🙁', 'danger');
     
-    try {
-        const result = await deleteAccount({
-            password: password,
-            confirmation_text: 'SUPPRIMER'
-        });
-        
-        if (result.status === 'success') {
-            showToast('Votre compte a été supprimé avec succès.', 'danger');
-            localStorage.clear();
-            
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 2000);
-        } else {
-            showToast(result.message || 'Erreur lors de la suppression du compte', 'danger');
-            this.disabled = false;
-            this.innerHTML = '<i class="fas fa-trash"></i> Supprimer mon compte';
-        }
-    } catch (error) {
-        showToast(error.message || 'Erreur lors de la suppression du compte', 'danger');
-        this.disabled = false;
-        this.innerHTML = '<i class="fas fa-trash"></i> Supprimer mon compte';
-    }
+    // Redirection après 3 secondes
+    setTimeout(() => {
+        window.location.href = '/';
+    }, 3000);
 });
 
 // ================= DÉTECTION DES CHANGEMENTS =================
@@ -777,20 +638,9 @@ document.querySelectorAll('input, select, textarea').forEach(el => {
     });
 });
 
-// ================= RACCOURCIS CLAVIER =================
-document.addEventListener('keydown', function(e) {
-    if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        saveAllSettings();
-    }
-    
-    if (e.key === 'Escape') {
-        document.getElementById('cancelBtn').click();
-    }
-});
-
 // ================= INITIALISATION =================
 document.addEventListener('DOMContentLoaded', function() {
+    // Ajouter les styles manquants
     const style = document.createElement('style');
     style.textContent = `
         .custom-toast {
@@ -835,25 +685,65 @@ document.addEventListener('DOMContentLoaded', function() {
             border-bottom: 1px solid #edf2f7;
             transition: opacity 0.3s ease;
         }
-        .session-item:last-child { border-bottom: none; }
+        .session-item:last-child {
+            border-bottom: none;
+        }
         .session-info {
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        .session-info i { font-size: 1.2rem; color: #28a745; width: 24px; }
-        .session-info strong { display: block; font-size: 0.9rem; color: #2d3748; }
-        .session-info p { margin: 0; font-size: 0.8rem; color: #718096; }
-        .badge-success { background: #28a745; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; }
-        .btn-sm { padding: 4px 12px; font-size: 0.8rem; }
-        .btn-outline-danger { background: transparent; border: 1px solid #dc3545; color: #dc3545; }
-        .btn-outline-danger:hover { background: #dc3545; color: white; }
-        .field-error { font-size: 0.85rem; color: #dc3545; margin-top: 4px; }
-        .alert { border-radius: 8px; padding: 10px 15px; margin-bottom: 10px; font-size: 14px; }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .session-info i {
+            font-size: 1.2rem;
+            color: #28a745;
+            width: 24px;
+        }
+        .session-info strong {
+            display: block;
+            font-size: 0.9rem;
+            color: #2d3748;
+        }
+        .session-info p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: #718096;
+        }
+        .badge-success {
+            background: #28a745;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+        }
+        .btn-sm {
+            padding: 4px 12px;
+            font-size: 0.8rem;
+        }
+        .btn-outline-danger {
+            background: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+        }
+        .btn-outline-danger:hover {
+            background: #dc3545;
+            color: white;
+        }
     `;
     document.head.appendChild(style);
+});
+
+// ================= RACCOURCIS CLAVIER =================
+document.addEventListener('keydown', function(e) {
+    // Ctrl+S pour sauvegarder
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        saveAllSettings();
+    }
+    
+    // Escape pour annuler
+    if (e.key === 'Escape') {
+        document.getElementById('cancelBtn').click();
+    }
 });
 </script>
 

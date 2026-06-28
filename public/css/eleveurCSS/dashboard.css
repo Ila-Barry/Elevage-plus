@@ -1,10 +1,5 @@
-/* ================= DASHBOARD COMPLET ================= */
-
 .dashboard-container {
     padding: 20px;
-    max-width: 1400px;
-    margin: 0 auto;
-    font-family: 'Inter', sans-serif;
 }
 
 /* ======================================================
@@ -12,58 +7,40 @@ BANNIERE
 ====================================================== */
 
 .welcome-banner {
-    background: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.75)), url('/images/bg.png');
-    background-size: cover;
+    /* Le chiffre 0.8 augmente le voile blanc, ce qui diminue l'opacité de l'image en fond */
+    background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('/images/bg.png');
+    background-size: 100% 100%;
     background-position: center;
     background-repeat: no-repeat;
-    min-height: 120px;
-    border-radius: 16px;
-    padding: 20px 30px;
+    height: 120px; 
+    border-radius: 12px;
+    padding: 0 30px; 
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    border: 1px solid #e0e0e0;
-    margin-bottom: 25px;
-    flex-wrap: wrap;
-    gap: 15px;
+    border: 1px solid #e0e0e0; 
+    margin-bottom: 20px;
 }
 
 .banner-text-group {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 4px; /* Espace serré entre les deux lignes */
 }
 
 .welcome-banner h1 {
     font-size: 32px;
     font-weight: 800;
-    color: #000000;
+    color: #000000; /* Écriture noire */
     margin: 0;
-    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8); /* Léger reflet blanc pour aider à lire sur l'image */
 }
 
 .welcome-banner p {
     font-size: 18px;
     font-weight: 500;
-    color: #111111;
+    color: #111111; /* Écriture noire ou gris très foncé */
     margin: 0;
     text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
-}
-
-.banner-date {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #555;
-    font-size: 0.95rem;
-    background: rgba(255, 255, 255, 0.8);
-    padding: 8px 18px;
-    border-radius: 25px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.banner-date i {
-    color: #198754;
 }
 
 /* ======================================================
@@ -74,28 +51,13 @@ KPI (Statistiques)
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 15px;
-    margin-bottom: 25px;
+    margin-bottom: 15px;
 }
 
 .stat-card {
-    padding: 18px 15px;
-    border-radius: 14px;
+    padding: 15px;
+    border-radius: 12px;
     text-align: center;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-}
-
-.stat-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
-    pointer-events: none;
 }
 
 .stat-card.green { background: #e8f7ea; }
@@ -103,55 +65,86 @@ KPI (Statistiques)
 .stat-card.yellow { background: #fff7df; }
 .stat-card.red { background: #fdeaea; }
 
-.stat-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-}
-
-.stat-card.green:hover { background: #dff5e3; }
-.stat-card.blue:hover { background: #dbe9ff; }
-.stat-card.yellow:hover { background: #fff1c2; }
-.stat-card.red:hover { background: #fbd6d6; }
-
 .number {
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 700;
-    color: #1a1a1a;
-    transition: all 0.3s ease;
-}
-
-.stat-card:hover .number {
-    transform: scale(1.05);
 }
 
 .label {
     margin-top: 5px;
-    color: #555;
-    font-weight: 500;
 }
 
-.stat-card a {
-    display: inline-block;
-    margin-top: 8px;
-    font-size: 0.85rem;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    position: relative;
-    z-index: 1;
+/* Change la couleur du lien de la carte Animaux (carte verte) */
+.stat-card.green a {
+    color: #198754; /* Un joli vert qui s'accorde bien avec le fond */
+    font-weight: 600; /* Rend le texte un peu plus visible */
 }
 
-.stat-card.green a { color: #198754; }
-.stat-card.green a:hover { color: #13653f; text-decoration: underline; }
+/* Optionnel : Change la couleur au survol de la souris */
+.stat-card.green a:hover {
+    color: #13653f; 
+    text-decoration: underline; /* Ajoute un soulignement au survol */
+}
+/* Change la couleur du lien de la carte Alertes (carte jaune) */
+.stat-card.yellow a {
+    color: #b58105; /* Un joli orange/marron qui se lit très bien sur le fond jaune */
+    font-weight: 600; /* Rend le texte un peu plus visible */
+}
 
-.stat-card.blue a { color: #2563eb; }
-.stat-card.blue a:hover { color: #1a4fc7; text-decoration: underline; }
+/* Optionnel : Change la couleur au survol de la souris */
+.stat-card.yellow a:hover {
+    color: #855f04;
+    text-decoration: underline; /* Ajoute un soulignement au survol */
+}
+/* Change la couleur du lien de la carte Rapports (carte rouge) */
+.stat-card.red a {
+    color: #dc3545; /* Un rouge vif qui ressort bien sur le fond clair */
+    font-weight: 600; /* Rend le texte plus visible */
+}
 
-.stat-card.yellow a { color: #b58105; }
-.stat-card.yellow a:hover { color: #855f04; text-decoration: underline; }
+/* Optionnel : Change la couleur au survol de la souris */
+.stat-card.red a:hover {
+    color: #a71d2a;
+    text-decoration: underline; /* Ajoute un soulignement au survol */
+}
 
-.stat-card.red a { color: #dc3545; }
-.stat-card.red a:hover { color: #a71d2a; text-decoration: underline; }
+.stat-card {
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+/* Hover général */
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
+
+/* Vert */
+.stat-card.green:hover {
+    background: #dff5e3;
+}
+
+/* Bleu */
+.stat-card.blue:hover {
+    background: #dbe9ff;
+}
+
+/* Jaune */
+.stat-card.yellow:hover {
+    background: #fff1c2;
+}
+
+/* Rouge */
+.stat-card.red:hover {
+    background: #fbd6d6;
+}
+
+.stat-card {
+    will-change: transform;
+}
 
 /* ======================================================
 GRID PRINCIPAL
@@ -160,111 +153,52 @@ GRID PRINCIPAL
 .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 15px;
 }
 
 .card-box {
     background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
     overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.card-box:hover {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
 .box-header {
-    background: #f8f9fa;
-    padding: 14px 18px;
+    background: #f7f7f7;
+    padding: 12px;
     font-weight: 700;
-    font-size: 0.95rem;
-    color: #1a1a1a;
-    border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.box-header select {
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: 4px 10px;
-    font-size: 0.8rem;
-    background: white;
-    cursor: pointer;
 }
 
 .between {
     display: flex;
     justify-content: space-between;
-    align-items: center;
 }
 
 /* ======================================================
-TÂCHES
+TASKS (Tâches)
 ====================================================== */
 
 .task-row {
-    padding: 12px 18px;
-    border-top: 1px solid #f1f3f5;
+    padding: 12px;
+    border-top: 1px solid #eee;
     display: flex;
     justify-content: space-between;
-    align-items: center;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .task-row:hover {
-    background: #f8faf9;
-    padding-left: 22px;
-}
-
-.task-row span:first-child {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    user-select: none;
-}
-
-.badge.done {
-    background: #d4edda;
+    background-color: #f5faf7;
     color: #198754;
+    padding-left: 18px;
 }
 
-.badge.todo {
-    background: #fff3cd;
-    color: #856404;
+.done {
+    color: #22c55e;
 }
 
-.badge:hover {
-    transform: scale(1.05);
-}
-
-.task-delete {
-    background: none;
-    border: none;
-    color: #dc3545;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 0 4px;
-    opacity: 0.4;
-    transition: all 0.2s ease;
-}
-
-.task-delete:hover {
-    opacity: 1;
-    transform: scale(1.2);
+.todo {
+    color: #f59e0b;
 }
 
 /* ======================================================
@@ -272,142 +206,93 @@ ALERTES
 ====================================================== */
 
 .alert-card {
-    margin: 10px 14px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    position: relative;
-}
-
-.alert-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    margin: 10px;
+    padding: 12px;
+    border-radius: 10px;
 }
 
 .alert-card.warning {
     background: #fff7e8;
 }
-.alert-card.warning:hover {
-    background: #fff3d6;
-}
 
 .alert-card.danger {
     background: #ffe9e9;
 }
+
+.alert-card h5 {
+    margin-bottom: 5px;
+}
+
+.alert-card {
+    margin: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+/* Hover général */
+.alert-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Warning hover */
+.alert-card.warning:hover {
+    background: #fff3d6;
+}
+
+/* Danger hover */
 .alert-card.danger:hover {
     background: #ffdede;
 }
 
-.alert-card.info {
-    background: #e8f4fd;
-}
-.alert-card.info:hover {
-    background: #d4ebf8;
-}
-
-.alert-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 10px;
-}
-
+/* Titre */
 .alert-card h5 {
-    margin: 0 0 6px 0;
-    font-size: 0.95rem;
-    font-weight: 600;
+    margin-bottom: 5px;
+    transition: color 0.2s ease;
 }
 
-.alert-card p {
-    margin: 0 0 4px 0;
-    font-size: 0.85rem;
-    color: #555;
-    line-height: 1.4;
-}
-
-.alert-time {
-    font-size: 0.7rem;
-    color: #999;
-    display: block;
-    margin-top: 6px;
-}
-
-.alert-close {
-    background: none;
-    border: none;
-    color: #999;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 0 4px;
-    transition: all 0.2s ease;
-    line-height: 1;
-}
-
-.alert-close:hover {
-    color: #dc3545;
-    transform: scale(1.2);
-}
-
-.alert-card.read {
-    opacity: 0.6;
-}
-
-.alert-card.read h5 {
-    text-decoration: line-through;
+.alert-card:hover h5 {
+    color: #111;
 }
 
 /* ======================================================
-GRAPHIQUE====================================================== */
-
-.chart-wrapper {
-    padding: 12px;
-    height: 260px;
-    position: relative;
-}
+CHART (Graphique linéaire)
+====================================================== */
 
 #weightChart {
-    width: 100% !important;
-    height: 100% !important;
+    height: 250px !important;
 }
 
 /* ======================================================
-DONUT
+DONUT (Graphique circulaire)
 ====================================================== */
 
 .species-wrapper {
     display: flex;
     align-items: center;
     justify-content: space-around;
-    padding: 20px 16px;
-    gap: 20px;
+    padding: 20px;
 }
 
 #speciesChart {
-    width: 160px !important;
-    height: 160px !important;
-    max-width: 160px;
+    width: 180px !important;
+    height: 180px !important;
 }
 
 .species-legend {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    font-size: 0.85rem;
-}
-
-.species-legend > div {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    gap: 15px;
 }
 
 .dot {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     display: inline-block;
-    flex-shrink: 0;
+    margin-right: 8px;
 }
 
 .dot.green { background: #22c55e; }
@@ -415,295 +300,78 @@ DONUT
 .dot.blue { background: #2563eb; }
 .dot.red { background: #ef4444; }
 
-.species-count {
-    font-weight: 700;
-    margin: 0 4px;
-}
-
 .total {
     text-align: center;
-    font-size: 22px;
-    font-weight: 700;
-    padding: 0 0 16px 0;
-    margin: 0;
-    color: #1a1a1a;
+    font-size: 20px;
+    margin-bottom: 20px;
 }
 
 /* ======================================================
-ACTIVITÉ
+ACTIVITE
 ====================================================== */
 
 .activity-item {
-    padding: 12px 18px;
-    border-top: 1px solid #f1f3f5;
+    padding: 12px;
+    border-top: 1px solid #eee;
     display: flex;
     flex-direction: column;
-    transition: all 0.2s ease;
-    border-radius: 4px;
-}
-
-.activity-item:hover {
-    background: #f8faf9;
-    padding-left: 22px;
 }
 
 .activity-item small {
-    color: #999;
-    font-size: 0.75rem;
-    margin-top: 4px;
-}
-
-.next-btn {
-    cursor: pointer;
-    color: #198754;
-    font-size: 0.8rem;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-
-.next-btn:hover {
-    color: #146c43;
-    transform: translateX(4px);
+    color: #777;
 }
 
 .history-link {
     display: block;
-    padding: 12px 18px;
-    color: #198754;
+    padding: 12px;
+    color: #22c55e;
     text-decoration: none;
-    font-weight: 600;
-    font-size: 0.85rem;
-    border-top: 1px solid #f1f3f5;
-    text-align: center;
-    transition: all 0.2s ease;
 }
 
-.history-link:hover {
-    background: #f8faf9;
-    color: #146c43;
-}
-
-/* ======================================================
-BOUTONS
-====================================================== */
-
-.box-footer {
-    padding: 10px 18px;
-    border-top: 1px solid #f1f3f5;
+.activity-item {
+    padding: 12px;
+    border-top: 1px solid #eee;
     display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.btn-add-task,
-.btn-add-species {
-    background: #198754;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 10px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    flex-direction: column;
+    transition: all 0.2s ease;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
-.btn-add-task:hover,
-.btn-add-species:hover {
-    background: #146c43;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+.activity-item:hover {
+    background: #f8f9fa;
+    transform: translateX(4px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
 }
-
 /* ======================================================
-RESPONSIVE
+RESPONSIVE (Tablettes)
 ====================================================== */
 
-/* Tablettes */
-@media (max-width: 1024px) {
-    .dashboard-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-    }
-}
-
-@media (max-width: 768px) {
-    .dashboard-container {
-        padding: 12px;
-    }
-
+@media (max-width: 992px) {
     .stats-row {
         grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
     }
 
     .dashboard-grid {
         grid-template-columns: 1fr;
-        gap: 15px;
     }
+}
 
-    .welcome-banner {
-        flex-direction: column;
-        align-items: flex-start;
-        min-height: auto;
-        padding: 20px;
+/* ======================================================
+RESPONSIVE (Mobiles)
+====================================================== */
+
+@media (max-width: 576px) {
+    .stats-row {
+        grid-template-columns: 1fr;
     }
 
     .welcome-banner h1 {
         font-size: 24px;
     }
 
-    .welcome-banner p {
-        font-size: 15px;
-    }
-
-    .banner-date {
-        width: 100%;
-        justify-content: center;
-        font-size: 0.85rem;
-    }
-
-    .number {
-        font-size: 26px;
-    }
-
     .species-wrapper {
         flex-direction: column;
-        gap: 16px;
-        padding: 16px;
+        gap: 20px;
     }
-
-    #speciesChart {
-        width: 140px !important;
-        height: 140px !important;
-        max-width: 140px;
-    }
-
-    .species-legend {
-        font-size: 0.8rem;
-        gap: 8px;
-    }
-
-    .chart-wrapper {
-        height: 200px;
-        padding: 8px;
-    }
-
-    .box-header {
-        font-size: 0.85rem;
-        padding: 12px 14px;
-    }
-
-    .task-row {
-        padding: 10px 14px;
-        font-size: 0.85rem;
-    }
-
-    .alert-card {
-        margin: 8px 10px;
-        padding: 12px 14px;
-    }
-
-    .alert-card h5 {
-        font-size: 0.85rem;
-    }
-
-    .box-footer {
-        flex-direction: column;
-    }
-
-    .btn-add-task,
-    .btn-add-species {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .stat-card {
-        padding: 14px 12px;
-    }
-}
-
-/* Très petits mobiles */
-@media (max-width: 480px) {
-    .stats-row {
-        grid-template-columns: 1fr;
-        gap: 8px;
-    }
-
-    .welcome-banner h1 {
-        font-size: 20px;
-    }
-
-    .number {
-        font-size: 22px;
-    }
-
-    .stat-card {
-        padding: 12px 10px;
-    }
-
-    .species-legend {
-        font-size: 0.75rem;
-        gap: 6px;
-    }
-
-    .task-row {
-        font-size: 0.8rem;
-        padding: 8px 12px;
-        flex-wrap: wrap;
-        gap: 6px;
-    }
-
-    .badge {
-        font-size: 0.65rem;
-        padding: 2px 10px;
-    }
-
-    .total {
-        font-size: 18px;
-    }
-}
-
-/* ======================================================
-UTILITAIRES
-====================================================== */
-
-.text-truncate {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.flex-grow-1 {
-    flex: 1;
-}
-
-.gap-2 {
-    gap: 0.5rem;
-}
-
-/* ======================================================
-SCROLLBAR
-====================================================== */
-
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #c1c7cd;
-    border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #198754;
 }

@@ -3,40 +3,44 @@
 namespace App\Http\Requests\Api;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class SendMessageRequest extends FormRequest
 {
-    /**
-     * Détermine si l'utilisateur est autorisé à faire cette requête.
-     */
     public function authorize(): bool
     {
-        return true; // Assurez-vous que c'est bien à true si géré par middleware
+        return auth()->check();
     }
 
-    /**
-     * Obtenir les règles de validation qui s'appliquent à la requête.
-     */
     public function rules(): array
     {
         return [
-            // 🔴 CORRECTION : On s'assure de cibler simplement la table 'users' et la colonne 'id'
-            'destinataire_id' => 'required|integer|exists:users,id',
-            'contenu'         => 'nullable|string',
-            'type'            => 'nullable|string|in:text,image,video,audio,file,sticker',
-            'sticker_id'      => 'nullable|string',
-            'emoji'           => 'nullable|string',
+            'destinataire_id' => [
+                'required',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    if ($value == auth()->id()) {
+                        $fail('Vous ne pouvez pas vous envoyer un message à vous-même.');
+                    }
+                },
+            ],
+            'contenu'    => 'nullable|string|min:1|max:5000',
+            'type'       => ['nullable', Rule::in(['text', 'image', 'video', 'file', 'sticker'])],
+            'media'      => 'nullable|file',
+            'media_url'  => 'nullable|url|max:2048',
+            'sticker_id' => 'nullable|string|max:50',
+            'emoji'      => 'nullable|string|max:10',
         ];
     }
 
-    /**
-     * Personnalisation des messages d'erreur.
-     */
     public function messages(): array
     {
         return [
-            'destinataire_id.required' => "L'identifiant du destinataire est obligatoire.",
-            'destinataire_id.exists'   => "Le destinataire n'existe pas.",
+            'destinataire_id.required' => 'Le destinataire est requis.',
+            'destinataire_id.exists'   => 'Le destinataire n\'existe pas.',
+            'contenu.max'              => 'Le message ne peut pas dépasser 5000 caractères.',
+            'media.file'               => 'Le fichier média est invalide.',
+            'type.in'                  => 'Le type de message est invalide.',
         ];
     }
 }

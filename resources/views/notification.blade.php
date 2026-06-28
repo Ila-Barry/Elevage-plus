@@ -17,7 +17,7 @@
             <div class="header-title">
                 <i class="fas fa-bell"></i>
                 <h1>Notifications</h1>
-                <span class="notification-badge" id="totalNotifCount">0</span>
+                <span class="notification-badge" id="totalNotifCount">12</span>
             </div>
             <div class="header-actions">
                 <button class="btn-mark-all" id="markAllReadBtn">
@@ -35,40 +35,385 @@
             <button class="filter-btn active" data-filter="all">
                 <i class="fas fa-list"></i>
                 <span>Toutes</span>
-                <span class="filter-count" id="allCount">0</span>
+                <span class="filter-count" id="allCount">12</span>
             </button>
             <button class="filter-btn" data-filter="unread">
                 <i class="fas fa-envelope"></i>
                 <span>Non lues</span>
-                <span class="filter-count" id="unreadCount">0</span>
+                <span class="filter-count" id="unreadCount">5</span>
             </button>
             <button class="filter-btn" data-filter="read">
                 <i class="fas fa-envelope-open"></i>
                 <span>Lues</span>
-                <span class="filter-count" id="readCount">0</span>
+                <span class="filter-count" id="readCount">7</span>
             </button>
             <div class="filter-divider"></div>
-            <button class="filter-btn" data-filter="success">
-                <i class="fas fa-check-circle"></i>
-                <span>Succès</span>
-            </button>
-            <button class="filter-btn" data-filter="warning">
+            <button class="filter-btn" data-filter="alert">
                 <i class="fas fa-exclamation-triangle"></i>
                 <span>Alertes</span>
             </button>
-            <button class="filter-btn" data-filter="danger">
-                <i class="fas fa-times-circle"></i>
-                <span>Urgents</span>
+            <button class="filter-btn" data-filter="message">
+                <i class="fas fa-comment"></i>
+                <span>Messages</span>
             </button>
-            <button class="filter-btn" data-filter="info">
-                <i class="fas fa-info-circle"></i>
-                <span>Infos</span>
+            <button class="filter-btn" data-filter="task">
+                <i class="fas fa-tasks"></i>
+                <span>Tâches</span>
+            </button>
+            <button class="filter-btn" data-filter="stock">
+                <i class="fas fa-box"></i>
+                <span>Stocks</span>
             </button>
         </div>
 
         <!-- Liste des notifications -->
         <div class="notifications-list" id="notificationsList">
-            <!-- Les notifications seront chargées dynamiquement via JavaScript -->
+
+            <!-- Notification 1 - Alerte stock critique -->
+            <div class="notification-item unread" data-type="stock" data-read="false">
+                <div class="notification-icon stock-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <h4>Stock critique - Aliment bovin</h4>
+                        <span class="notification-time">Il y a 5 minutes</span>
+                    </div>
+                    <p class="notification-message">
+                        Le stock d'aliment "Premium Vache" a atteint un niveau critique. 
+                        Quantité restante : 45 kg (seuil : 50 kg). Pensez à réapprovisionner.
+                    </p>
+                    <div class="notification-footer">
+                        <button class="action-btn view-btn">
+                            <i class="fas fa-eye"></i>
+                            Voir le stock
+                        </button>
+                        <button class="action-btn remind-later">
+                            <i class="fas fa-clock"></i>
+                            Rappeler plus tard
+                        </button>
+                    </div>
+                </div>
+                <button class="mark-read-btn" title="Marquer comme lu">
+                    <i class="fas fa-circle"></i>
+                </button>
+            </div>
+
+            <!-- Notification 2 - Rappel vaccination -->
+            <div class="notification-item unread" data-type="task" data-read="false">
+                <div class="notification-icon task-icon">
+                    <i class="fas fa-syringe"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <h4>Rappel de vaccination - Marguerite</h4>
+                        <span class="notification-time">Il y a 1 heure</span>
+                    </div>
+                    <p class="notification-message">
+                        L'animal "Marguerite" doit être vacciné aujourd'hui. 
+                        Ne pas oublier de vérifier son carnet de santé.
+                    </p>
+                    <div class="notification-footer">
+                        <button class="action-btn view-btn">
+                            <i class="fas fa-eye"></i>
+                            Voir l'animal
+                        </button>
+                        <button class="action-btn complete-btn success">
+                            <i class="fas fa-check"></i>
+                            Marquer comme fait
+                        </button>
+                    </div>
+                </div>
+                <button class="mark-read-btn">
+                    <i class="fas fa-circle"></i>
+                </button>
+            </div>
+
+            <!-- Notification 3 - Nouveau message -->
+            <div class="notification-item unread" data-type="message" data-read="false">
+                <div class="notification-icon message-icon">
+                    <i class="fas fa-comment-dots"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <h4>Nouveau message - Amadou Sy</h4>
+                        <span class="notification-time">Il y a 2 heures</span>
+                    </div>
+                    <p class="notification-message">
+                        "Bonjour, j'ai vu votre publication sur l'alimentation des bovins. 
+                        Pouvez-vous me donner plus de détails sur la méthode que vous utilisez ?"
+                    </p>
+                    <div class="notification-footer">
+                        <button class="action-btn reply-btn">
+                            <i class="fas fa-reply"></i>
+                            Répondre
+                        </button>
+                        <button class="action-btn view-btn">
+                            <i class="fas fa-eye"></i>
+                            Voir la conversation
+                        </button>
+                    </div>
+                </div>
+                <button class="mark-read-btn">
+                    <i class="fas fa-circle"></i>
+                </button>
+            </div>
+
+            <!-- Notification 4 - Alerte perte de poids -->
+            <div class="notification-item" data-type="alert" data-read="true">
+                <div class="notification-icon alert-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <h4>Alerte santé - Perte de poids suspecte</h4>
+                        <span class="notification-time">Hier à 14h30</span>
+                    </div>
+                    <p class="notification-message">
+                        L'animal "Blanchette" a perdu 12% de son poids en 15 jours 
+                        (450kg → 396kg). Une consultation vétérinaire est recommandée.
+                    </p>
+                    <div class="notification-footer">
+                        <button class="action-btn view-btn">
+                            <i class="fas fa-eye"></i>
+                            Voir l'animal
+                        </button>
+                        <button class="action-btn vet-btn">
+                            <i class="fas fa-stethoscope"></i>
+                            Contacter vétérinaire
+                        </button>
+                    </div>
+                </div>
+                <button class="mark-read-btn" style="opacity: 0.4;">
+                    <i class="fas fa-circle"></i>
+                </button>
+            </div>
+
+            <!-- Notification 5 - Nouveau commentaire -->
+            <div class="notification-item" data-type="comment" data-read="true">
+                <div class="notification-icon comment-icon">
+                    <i class="fas fa-comment"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <h4>Nouveau commentaire sur votre publication</h4>
+                        <span class="notification-time">Hier à 10h15</span>
+                    </div>
+                    <p class="notification-message">
+                        Marie Diop a commenté votre publication "5 astuces pour l'hivernage" : 
+                        "Merci pour ces conseils très utiles ! Je vais les appliquer dès demain."
+                    </p>
+                    <div class="notification-footer">
+                        <button class="action-btn view-btn">
+                            <i class="fas fa-eye"></i>
+                            Voir la publication
+                        </button>
+                        <button class="action-btn reply-btn">
+                            <i class="fas fa-reply"></i>
+                            Répondre
+                        </button>
+                    </div>
+                </div>
+                <button class="mark-read-btn" style="opacity: 0.4;">
+                    <i class="fas fa-circle"></i>
+                </button>
+            </div>
+
+            <!-- Notification 6 - Like sur publication -->
+            <div class="notification-item" data-type="like" data-read="true">
+                <div class="notification-icon like-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <h4>Nouveau like - 45 likes</h4>
+                        <span class="notification-time">Hier à 09h00</span>
+                    </div>
+                    <p class="notification-message">
+                        Votre publication "Comment j'ai augmenté ma production laitière" 
+                        a reçu 45 likes. Continuez à partager votre expérience !
+                    </p>
+                    <div class="notification-footer">
+                        <button class="action-btn view-btn">
+                            <i class="fas fa-eye"></i>
+                            Voir la publication
+                        </button>
+                    </div>
+                </div>
+                <button class="mark-read-btn" style="opacity: 0.4;">
+                    <i class="fas fa-circle"></i>
+                </button>
+            </div>
+
+            <!-- Notification 7 - Nouveau partage -->
+            <div class="notification-item" data-type="share" data-read="true">
+                <div class="notification-icon share-icon">
+                    <i class="fas fa-share-alt"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <h4>Nouveau partage - Facebook</h4>
+                        <span class="notification-time">Hier à 08h30</span>
+                    </div>
+                    <p class="notification-message">
+                        Ibrahima Fall a partagé votre publication "Alerte fièvre aphteuse" 
+                        sur Facebook.
+                    </p>
+                    <div class="notification-footer">
+                        <button class="action-btn view-btn">
+                            <i class="fas fa-eye"></i>
+                            Voir la publication
+                        </button>
+                    </div>
+                </div>
+                <button class="mark-read-btn" style="opacity: 0.4;">
+                    <i class="fas fa-circle"></i>
+                </button>
+            </div>
+
+            <!-- Notification 8 - Signalement publication (Admin visible) -->
+            <div class="notification-item" data-type="report" data-read="false">
+                <div class="notification-icon report-icon">
+                    <i class="fas fa-flag"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <h4>Publication signalée</h4>
+                        <span class="notification-time">Aujourd'hui à 07h45</span>
+                    </div>
+                    <p class="notification-message">
+                        La publication "Publicité non autorisée" a été signalée par 3 utilisateurs 
+                        pour motif "Spam". Veuillez modérer ce contenu.
+                    </p>
+                    <div class="notification-footer">
+                        <button class="action-btn view-btn">
+                            <i class="fas fa-eye"></i>
+                            Voir la publication
+                        </button>
+                        <button class="action-btn moderate-btn warning">
+                            <i class="fas fa-gavel"></i>
+                            Modérer
+                        </button>
+                        <button class="action-btn ignore-btn">
+                            <i class="fas fa-times"></i>
+                            Ignorer
+                        </button>
+                    </div>
+                </div>
+                <button class="mark-read-btn">
+                    <i class="fas fa-circle"></i>
+                </button>
+            </div>
+
+            <!-- Notification 9 - Stock réapprovisionné -->
+            <div class="notification-item" data-type="stock" data-read="true">
+                <div class="notification-icon success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <h4>Réapprovisionnement effectué</h4>
+                        <span class="notification-time">Hier à 17h00</span>
+                    </div>
+                    <p class="notification-message">
+                        Le produit "Aliment Vache Premium" a été réapprovisionné. 
+                        Nouvelle quantité : 500 kg.
+                    </p>
+                    <div class="notification-footer">
+                        <button class="action-btn view-btn">
+                            <i class="fas fa-eye"></i>
+                            Voir le stock
+                        </button>
+                    </div>
+                </div>
+                <button class="mark-read-btn" style="opacity: 0.4;">
+                    <i class="fas fa-circle"></i>
+                </button>
+            </div>
+
+            <!-- Notification 10 - Bienvenue -->
+            <div class="notification-item" data-type="welcome" data-read="true">
+                <div class="notification-icon welcome-icon">
+                    <i class="fas fa-hand-peace"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <h4>Bienvenue sur Élevage+ !</h4>
+                        <span class="notification-time">15 mai 2026</span>
+                    </div>
+                    <p class="notification-message">
+                        Merci d'avoir rejoint notre communauté ! Commencez dès maintenant 
+                        à gérer votre élevage, partagez vos expériences et échangez avec 
+                        d'autres éleveurs.
+                    </p>
+                    <div class="notification-footer">
+                        <button class="action-btn get-started-btn">
+                            <i class="fas fa-rocket"></i>
+                            Commencer
+                        </button>
+                    </div>
+                </div>
+                <button class="mark-read-btn" style="opacity: 0.4;">
+                    <i class="fas fa-circle"></i>
+                </button>
+            </div>
+
+            <!-- Notification 11 - Rappel tâche alimentation -->
+            <div class="notification-item" data-type="task" data-read="true">
+                <div class="notification-icon task-icon">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <h4>Rappel alimentation - Matin</h4>
+                        <span class="notification-time">Hier à 06h00</span>
+                    </div>
+                    <p class="notification-message">
+                        N'oubliez pas de nourrir les animaux ce matin. 
+                        Alimentation programmée pour 08h00.
+                    </p>
+                    <div class="notification-footer">
+                        <button class="action-btn complete-btn success">
+                            <i class="fas fa-check"></i>
+                            Effectué
+                        </button>
+                        <button class="action-btn remind-later">
+                            <i class="fas fa-clock"></i>
+                            Rappeler plus tard
+                        </button>
+                    </div>
+                </div>
+                <button class="mark-read-btn" style="opacity: 0.4;">
+                    <i class="fas fa-circle"></i>
+                </button>
+            </div>
+
+            <!-- Notification 12 - Nouvel abonné (pour admin) -->
+            <div class="notification-item" data-type="user" data-read="true">
+                <div class="notification-icon user-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <h4>Nouvel utilisateur inscrit</h4>
+                        <span class="notification-time">Le 14 mai 2026</span>
+                    </div>
+                    <p class="notification-message">
+                        Un nouvel éleveur "Mamadou Diallo" a rejoint la plateforme. 
+                        Bienvenue à lui dans la communauté !
+                    </p>
+                    <div class="notification-footer">
+                        <button class="action-btn view-btn">
+                            <i class="fas fa-eye"></i>
+                            Voir le profil
+                        </button>
+                    </div>
+                </div>
+                <button class="mark-read-btn" style="opacity: 0.4;">
+                    <i class="fas fa-circle"></i>
+                </button>
+            </div>
+
         </div>
 
         <!-- Message "Aucune notification" -->
@@ -81,16 +426,18 @@
         </div>
 
         <!-- Pagination -->
-        <div class="notifications-pagination" id="paginationContainer">
-            <button class="page-btn prev" id="prevPageBtn" disabled>
+        <div class="notifications-pagination">
+            <button class="page-btn prev" disabled>
                 <i class="fas fa-chevron-left"></i>
-                <span>Précédent</span>
+                Précédent
             </button>
-            <div class="page-numbers" id="pageNumbers">
-                <!-- Généré par JavaScript -->
+            <div class="page-numbers">
+                <button class="page-number active">1</button>
+                <button class="page-number">2</button>
+                <button class="page-number">3</button>
             </div>
-            <button class="page-btn next" id="nextPageBtn">
-                <span>Suivant</span>
+            <button class="page-btn next">
+                Suivant
                 <i class="fas fa-chevron-right"></i>
             </button>
         </div>
@@ -99,601 +446,290 @@
 
 </div>
 
-@push('scripts')
 <script>
-// ============================================================
-// CONFIGURATION
-// ============================================================
-
-const CONFIG = {
-    API_URL: window.location.origin + '/api',
-    CSRF_TOKEN: document.querySelector('meta[name="csrf-token"]')?.content || '',
-    TOKEN: (() => {
-        const raw = localStorage.getItem('access_token');
-        return raw ? raw.replace(/^"(.*)"$/, '$1').trim() : null;
-    })(),
-};
-
-// ============================================================
-// ÉTAT DE L'APPLICATION
-// ============================================================
-
-const state = {
-    notifications: [],
-    currentFilter: 'all',
-    currentPage: 1,
-    totalPages: 1,
-    perPage: 15,
-    total: 0,
-    unreadCount: 0,
-    isLoading: false,
-};
-
-// ============================================================
-// FONCTIONS UTILITAIRES
-// ============================================================
-
-function log(message, data = null) {
-    const timestamp = new Date().toISOString();
-    if (data) {
-        console.log(`[${timestamp}] 📝 ${message}`, data);
-    } else {
-        console.log(`[${timestamp}] 📝 ${message}`);
-    }
-}
-
-function logError(message, error = null) {
-    const timestamp = new Date().toISOString();
-    if (error) {
-        console.error(`[${timestamp}] ❌ ${message}`, error);
-    } else {
-        console.error(`[${timestamp}] ❌ ${message}`);
-    }
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now - date;
-    
-    if (diff < 60000) return 'À l\'instant';
-    if (diff < 3600000) return Math.floor(diff / 60000) + ' min';
-    if (diff < 86400000) return 'Il y a ' + Math.floor(diff / 3600000) + 'h';
-    if (diff < 604800000) return 'Il y a ' + Math.floor(diff / 86400000) + 'j';
-    return date.toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
-}
-
-// ============================================================
-// API CALLS
-// ============================================================
-
-async function apiCall(endpoint, options = {}) {
-    const defaultHeaders = {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer ' + CONFIG.TOKEN,
-        'X-CSRF-TOKEN': CONFIG.CSRF_TOKEN
-    };
-
-    const config = {
-        ...options,
-        headers: {
-            ...defaultHeaders,
-            ...options.headers
-        }
-    };
-
-    if (config.body && typeof config.body === 'object') {
-        config.body = JSON.stringify(config.body);
-    }
-
-    const url = endpoint.startsWith('http') ? endpoint : `${CONFIG.API_URL}${endpoint}`;
-    log(`🌐 Requête ${options.method || 'GET'} ${url}`);
-
-    try {
-        const response = await fetch(url, config);
-        const data = await response.json();
-
-        if (!response.ok) {
-            logError(`Erreur HTTP ${response.status}`, data);
-            const error = new Error(data.message || 'Erreur API');
-            error.status = response.status;
-            error.errors = data.errors;
-            throw error;
-        }
-
-        log(`✅ Réponse reçue`, { status: response.status });
-        return data;
-    } catch (error) {
-        logError('Erreur API', error);
-        throw error;
-    }
-}
-
-// ============================================================
-// CHARGEMENT DES NOTIFICATIONS
-// ============================================================
-
-async function loadNotifications(page = 1, filter = 'all') {
-    if (state.isLoading) return;
-    state.isLoading = true;
-    state.currentPage = page;
-    state.currentFilter = filter;
-
-    const container = document.getElementById('notificationsList');
-    container.innerHTML = `
-        <div class="text-center py-5">
-            <div class="spinner-border text-success" role="status">
-                <span class="sr-only">Chargement...</span>
-            </div>
-            <p class="mt-2 text-muted">Chargement des notifications...</p>
-        </div>
-    `;
-
-    try {
-        let endpoint = '/notifications';
-        let params = `page=${page}&per_page=${state.perPage}`;
-
-        if (filter === 'unread') {
-            endpoint = '/notifications/unread';
-        } else if (filter !== 'all') {
-            params += `&type=${filter}`;
-        }
-
-        const result = await apiCall(`${endpoint}?${params}`);
-
-        if (result.status === 'success') {
-            const data = result.data;
-            
-            // Gérer les différents formats de réponse
-            if (Array.isArray(data)) {
-                state.notifications = data;
-                state.total = data.length;
-                state.totalPages = 1;
-            } else if (data.data) {
-                state.notifications = data.data;
-                state.total = data.meta?.total || data.data.length;
-                state.totalPages = data.meta?.last_page || 1;
-                state.unreadCount = data.meta?.unread_count || 0;
-            } else {
-                state.notifications = [];
-                state.total = 0;
-                state.totalPages = 1;
-            }
-
-            renderNotifications();
-            updateCounters();
-            updatePagination();
-        } else {
-            showToast(result.message || 'Erreur lors du chargement', 'danger');
-            renderNotifications();
-        }
-    } catch (error) {
-        logError('Erreur chargement notifications', error);
-        showToast('Erreur lors du chargement des notifications', 'danger');
-        renderNotifications();
-    } finally {
-        state.isLoading = false;
-    }
-}
-
-// ============================================================
-// RENDU DES NOTIFICATIONS
-// ============================================================
-
-function renderNotifications() {
-    const container = document.getElementById('notificationsList');
+document.addEventListener('DOMContentLoaded', function() {
+    // Éléments DOM
+    const notificationsList = document.getElementById('notificationsList');
+    const notificationItems = document.querySelectorAll('.notification-item');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const markAllBtn = document.getElementById('markAllReadBtn');
     const emptyDiv = document.getElementById('emptyNotifications');
+    
+    // Compteurs
+    const allCountSpan = document.getElementById('allCount');
+    const unreadCountSpan = document.getElementById('unreadCount');
+    const readCountSpan = document.getElementById('readCount');
+    const totalNotifBadge = document.getElementById('totalNotifCount');
 
-    if (state.notifications.length === 0) {
-        container.style.display = 'none';
-        emptyDiv.style.display = 'flex';
-        return;
+    // Fonction pour mettre à jour les compteurs
+    function updateCounters() {
+        const total = notificationItems.length;
+        const unread = document.querySelectorAll('.notification-item.unread').length;
+        const read = total - unread;
+        
+        if (allCountSpan) allCountSpan.textContent = total;
+        if (unreadCountSpan) unreadCountSpan.textContent = unread;
+        if (readCountSpan) readCountSpan.textContent = read;
+        if (totalNotifBadge) totalNotifBadge.textContent = total;
     }
 
-    container.style.display = 'flex';
-    emptyDiv.style.display = 'none';
+    // Fonction pour filtrer les notifications
+    function filterNotifications(filter) {
+        let visibleCount = 0;
+        
+        notificationItems.forEach(item => {
+            const isUnread = item.classList.contains('unread');
+            const type = item.dataset.type;
+            
+            let show = false;
+            
+            switch(filter) {
+                case 'all':
+                    show = true;
+                    break;
+                case 'unread':
+                    show = isUnread;
+                    break;
+                case 'read':
+                    show = !isUnread;
+                    break;
+                case 'alert':
+                    show = type === 'alert';
+                    break;
+                case 'message':
+                    show = type === 'message';
+                    break;
+                case 'task':
+                    show = type === 'task';
+                    break;
+                case 'stock':
+                    show = type === 'stock';
+                    break;
+                default:
+                    show = true;
+            }
+            
+            if (show) {
+                item.style.display = 'flex';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Afficher le message "aucune notification" si nécessaire
+        if (visibleCount === 0) {
+            emptyDiv.style.display = 'flex';
+            notificationsList.style.display = 'none';
+        } else {
+            emptyDiv.style.display = 'none';
+            notificationsList.style.display = 'block';
+        }
+        
+        // Mettre à jour l'état actif des filtres
+        filterBtns.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.filter === filter) {
+                btn.classList.add('active');
+            }
+        });
+        
+        updateCounters();
+    }
 
-    container.innerHTML = state.notifications.map(notification => {
-        const isRead = notification.is_read || false;
-        const icon = notification.icon || '🔔';
-        const type = notification.type || 'info';
-        const url = notification.url || '#';
-        const title = notification.title || 'Notification';
-        const message = notification.message || '';
-        const time = formatDate(notification.created_at);
-        const actions = notification.actions || [];
+    // Fonction pour marquer une notification comme lue
+    function markAsRead(notification) {
+        if (notification.classList.contains('unread')) {
+            notification.classList.remove('unread');
+            const markBtn = notification.querySelector('.mark-read-btn');
+            if (markBtn) markBtn.style.opacity = '0.4';
+            updateCounters();
+        }
+    }
 
-        // Déterminer la classe CSS selon le type
-        const iconClass = getIconClass(type);
+    // Fonction pour marquer toutes les notifications comme lues
+    function markAllAsRead() {
+        notificationItems.forEach(item => {
+            if (item.classList.contains('unread')) {
+                item.classList.remove('unread');
+                const markBtn = item.querySelector('.mark-read-btn');
+                if (markBtn) markBtn.style.opacity = '0.4';
+            }
+        });
+        updateCounters();
+        
+        // Afficher un message de confirmation
+        showToast('Toutes les notifications ont été marquées comme lues', 'success');
+    }
 
-        return `
-            <div class="notification-item ${isRead ? '' : 'unread'}" 
-                 data-id="${notification.id}" 
-                 data-url="${url}"
-                 data-type="${type}">
-                <div class="notification-icon ${iconClass}">
-                    <i class="${getIconType(type)}"></i>
-                </div>
-                <div class="notification-content">
-                    <div class="notification-header">
-                        <h4>${escapeHtml(title)}</h4>
-                        <span class="notification-time">${time}</span>
-                    </div>
-                    <p class="notification-message">${escapeHtml(message)}</p>
-                    ${actions.length > 0 ? `
-                        <div class="notification-footer">
-                            ${actions.map(action => `
-                                <button class="action-btn ${action.type || ''}" 
-                                        onclick="handleAction('${notification.id}', '${action.label}', '${action.url || '#'}')">
-                                    ${action.label}
-                                </button>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-                ${!isRead ? `
-                    <button class="mark-read-btn" onclick="markAsRead('${notification.id}')" title="Marquer comme lu">
-                        <i class="fas fa-circle"></i>
-                    </button>
-                ` : `
-                    <button class="mark-read-btn" style="opacity: 0.4;" disabled>
-                        <i class="fas fa-circle"></i>
-                    </button>
-                `}
+    // Fonction pour afficher un toast de notification
+    function showToast(message, type = 'info') {
+        // Vérifier si un toast existe déjà
+        let toast = document.querySelector('.custom-toast');
+        if (toast) {
+            toast.remove();
+        }
+        
+        // Créer le toast
+        toast = document.createElement('div');
+        toast.className = `custom-toast ${type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
+                <span>${message}</span>
             </div>
         `;
-    }).join('');
+        document.body.appendChild(toast);
+        
+        // Afficher le toast
+        setTimeout(() => toast.classList.add('show'), 10);
+        
+        // Masquer et supprimer après 3 secondes
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
 
-    // Ajouter les événements de clic sur les notifications
-    document.querySelectorAll('.notification-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            if (e.target.closest('button')) return;
-            const id = this.dataset.id;
-            const url = this.dataset.url;
-            if (url && url !== '#') {
-                window.location.href = url;
-            }
-            if (!this.classList.contains('unread')) return;
-            markAsRead(id);
+    // Événements pour les boutons "Marquer comme lu"
+    document.querySelectorAll('.mark-read-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const notification = this.closest('.notification-item');
+            markAsRead(notification);
+            showToast('Notification marquée comme lue', 'success');
         });
     });
-}
 
-// ============================================================
-// FONCTIONS D'ICÔNES
-// ============================================================
-
-function getIconClass(type) {
-    const classes = {
-        'success': 'success-icon',
-        'warning': 'alert-icon',
-        'danger': 'report-icon',
-        'info': 'message-icon',
-        'stock': 'stock-icon',
-        'task': 'task-icon',
-        'message': 'message-icon',
-        'like': 'like-icon',
-        'share': 'share-icon',
-        'comment': 'comment-icon',
-        'report': 'report-icon',
-        'welcome': 'welcome-icon',
-        'user': 'user-icon',
-    };
-    return classes[type] || 'message-icon';
-}
-
-function getIconType(type) {
-    const icons = {
-        'success': 'fa-check-circle',
-        'warning': 'fa-exclamation-triangle',
-        'danger': 'fa-times-circle',
-        'info': 'fa-info-circle',
-        'stock': 'fa-box',
-        'task': 'fa-tasks',
-        'message': 'fa-comment-dots',
-        'like': 'fa-heart',
-        'share': 'fa-share-alt',
-        'comment': 'fa-comment',
-        'report': 'fa-flag',
-        'welcome': 'fa-hand-peace',
-        'user': 'fa-user-plus',
-    };
-    return icons[type] || 'fa-bell';
-}
-
-// ============================================================
-// ACTIONS DES NOTIFICATIONS
-// ============================================================
-
-function handleAction(notificationId, label, url) {
-    log(`📌 Action: ${label} sur la notification ${notificationId}`);
-    
-    // Marquer comme lue avant de rediriger
-    markAsRead(notificationId, false);
-    
-    if (url && url !== '#') {
-        setTimeout(() => {
-            window.location.href = url;
-        }, 300);
-    } else {
-        showToast(`Action: ${label}`, 'info');
-    }
-}
-
-// ============================================================
-// MARQUER COMME LU
-// ============================================================
-
-async function markAsRead(notificationId, showToastMsg = true) {
-    try {
-        const result = await apiCall(`/notifications/${notificationId}/read`, {
-            method: 'POST'
-        });
-
-        if (result.status === 'success') {
-            // Mettre à jour localement
-            const item = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
-            if (item) {
-                item.classList.remove('unread');
-                const markBtn = item.querySelector('.mark-read-btn');
-                if (markBtn) {
-                    markBtn.style.opacity = '0.4';
-                    markBtn.disabled = true;
-                }
-            }
-            
-            updateCounters();
-            
-            if (showToastMsg) {
-                showToast('Notification marquée comme lue', 'success');
-            }
-        }
-    } catch (error) {
-        logError('Erreur marquage comme lu', error);
-        if (showToastMsg) {
-            showToast('Erreur lors du marquage', 'danger');
-        }
-    }
-}
-
-// ============================================================
-// TOUT MARQUER COMME LU
-// ============================================================
-
-async function markAllAsRead() {
-    try {
-        const result = await apiCall('/notifications/read-all', {
-            method: 'POST'
-        });
-
-        if (result.status === 'success') {
-            // Mettre à jour localement
-            document.querySelectorAll('.notification-item.unread').forEach(item => {
-                item.classList.remove('unread');
-                const markBtn = item.querySelector('.mark-read-btn');
-                if (markBtn) {
-                    markBtn.style.opacity = '0.4';
-                    markBtn.disabled = true;
-                }
-            });
-            
-            updateCounters();
-            showToast('Toutes les notifications ont été marquées comme lues', 'success');
-        }
-    } catch (error) {
-        logError('Erreur marquage tout comme lu', error);
-        showToast('Erreur lors du marquage', 'danger');
-    }
-}
-
-// ============================================================
-// METTRE À JOUR LES COMPTEURS
-// ============================================================
-
-function updateCounters() {
-    const total = state.notifications.length;
-    const unread = document.querySelectorAll('.notification-item.unread').length;
-    const read = total - unread;
-
-    document.getElementById('totalNotifCount').textContent = total;
-    document.getElementById('allCount').textContent = total;
-    document.getElementById('unreadCount').textContent = unread;
-    document.getElementById('readCount').textContent = read;
-}
-
-// ============================================================
-// PAGINATION
-// ============================================================
-
-function updatePagination() {
-    const pageNumbers = document.getElementById('pageNumbers');
-    const prevBtn = document.getElementById('prevPageBtn');
-    const nextBtn = document.getElementById('nextPageBtn');
-
-    if (state.totalPages <= 1) {
-        pageNumbers.innerHTML = '';
-        prevBtn.disabled = true;
-        nextBtn.disabled = true;
-        return;
+    // Événement pour "Tout marquer comme lu"
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', () => markAllAsRead());
     }
 
-    let html = '';
-    const maxVisible = 5;
-    let start = Math.max(1, state.currentPage - Math.floor(maxVisible / 2));
-    let end = Math.min(state.totalPages, start + maxVisible - 1);
-
-    if (end - start < maxVisible - 1) {
-        start = Math.max(1, end - maxVisible + 1);
-    }
-
-    if (start > 1) {
-        html += `<button class="page-number" onclick="goToPage(1)">1</button>`;
-        if (start > 2) html += `<button class="page-number" disabled>...</button>`;
-    }
-
-    for (let i = start; i <= end; i++) {
-        html += `<button class="page-number ${i === state.currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
-    }
-
-    if (end < state.totalPages) {
-        if (end < state.totalPages - 1) html += `<button class="page-number" disabled>...</button>`;
-        html += `<button class="page-number" onclick="goToPage(${state.totalPages})">${state.totalPages}</button>`;
-    }
-
-    pageNumbers.innerHTML = html;
-    prevBtn.disabled = state.currentPage === 1;
-    nextBtn.disabled = state.currentPage === state.totalPages;
-}
-
-function goToPage(page) {
-    if (page === state.currentPage || state.isLoading) return;
-    loadNotifications(page, state.currentFilter);
-    document.querySelector('.notifications-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// ============================================================
-// FILTRES
-// ============================================================
-
-function setupFilters() {
-    document.querySelectorAll('.filter-btn').forEach(btn => {
+    // Événements pour les filtres
+    filterBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const filter = this.dataset.filter;
-            
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            state.currentFilter = filter;
-            state.currentPage = 1;
-            loadNotifications(1, filter);
+            filterNotifications(filter);
         });
     });
-}
 
-// ============================================================
-// TOAST NOTIFICATIONS
-// ============================================================
-
-function showToast(message, type = 'info') {
-    const existing = document.querySelector('.custom-toast');
-    if (existing) existing.remove();
-    
-    const toast = document.createElement('div');
-    toast.className = `custom-toast ${type}`;
-    
-    const icons = {
-        success: 'fa-check-circle',
-        danger: 'fa-exclamation-circle',
-        warning: 'fa-exclamation-triangle',
-        info: 'fa-info-circle'
-    };
-    
-    toast.innerHTML = `
-        <div class="toast-content">
-            <i class="fas ${icons[type] || icons.info}"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    document.body.appendChild(toast);
-    
-    requestAnimationFrame(() => toast.classList.add('show'));
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// ============================================================
-// POLLING - RÉCUPÉRATION EN TEMPS RÉEL
-// ============================================================
-
-let pollingInterval = null;
-
-function startPolling() {
-    if (pollingInterval) clearInterval(pollingInterval);
-    pollingInterval = setInterval(() => {
-        if (document.hidden) return;
-        loadNotifications(state.currentPage, state.currentFilter);
-    }, 30000); // Toutes les 30 secondes
-}
-
-function stopPolling() {
-    if (pollingInterval) {
-        clearInterval(pollingInterval);
-        pollingInterval = null;
-    }
-}
-
-// ============================================================
-// INITIALISATION
-// ============================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    log('🚀 Initialisation de la page Notifications');
-    
-    if (!CONFIG.TOKEN) {
-        showToast('Non connecté. Redirection...', 'danger');
-        setTimeout(() => window.location.href = '/auth/login', 2000);
-        return;
-    }
-    
-    // Charger les notifications
-    loadNotifications(1, 'all');
-    
-    // Configurer les filtres
-    setupFilters();
-    
-    // Événement "Tout marquer comme lu"
-    document.getElementById('markAllReadBtn').addEventListener('click', markAllAsRead);
-    
-    // Événement "Paramètres"
-    document.getElementById('notificationSettingsBtn').addEventListener('click', function() {
-        showToast('Paramètres des notifications (bientôt disponible)', 'info');
+    // Événements pour les actions dans les notifications
+    document.querySelectorAll('.action-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const action = this.classList;
+            const notification = this.closest('.notification-item');
+            
+            if (action.contains('complete-btn') || action.contains('success')) {
+                showToast('Tâche marquée comme terminée', 'success');
+                // Optionnel : masquer la notification
+                // notification.style.display = 'none';
+            } else if (action.contains('view-btn')) {
+                showToast('Redirection en cours...', 'info');
+            } else if (action.contains('reply-btn')) {
+                showToast('Ouverture de la messagerie...', 'info');
+            } else if (action.contains('remind-later')) {
+                showToast('Rappel programmé pour plus tard', 'info');
+            } else if (action.contains('moderate-btn')) {
+                showToast('Ouverture de la modération...', 'info');
+            } else if (action.contains('ignore-btn')) {
+                notification.style.display = 'none';
+                showToast('Signalement ignoré', 'info');
+                updateCounters();
+            } else if (action.contains('get-started-btn')) {
+                window.location.href = '/dashboard';
+            } else if (action.contains('vet-btn')) {
+                showToast('Recherche de vétérinaires à proximité...', 'info');
+            }
+        });
     });
-    
-    // Pagination
-    document.getElementById('prevPageBtn').addEventListener('click', function() {
-        if (state.currentPage > 1) goToPage(state.currentPage - 1);
+
+    // Cliquer sur une notification pour voir les détails
+    notificationItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            // Ne pas déclencher si on clique sur un bouton
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                return;
+            }
+            
+            const title = this.querySelector('h4')?.textContent || 'Notification';
+            showToast(`Ouverture: ${title}`, 'info');
+            // Marquer comme lue au clic
+            markAsRead(this);
+        });
     });
-    
-    document.getElementById('nextPageBtn').addEventListener('click', function() {
-        if (state.currentPage < state.totalPages) goToPage(state.currentPage + 1);
-    });
-    
-    // Démarrer le polling
-    startPolling();
-    
-    // Arrêter le polling quand la page est cachée
-    document.addEventListener('visibilitychange', function() {
-        if (document.hidden) {
-            stopPolling();
-        } else {
-            startPolling();
-            // Rafraîchir immédiatement
-            loadNotifications(state.currentPage, state.currentFilter);
+
+    // Pagination (statique pour le moment)
+    const pageNumbers = document.querySelectorAll('.page-number');
+    const prevBtn = document.querySelector('.page-btn.prev');
+    const nextBtn = document.querySelector('.page-btn.next');
+    let currentPage = 1;
+    const totalPages = 3;
+
+    function updatePagination() {
+        pageNumbers.forEach((btn, index) => {
+            const pageNum = index + 1;
+            if (pageNum === currentPage) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        if (prevBtn) {
+            prevBtn.disabled = currentPage === 1;
         }
+        if (nextBtn) {
+            nextBtn.disabled = currentPage === totalPages;
+        }
+    }
+
+    pageNumbers.forEach(btn => {
+        btn.addEventListener('click', function() {
+            currentPage = parseInt(this.textContent);
+            updatePagination();
+            showToast(`Page ${currentPage} chargée`, 'info');
+            // Ici, vous pourriez charger les notifications de la page via AJAX
+        });
     });
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                updatePagination();
+                showToast(`Page ${currentPage} chargée`, 'info');
+            }
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                updatePagination();
+                showToast(`Page ${currentPage} chargée`, 'info');
+            }
+        });
+    }
+
+    // Bouton paramètres des notifications
+    const settingsBtn = document.getElementById('notificationSettingsBtn');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+            showToast('Paramètres des notifications (à venir)', 'info');
+        });
+    }
+
+    // Initialiser les compteurs
+    updateCounters();
     
-    // Nettoyer le polling avant de quitter
-    window.addEventListener('beforeunload', function() {
-        stopPolling();
+    // Animation d'entrée pour les notifications
+    notificationItems.forEach((item, index) => {
+        item.style.animationDelay = `${index * 0.05}s`;
     });
-    
-    log('✅ Page Notifications initialisée avec succès');
 });
 </script>
-@endpush
+
 @endsection

@@ -8,10 +8,36 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Modèle Publication
+ * 
+ * Représente un article publié par un éleveur sur la plateforme
+ * 
+ * @property int $id
+ * @property int $user_id
+ * @property string $titre
+ * @property string $categorie
+ * @property string $contenu
+ * @property string|null $image_url
+ * @property string|null $video_url
+ * @property string|null $fichier_url
+ * @property string|null $fichier_nom
+ * @property int $nbr_likes
+ * @property int $nbr_commentaires
+ * @property int $nbr_partages
+ * @property int $nbr_vues
+ * @property int $nbr_signalements
+ * @property string $statut
+ * @property string|null $raison_blocage
+ * @property \Carbon\Carbon $published_at
+ */
 class Publication extends Model
 {
     use HasFactory;
 
+    /**
+     * Les attributs assignables en masse.
+     */
     protected $fillable = [
         'user_id',
         'titre',
@@ -31,6 +57,9 @@ class Publication extends Model
         'published_at',
     ];
 
+    /**
+     * Les attributs qui doivent être castés.
+     */
     protected $casts = [
         'nbr_likes' => 'integer',
         'nbr_commentaires' => 'integer',
@@ -42,257 +71,265 @@ class Publication extends Model
         'updated_at' => 'datetime',
     ];
 
+    /**
+     * Les valeurs par défaut des attributs.
+     */
     protected $attributes = [
         'statut' => 'publiee',
     ];
 
-    // ============================================================
-    // ACCESSORS CORRIGÉS - Version finale
-    // ============================================================
+    // ========== RELATIONS ==========
 
     /**
-     * Accesseur pour la première image
-     * Retourne l'URL complète de la première image
+     * Relation avec l'utilisateur (auteur)
      */
-    public function getImageUrlAttribute($value)
-    {
-        if (!$value) {
-            return null;
-        }
-        $first = explode(',', $value)[0];
-        $first = trim($first);
-        
-        // Si l'URL est déjà complète, la retourner
-        if (filter_var($first, FILTER_VALIDATE_URL)) {
-            return $first;
-        }
-        
-        // ✅ CORRECTION: Supprimer le préfixe 'storage/' s'il existe déjà
-        $path = $first;
-        if (str_starts_with($path, 'storage/')) {
-            $path = substr($path, 8); // Enlever 'storage/'
-        }
-        
-        return asset('storage/' . $path);
-    }
-
-    /**
-     * Accesseur pour toutes les images (tableau)
-     */
-    public function getImagesAttribute()
-    {
-        if (!$this->image_url) {
-            return [];
-        }
-        
-        $urls = explode(',', $this->image_url);
-        return array_map(function ($url) {
-            $url = trim($url);
-            
-            // Si l'URL est déjà complète
-            if (filter_var($url, FILTER_VALIDATE_URL)) {
-                return $url;
-            }
-            
-            // ✅ CORRECTION: Supprimer le préfixe 'storage/' s'il existe déjà
-            $path = $url;
-            if (str_starts_with($path, 'storage/')) {
-                $path = substr($path, 8);
-            }
-            
-            return asset('storage/' . $path);
-        }, $urls);
-    }
-
-    /**
-     * Accesseur pour les URLs des vidéos (tableau)
-     */
-    public function getVideosAttribute()
-    {
-        if (!$this->video_url) {
-            return [];
-        }
-        
-        $urls = explode(',', $this->video_url);
-        return array_map(function ($url) {
-            $url = trim($url);
-            
-            if (filter_var($url, FILTER_VALIDATE_URL)) {
-                return $url;
-            }
-            
-            $path = $url;
-            if (str_starts_with($path, 'storage/')) {
-                $path = substr($path, 8);
-            }
-            
-            return asset('storage/' . $path);
-        }, $urls);
-    }
-
-    /**
-     * Accesseur pour les fichiers (tableau avec nom et url)
-     */
-    public function getFichiersAttribute()
-    {
-        if (!$this->fichier_url) {
-            return [];
-        }
-        
-        $urls = explode(',', $this->fichier_url);
-        $names = $this->fichier_nom ? explode(',', $this->fichier_nom) : [];
-        
-        return array_map(function ($index, $url) use ($names) {
-            $url = trim($url);
-            
-            if (filter_var($url, FILTER_VALIDATE_URL)) {
-                $fullUrl = $url;
-            } else {
-                $path = $url;
-                if (str_starts_with($path, 'storage/')) {
-                    $path = substr($path, 8);
-                }
-                $fullUrl = asset('storage/' . $path);
-            }
-            
-            return [
-                'url' => $fullUrl,
-                'nom' => isset($names[$index]) ? trim($names[$index]) : 'Fichier ' . ($index + 1)
-            ];
-        }, array_keys($urls), $urls);
-    }
-
-    /**
-     * Accesseur pour le résumé du contenu
-     */
-    public function getResumeAttribute()
-    {
-        $text = strip_tags($this->contenu);
-        return strlen($text) > 200 ? substr($text, 0, 200) . '...' : $text;
-    }
-
-    // ============================================================
-    // RELATIONS
-    // ============================================================
-
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Relation avec les commentaires
+     */
     public function commentaires()
     {
         return $this->hasMany(Commentaire::class);
     }
 
+    /**
+     * Relation avec les likes
+     */
     public function likes()
     {
         return $this->hasMany(Like::class);
     }
 
+    /**
+     * Relation avec les signalements
+     */
     public function reports()
     {
         return $this->hasMany(Report::class);
     }
 
+    /**
+     * Relation avec les partages
+     */
     public function shares()
     {
         return $this->hasMany(Share::class);
     }
 
+    /**
+     * Vérifie si l'utilisateur a liké cette publication
+     */
     public function isLikedByUser(?User $user): bool
     {
-        if (!$user) return false;
+        if (!$user) {
+            return false;
+        }
         return $this->likes()->where('user_id', $user->id)->exists();
     }
 
+    /**
+     * Vérifie si l'utilisateur a signalé cette publication
+     */
     public function isReportedByUser(?User $user): bool
     {
-        if (!$user) return false;
+        if (!$user) {
+            return false;
+        }
         return $this->reports()->where('user_id', $user->id)->exists();
     }
 
-    // ============================================================
-    // SCOPES
-    // ============================================================
+    // ========== ACCESSORS ==========
 
+    /**
+     * Accesseur pour l'URL complète de l'image
+     */
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value) {
+                if (!$value) {
+                    return null;
+                }
+                if (filter_var($value, FILTER_VALIDATE_URL)) {
+                    return $value;
+                }
+                return asset('storage/' . $value);
+            }
+        );
+    }
+
+    /**
+     * Accesseur pour l'URL complète du fichier
+     */
+    protected function fichierUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value) {
+                if (!$value) {
+                    return null;
+                }
+                return asset('storage/' . $value);
+            }
+        );
+    }
+
+    /**
+     * Accesseur pour le résumé du contenu
+     */
+    protected function resume(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return strlen($this->contenu) > 200 
+                    ? substr($this->contenu, 0, 200) . '...' 
+                    : $this->contenu;
+            }
+        );
+    }
+
+    /**
+     * Accesseur pour le temps de lecture estimé
+     */
+    protected function tempsLecture(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $mots = str_word_count(strip_tags($this->contenu), 0);
+                $minutes = ceil($mots / 200); // 200 mots par minute en moyenne
+                return $minutes;
+            }
+        );
+    }
+
+    // ========== SCOPES ==========
+
+    /**
+     * Scope pour les publications publiées (non bloquées)
+     */
     public function scopePublished($query)
     {
         return $query->where('statut', 'publiee');
     }
 
+    /**
+     * Scope pour les publications signalées
+     */
     public function scopeReported($query)
     {
         return $query->where('statut', 'signalee');
     }
 
+    /**
+     * Scope pour les publications bloquées
+     */
     public function scopeBlocked($query)
     {
         return $query->where('statut', 'bloquee');
     }
 
+    /**
+     * Scope pour les publications par catégorie
+     */
     public function scopeByCategory($query, string $categorie)
     {
         return $query->where('categorie', $categorie);
     }
 
+    /**
+     * Scope pour les publications les plus likées
+     */
     public function scopeMostLiked($query, int $limit = 10)
     {
         return $query->orderBy('nbr_likes', 'desc')->limit($limit);
     }
 
+    /**
+     * Scope pour les publications les plus vues
+     */
     public function scopeMostViewed($query, int $limit = 10)
     {
         return $query->orderBy('nbr_vues', 'desc')->limit($limit);
     }
 
+    /**
+     * Scope pour les publications récentes
+     */
     public function scopeRecent($query, int $limit = 10)
     {
         return $query->orderBy('published_at', 'desc')->limit($limit);
     }
 
-    // ============================================================
-    // MÉTHODES UTILITAIRES
-    // ============================================================
+    // ========== MÉTHODES UTILITAIRES ==========
 
+    /**
+     * Incrémente le compteur de vues
+     */
     public function incrementViews(): void
     {
         $this->increment('nbr_vues');
     }
 
+    /**
+     * Incrémente le compteur de likes
+     */
     public function incrementLikes(): void
     {
         $this->increment('nbr_likes');
     }
 
+    /**
+     * Décrémente le compteur de likes
+     */
     public function decrementLikes(): void
     {
         $this->decrement('nbr_likes');
     }
 
+    /**
+     * Incrémente le compteur de commentaires
+     */
     public function incrementCommentaires(): void
     {
         $this->increment('nbr_commentaires');
     }
 
+    /**
+     * Décrémente le compteur de commentaires
+     */
     public function decrementCommentaires(): void
     {
         $this->decrement('nbr_commentaires');
     }
 
+    /**
+     * Incrémente le compteur de partages
+     */
     public function incrementPartages(): void
     {
         $this->increment('nbr_partages');
     }
 
+    /**
+     * Incrémente le compteur de signalements
+     * Passe automatiquement en statut "signalee" si seuil atteint
+     */
     public function incrementSignalements(): void
     {
         $this->increment('nbr_signalements');
+        
+        // Si 5 signalements ou plus, passer en statut signalée
         if ($this->nbr_signalements >= 5 && $this->statut === 'publiee') {
             $this->update(['statut' => 'signalee']);
         }
     }
 
+    /**
+     * Bloque la publication
+     */
     public function block(string $raison): void
     {
         $this->update([
@@ -301,6 +338,9 @@ class Publication extends Model
         ]);
     }
 
+    /**
+     * Débloque la publication
+     */
     public function unblock(): void
     {
         $this->update([

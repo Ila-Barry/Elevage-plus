@@ -1,5 +1,5 @@
 <?php
-// app/Notifications/PublicationReportedNotification.php
+// notification de publication signalée, déclenchée par le signalement d'une publication
 
 namespace App\Notifications;
 
@@ -23,18 +23,5 @@ class PublicationReportedNotification extends BaseNotification
                          "pour le motif : {$motif}";
         $this->type = 'danger';
         $this->url = "/admin/publications/{$publication->id}";
-        
-        $this->actions = [
-            [
-                'label' => 'Examiner la publication',
-                'url' => "/admin/publications/{$publication->id}",
-                'type' => 'danger'
-            ],
-            [
-                'label' => 'Voir le signalement',
-                'url' => "/admin/reports/{$publication->id}",
-                'type' => 'primary'
-            ]
-        ];
     }
 }
