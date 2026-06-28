@@ -7,17 +7,15 @@ use App\Http\Requests\Api\ApiRequest;
 use App\Models\Produit;
 use Illuminate\Validation\Rule;
 
-/**
- * Requête de validation pour la création d'un produit
- */
 class CreateProduitRequest extends ApiRequest
 {
-    /**
-     * Règles de validation
-     */
     public function rules(): array
     {
         return [
+            'elevage_id' => [
+                'required',
+                'exists:elevages,id',
+            ],
             'nom' => [
                 'required',
                 'string',
@@ -87,12 +85,11 @@ class CreateProduitRequest extends ApiRequest
         ];
     }
 
-    /**
-     * Messages d'erreur personnalisés
-     */
     public function messages(): array
     {
         return [
+            'elevage_id.required' => 'Veuillez sélectionner un élevage.',
+            'elevage_id.exists' => 'L\'élevage sélectionné n\'existe pas.',
             'nom.required' => 'Le nom du produit est obligatoire.',
             'nom.min' => 'Le nom doit contenir au moins 2 caractères.',
             'categorie.required' => 'La catégorie est obligatoire.',
@@ -104,7 +101,6 @@ class CreateProduitRequest extends ApiRequest
             'code_barre.unique' => 'Ce code-barres est déjà utilisé.',
             'photo.image' => 'Le fichier doit être une image.',
             'photo.max' => 'L\'image ne doit pas dépasser 2 Mo.',
-            'prix_unitaire.min' => 'Le prix unitaire doit être supérieur ou égal à 0.',
             'date_expiration.after' => 'La date d\'expiration doit être dans le futur.',
         ];
     }

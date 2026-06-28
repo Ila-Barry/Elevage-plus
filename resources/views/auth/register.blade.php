@@ -1,9 +1,15 @@
+{{-- resources/views/auth/register.blade.php --}}
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Inscription | ÉLEVAGE+</title>
+    
+    <!-- CSRF Token pour les requêtes AJAX -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
     <link rel="icon" href="{{ asset('images/logoE.png') }}" type="image/png">
 
     <!-- Bootstrap 4.6 CSS -->
@@ -52,7 +58,7 @@
         </div>
 
         <!-- Formulaire d'inscription -->
-        <form id="registerForm" method="POST">
+        <form id="registerForm">
             @csrf
 
             <!-- 1. NOM -->
@@ -92,7 +98,7 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-phone-alt text-muted"></i></span>
                     </div>
-                    <input type="tel" class="form-control border-start-0 ps-0" id="phone" name="phone" placeholder="77 123 45 67" required>
+                    <input type="tel" class="form-control border-start-0 ps-0" id="phone" name="telephone" placeholder="77 123 45 67" required>
                     <div class="input-validation" style="display: none;">
                         <i class="fas fa-check-circle"></i>
                     </div>
@@ -152,7 +158,7 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-tractor text-muted"></i></span>
                     </div>
-                    <input type="text" class="form-control border-start-0 ps-0" id="farmingType" name="farming_type" placeholder="Bovin, ovin, caprin..." required>
+                    <input type="text" class="form-control border-start-0 ps-0" id="farmingType" name="type_elevage" placeholder="Bovin, ovin, caprin..." required>
                     <div class="input-validation" style="display: none;">
                         <i class="fas fa-check-circle"></i>
                     </div>
@@ -160,19 +166,19 @@
                 <div class="field-error" id="farmingTypeError" style="display: none;"></div>
             </div>
 
-            <!-- 7. ADRESSE DOMICILE -->
+            <!-- 7. BIOGRAPHIE (optionnel) -->
             <div class="form-group mb-4">
-                <label class="form-label fw-semibold">Adresse domicile</label>
-                <div class="input-group custom-input-group" id="addressGroup">
+                <label class="form-label fw-semibold">Biographie (optionnel)</label>
+                <div class="input-group custom-input-group" id="bioGroup">
                     <div class="input-group-prepend">
-                        <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-home text-muted"></i></span>
+                        <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-align-left text-muted"></i></span>
                     </div>
-                    <input type="text" class="form-control border-start-0 ps-0" id="address" name="address" placeholder="Votre adresse complète" required>
+                    <textarea class="form-control border-start-0 ps-0" id="bio" name="bio" placeholder="Parlez-nous de vous..." rows="3"></textarea>
                     <div class="input-validation" style="display: none;">
                         <i class="fas fa-check-circle"></i>
                     </div>
                 </div>
-                <div class="field-error" id="addressError" style="display: none;"></div>
+                <div class="field-error" id="bioError" style="display: none;"></div>
             </div>
 
             <!-- 8. Case à cocher conditions générales -->
@@ -259,6 +265,10 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+// ================= CONFIGURATION =================
+const API_URL = '/api';
+const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
 // ================= VARIABLES =================
 let toastTimeout = null;
 
@@ -298,7 +308,6 @@ function validateEmail(email) {
 }
 
 function validatePhone(phone) {
-    // Format Sénégalais: 77XXXXXXX, 78XXXXXXX, 70XXXXXXX, 76XXXXXXX, 75XXXXXXX
     const phoneRegex = /^(\+221|00221)?(77|78|70|76|75)[0-9]{7}$/;
     const cleanPhone = phone.replace(/[\s\-]/g, '');
     return phoneRegex.test(cleanPhone);
@@ -314,10 +323,6 @@ function validatePasswordMatch(password, confirm) {
 
 function validateFarmingType(type) {
     return type.trim().length >= 2;
-}
-
-function validateAddress(address) {
-    return address.trim().length >= 5;
 }
 
 function getPasswordStrength(password) {
@@ -544,36 +549,6 @@ function validateFarmingTypeInput() {
     }
 }
 
-function validateAddressInput() {
-    const input = document.getElementById('address');
-    const value = input.value;
-    const group = document.getElementById('addressGroup');
-    const errorDiv = document.getElementById('addressError');
-    const validationIcon = group.querySelector('.input-validation');
-    
-    if (value === '') {
-        group.classList.remove('valid', 'invalid');
-        validationIcon.style.display = 'none';
-        errorDiv.style.display = 'none';
-        return false;
-    }
-    
-    if (validateAddress(value)) {
-        group.classList.add('valid');
-        group.classList.remove('invalid');
-        validationIcon.style.display = 'flex';
-        errorDiv.style.display = 'none';
-        return true;
-    } else {
-        group.classList.add('invalid');
-        group.classList.remove('valid');
-        validationIcon.style.display = 'none';
-        errorDiv.textContent = 'Veuillez entrer une adresse complète';
-        errorDiv.style.display = 'block';
-        return false;
-    }
-}
-
 // ================= AFFICHAGE DES ERREURS =================
 function showError(message) {
     const errorDiv = document.getElementById('errorMessage');
@@ -629,19 +604,31 @@ function setLoading(button, isLoading) {
     }
 }
 
-// ================= SIMULATION D'INSCRIPTION =================
-async function simulateRegistration(formData) {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            // Simulation d'un appel API
-            const existingUsers = ['admin@elevageplus.com', 'user@elevageplus.com'];
-            if (existingUsers.includes(formData.email)) {
-                resolve({ success: false, message: 'Cet email est déjà utilisé.' });
-            } else {
-                resolve({ success: true, message: 'Inscription réussie ! Redirection vers la page de connexion...' });
-            }
-        }, 1500);
-    });
+// ================= API CALLS =================
+async function registerUser(userData) {
+    try {
+        const response = await fetch(`${API_URL}/auth/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            },
+            body: JSON.stringify(userData)
+        });
+
+        const data = await response.json();
+        console.log('Réponse du serveur:', data);
+
+        if (!response.ok) {
+            throw data;
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Erreur complète:', error);
+        throw error;
+    }
 }
 
 // ================= SUBMIT FORMULAIRE =================
@@ -657,7 +644,6 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     const isPasswordValid = validatePasswordInput();
     const isPasswordMatchValid = validatePasswordMatchInput();
     const isFarmingTypeValid = validateFarmingTypeInput();
-    const isAddressValid = validateAddressInput();
     const termsAccepted = document.getElementById('acceptTerms').checked;
     
     if (!isNameValid) {
@@ -696,12 +682,6 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         return;
     }
     
-    if (!isAddressValid) {
-        showError('Veuillez entrer votre adresse complète.');
-        document.getElementById('address').focus();
-        return;
-    }
-    
     if (!termsAccepted) {
         showError('Vous devez accepter les conditions d\'utilisation.');
         return;
@@ -710,32 +690,49 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     const formData = {
         name: document.getElementById('fullName').value.trim(),
         email: document.getElementById('email').value.trim(),
-        phone: document.getElementById('phone').value.trim(),
+        telephone: document.getElementById('phone').value.trim(),
         password: document.getElementById('password').value,
-        farming_type: document.getElementById('farmingType').value.trim(),
-        address: document.getElementById('address').value.trim()
+        password_confirmation: document.getElementById('password_confirmation').value,
+        type_elevage: document.getElementById('farmingType').value.trim(),
+        bio: document.getElementById('bio').value.trim()
     };
     
     const submitBtn = document.getElementById('registerBtn');
     setLoading(submitBtn, true);
     
     try {
-        const result = await simulateRegistration(formData);
+        const result = await registerUser(formData);
         
-        if (result.success) {
-            showSuccess(result.message);
+        // ✅ CORRECTION : Vérifier 'success' (pas 'status')
+        if (result.success === true) {
+            // Stocker les tokens
+            if (result.data?.access_token) {
+                localStorage.setItem('access_token', result.data.access_token);
+                localStorage.setItem('token_expiry', Date.now() + 3600 * 1000);
+                
+                if (result.data.user) {
+                    localStorage.setItem('user', JSON.stringify(result.data.user));
+                }
+            }
             
-            // Sauvegarder l'email pour le pré-remplir sur la page de connexion
-            localStorage.setItem('registeredEmail', formData.email);
+            showSuccess('Inscription réussie ! Un email de vérification vous a été envoyé.');
             
+            // Redirection vers la page de connexion
             setTimeout(() => {
-                window.location.href = "{{ url('/auth/login') }}?registered=success";
-            }, 2000);
+                window.location.href = '/auth/login?registered=success';
+            }, 3000);
         } else {
-            showError(result.message);
+            // Gérer les erreurs de validation du backend
+            if (result.errors) {
+                const errorMessages = Object.values(result.errors).flat().join('\n');
+                showError(errorMessages || result.message || 'Une erreur est survenue.');
+            } else {
+                showError(result.message || 'Une erreur est survenue lors de l\'inscription.');
+            }
         }
     } catch (error) {
-        showError('Une erreur est survenue. Veuillez réessayer.');
+        console.error('Erreur:', error);
+        showError(error.message || 'Une erreur est survenue. Veuillez réessayer.');
     } finally {
         setLoading(submitBtn, false);
     }
@@ -769,7 +766,6 @@ document.getElementById('phone').addEventListener('input', validatePhoneInput);
 document.getElementById('password').addEventListener('input', validatePasswordInput);
 document.getElementById('password_confirmation').addEventListener('input', validatePasswordMatchInput);
 document.getElementById('farmingType').addEventListener('input', validateFarmingTypeInput);
-document.getElementById('address').addEventListener('input', validateAddressInput);
 
 // ================= MODAL CONDITIONS =================
 const termsModal = document.getElementById('termsModal');
@@ -810,37 +806,25 @@ if (acceptTermsBtn) {
 
 // ================= RÉSEAUX SOCIAUX =================
 document.getElementById('googleRegister').addEventListener('click', function() {
-    showToast('Inscription avec Google (démonstration)', 'info');
-    setTimeout(() => {
-        showSuccess('Inscription Google réussie ! Redirection...');
-        setTimeout(() => window.location.href = "{{ url('/dashboard') }}", 1500);
-    }, 1000);
+    showToast('Inscription avec Google (bientôt disponible)', 'info');
 });
 
 document.getElementById('facebookRegister').addEventListener('click', function() {
-    showToast('Inscription avec Facebook (démonstration)', 'info');
-    setTimeout(() => {
-        showSuccess('Inscription Facebook réussie ! Redirection...');
-        setTimeout(() => window.location.href = "{{ url('/dashboard') }}", 1500);
-    }, 1000);
+    showToast('Inscription avec Facebook (bientôt disponible)', 'info');
 });
 
 document.getElementById('instagramRegister').addEventListener('click', function() {
-    showToast('Inscription avec Instagram (démonstration)', 'info');
-    setTimeout(() => {
-        showSuccess('Inscription Instagram réussie ! Redirection...');
-        setTimeout(() => window.location.href = "{{ url('/dashboard') }}", 1500);
-    }, 1000);
+    showToast('Inscription avec Instagram (bientôt disponible)', 'info');
 });
 
 // ================= ANIMATIONS =================
-document.querySelectorAll('.custom-input-group input').forEach(input => {
+document.querySelectorAll('.custom-input-group input, .custom-input-group textarea').forEach(input => {
     input.addEventListener('focus', function() {
-        this.parentElement.classList.add('focused');
+        this.closest('.custom-input-group').classList.add('focused');
     });
     
     input.addEventListener('blur', function() {
-        this.parentElement.classList.remove('focused');
+        this.closest('.custom-input-group').classList.remove('focused');
     });
 });
 

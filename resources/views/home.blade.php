@@ -8,43 +8,34 @@
 <link rel="stylesheet" href="{{ asset('css/eleveurCSS/home.css') }}">
 
 <main>
-  <!-- HERO  + CARTE CENTRÉE -->
-<section class="hero-jumbotron">
 
-    <img
-        src="{{ asset('images/bg.png') }}"
-        alt="Élevage+"
-        class="hero-image"
-    >
-
+  <!-- HERO -->
+  <section class="hero-jumbotron">
+    <img src="{{ asset('images/bg.png') }}" alt="Élevage+" class="hero-image">
     <div class="hero-overlay"></div>
-
     <div class="hero-content">
-        <h1>
-            Gérez votre élevage
-            <span class="text-green">facilement</span>
-        </h1>
-
-        <p class="hero-subtitle">
-            <i class="fas fa-users"></i>
-            Rejoignez la communauté des éleveurs
-        </p>
-
-        <p class="hero-description">
-            La plateforme tout-en-un pour gérer vos animaux,
-            vos tâches, vos stocks et échanger avec d'autres
-            éleveurs.
-        </p>
-
-        <a href="{{ url('auth/register') }}" class="btn btn-success">
-            Commencer maintenant
-        </a>
+      <h1>
+        Gérez votre élevage
+        <span class="text-green">facilement</span>
+      </h1>
+      <p class="hero-subtitle">
+        <i class="fas fa-users"></i>
+        Rejoignez la communauté des éleveurs
+      </p>
+      <p class="hero-description">
+        La plateforme tout-en-un pour gérer vos animaux,
+        vos tâches, vos stocks et échanger avec d'autres
+        éleveurs.
+      </p>
+      <a href="{{ url('auth/register') }}" class="btn btn-success">
+        Commencer maintenant
+      </a>
     </div>
-
   </section>
 
   <!-- CONTENU -->
   <div class="container content-wrapper">
+
     <!-- Colonne gauche : Publications -->
     <section class="posts-section">
       <div class="section-header">
@@ -56,16 +47,15 @@
         <h3><i class="fas fa-filter"></i> Filtrer les publications</h3>
         <div class="tabs">
           <button class="tab active" data-tab="all"><i class="fas fa-list"></i> Tous</button>
-          <button class="tab" data-tab="conseils"><i class="fas fa-lightbulb"></i> Conseils</button>
-          <button class="tab" data-tab="experiences"><i class="fas fa-user-edit"></i> Expériences</button>
-          <button class="tab" data-tab="alertes"><i class="fas fa-bell"></i> Alertes</button>
-          <button class="tab" data-tab="tendances"><i class="fas fa-fire"></i> Tendances</button>
+          <button class="tab" data-tab="conseil"><i class="fas fa-lightbulb"></i> Conseils</button>
+          <button class="tab" data-tab="experience"><i class="fas fa-user-edit"></i> Expériences</button>
+          <button class="tab" data-tab="alerte"><i class="fas fa-bell"></i> Alertes</button>
         </div>
       </div>
 
-      <!-- Container des publications avec hauteur fixe -->
-      <div class="posts-scroll-container">
-        <div id="posts-container"></div>
+      <!-- Container des publications -->
+      <div class="posts-scroll-container" id="postsContainer">
+        <div id="postsList"></div>
       </div>
 
       <!-- Pagination -->
@@ -76,34 +66,37 @@
       </div>
     </section>
 
-    <!-- Sidebar droite - Statistiques indépendante -->
+    <!-- Sidebar droite -->
     <aside class="sidebar">
+
+      <!-- Statistiques -->
       <div class="bottom-stats">
         <h3><i class="fas fa-chart-pie"></i> STATISTIQUES DE LA COMMUNAUTÉ</h3>
         <div class="stats-grid" id="statsGrid">
           <div class="stat-box stat-green">
             <i class="fas fa-user-friends stat-icon"></i>
-            <div class="stat-num" id="statUsers">127</div>
+            <div class="stat-num" id="statUsers">-</div>
             <div>éleveurs</div>
           </div>
           <div class="stat-box stat-blue">
             <i class="fas fa-file-alt stat-icon"></i>
-            <div class="stat-num" id="statPosts">345</div>
+            <div class="stat-num" id="statPosts">-</div>
             <div>articles</div>
           </div>
           <div class="stat-box stat-pink">
             <i class="fas fa-heart stat-icon"></i>
-            <div class="stat-num" id="statLikes">2.5k</div>
+            <div class="stat-num" id="statLikes">-</div>
             <div>likes</div>
           </div>
           <div class="stat-box stat-mint">
             <i class="fas fa-comments stat-icon"></i>
-            <div class="stat-num" id="statComments">890</div>
+            <div class="stat-num" id="statComments">-</div>
             <div>coms</div>
           </div>
         </div>
       </div>
 
+      <!-- Pourquoi rejoindre -->
       <h3><i class="fas fa-question-circle"></i> POURQUOI REJOINDRE ÉLEVAGE+?</h3>
       <div class="why-list">
         <div class="why-item">
@@ -129,637 +122,822 @@
         </div>
       </div>
 
+      <!-- CTA -->
       <div class="cta-box">
         <h4><i class="fas fa-rocket"></i> Prête à améliorer votre élevage?</h4>
-        <p>rejoignez les centaines d'éleveurs qui nous font déjà confiance!</p>
-        <a href="{{ url('auth/register') }}" class="btn btn-success w-100"><i class="fas fa-user-plus"></i> Créez votre compte gratuitement</a>
+        <p>Rejoignez les centaines d'éleveurs qui nous font déjà confiance!</p>
+        <a href="{{ url('auth/register') }}" class="btn btn-success w-100">
+          <i class="fas fa-user-plus"></i> Créez votre compte gratuitement
+        </a>
       </div>
 
+      <!-- Images sidebar -->
       <div class="sidebar-imgs">
         <img src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?q=80&w=400" alt="Vaches">
         <img src="https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?q=80&w=400" alt="Moutons">
       </div>
+
     </aside>
+
   </div>
+
 </main>
 
 <script>
-// ================= GÉNÉRATION DE 20+ PUBLICATIONS =================
-function generatePublications() {
-  const basePublications = [
-    {
-      id: 1,
-      author: "Jean Dupont",
-      role: "Éleveur bovin",
-      avatar: "https://i.pravatar.cc/40?u=jean1",
-      time: "2 jours",
-      rating: 4.0,
-      likes: 45,
-      comments: 12,
-      views: 230,
-      image: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?q=80&w=250",
-      title: "COMMENT J'AI AUGMENTÉ MA PRODUCTION LAITIÈRE DE 30%",
-      content: "Le mois dernier, j'ai appliqué une nouvelle méthode d'alimentation à mon troupeau de 45 vaches...",
-      fullContent: "Le mois dernier, j'ai appliqué une nouvelle méthode d'alimentation à mon troupeau de 45 vaches. Après avoir consulté un nutritionniste animalier, j'ai modifié la ration quotidienne en ajoutant des compléments protéinés naturels. Les résultats sont spectaculaires : augmentation de 30% de la production laitière, meilleure santé générale des animaux et réduction des coûts d'alimentation de 15%.",
-      userLiked: false,
-      type: "conseils"
-    },
-    {
-      id: 2,
-      author: "Marie Diop",
-      role: "Éleveur ovin",
-      avatar: "https://i.pravatar.cc/40?u=marie1",
-      time: "5 jours",
-      rating: 4.5,
-      likes: 78,
-      comments: 23,
-      views: 450,
-      image: "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?q=80&w=250",
-      title: "5 ASTUCES POUR PRÉPARER L'HIVERNAGE",
-      content: "L'hivernage approche et il est crucial de bien préparer vos animaux...",
-      fullContent: "L'hivernage approche et il est crucial de bien préparer vos animaux. Voici mes 5 astuces : 1) Stockez suffisamment de fourrage, 2) Vérifiez les abris, 3) Programmez les vaccinations avant la saison des pluies, 4) Augmentez les compléments énergétiques, 5) Surveillez l'état corporel chaque semaine.",
-      userLiked: false,
-      type: "conseils"
-    },
-    {
-      id: 3,
-      author: "Amadou Sy",
-      role: "Éleveur bovin",
-      avatar: "https://i.pravatar.cc/40?u=amadou1",
-      time: "1 semaine",
-      rating: 4.8,
-      likes: 120,
-      comments: 45,
-      views: 890,
-      image: "https://images.unsplash.com/photo-1589923188651-268a9765e432?q=80&w=250",
-      title: "MON EXPÉRIENCE AVEC LA TRANSITION VERS L'AGRICULTURE BIOLOGIQUE",
-      content: "Après 5 ans d'élevage conventionnel, j'ai décidé de passer au bio...",
-      fullContent: "Après 5 ans d'élevage conventionnel, j'ai décidé de passer au bio. Les défis étaient nombreux : trouver des aliments certifiés, adapter les traitements vétérinaires, former le personnel. Mais les résultats en valent la peine : animaux plus résistants, qualité de lait supérieure, et un prix de vente augmenté de 40%.",
-      userLiked: false,
-      type: "experiences"
-    },
-    {
-      id: 4,
-      author: "Fatou Ndiaye",
-      role: "Éleveur caprin",
-      avatar: "https://i.pravatar.cc/40?u=fatou1",
-      time: "3 jours",
-      rating: 4.2,
-      likes: 56,
-      comments: 18,
-      views: 310,
-      image: "https://images.unsplash.com/photo-1516467508483-72145faca6d0?q=80&w=250",
-      title: "ALERTE - FIEVRE APHTEUSE DANS LA RÉGION DE THIÈS",
-      content: "⚠️ Une épidémie de fièvre aphteuse a été signalée dans la région de Thiès...",
-      fullContent: "Une épidémie de fièvre aphteuse a été signalée dans la région de Thiès. Les symptômes à surveiller : fièvre, aphtes dans la bouche et sur les sabots, baisse de production laitière. Recommandations : isolez immédiatement les animaux suspects, contactez votre vétérinaire, évitez tout déplacement d'animaux.",
-      userLiked: false,
-      type: "alertes"
-    },
-    {
-      id: 5,
-      author: "Mamadou Diallo",
-      role: "Éleveur bovin",
-      avatar: "https://i.pravatar.cc/40?u=mamadou1",
-      time: "2 jours",
-      rating: 4.9,
-      likes: 234,
-      comments: 67,
-      views: 1200,
-      image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=250",
-      title: "TOP 5 DES ALIMENTS QUI BOOSTENT LA PRODUCTION LAITIÈRE",
-      content: "Après des années d'expérimentation, voici mon top 5 des aliments...",
-      fullContent: "Après des années d'expérimentation, voici mon top 5 des aliments qui augmentent significativement la production laitière : 1) Le tourteau de coton, 2) La drèche de brasserie, 3) Le son de blé, 4) Les feuilles de moringa, 5) Les compléments minéraux. Attention aux quantités et à l'introduction progressive !",
-      userLiked: false,
-      type: "tendances"
-    },
-    {
-      id: 6,
-      author: "Aissatou Sow",
-      role: "Éleveur bovin",
-      avatar: "https://i.pravatar.cc/40?u=aissatou1",
-      time: "4 jours",
-      rating: 4.3,
-      likes: 89,
-      comments: 31,
-      views: 520,
-      image: "https://images.unsplash.com/photo-1546448396-6aef80193ceb?q=80&w=250",
-      title: "MON TROUPEAU VIENT DE PASSER À 100 TÊTES !",
-      content: "Une étape importante franchie cette semaine, mon élevage compte désormais 100 animaux...",
-      fullContent: "Une étape importante franchie cette semaine, mon élevage compte désormais 100 animaux. Retour sur mon parcours : j'ai commencé avec 15 vaches il y a 3 ans. Grâce aux conseils de la communauté, à une bonne gestion et à beaucoup de travail, j'ai pu agrandir progressivement mon troupeau.",
-      userLiked: false,
-      type: "experiences"
-    }
-  ];
+// ============================================================
+// CONFIGURATION
+// ============================================================
 
-  // Générer 20+ publications (jusqu'à 25 pour avoir plusieurs pages)
-  let allPublications = [...basePublications];
-  
-  // Ajouter des publications supplémentaires pour atteindre 25
-  const types = ["conseils", "experiences", "alertes", "tendances"];
-  const titles = [
-    "NOUVELLE MÉTHODE D'ALIMENTATION BIO", 
-    "COMMENT PRÉVENIR LES MALADIES EN SAISON DES PLUIES",
-    "LES MEILLEURES PRATIQUES POUR L'ÉLEVAGE MODERNE",
-    "RETOUR D'EXPÉRIENCE SUR L'AGRICULTURE DURABLE",
-    "ASTUCES POUR RÉDUIRE LES COÛTS D'ALIMENTATION",
-    "IMPORTANCE DE LA TRACEABILITÉ DANS L'ÉLEVAGE",
-    "FORMATION GRATUITE SUR LA GESTION D'ÉLEVAGE",
-    "LES NOUVELLES TECHNOLOGIES AU SERVICE DE L'ÉLEVAGE"
-  ];
-  const authors = [
-    "Ousmane Barry", "Aminata Diallo", "Moussa Cissé", "Rokhaya Fall", 
-    "Cheikh Dieng", "Fatimata Sow", "Babacar Ndiaye", "Mariama Sall"
-  ];
-  const roles = ["Éleveur bovin", "Éleveur ovin", "Éleveur caprin", "Éleveur mixte"];
-
-  for (let i = basePublications.length + 1; i <= 25; i++) {
-    const randomType = types[Math.floor(Math.random() * types.length)];
-    const randomTitle = titles[Math.floor(Math.random() * titles.length)];
-    const randomAuthor = authors[Math.floor(Math.random() * authors.length)];
-    const randomRole = roles[Math.floor(Math.random() * roles.length)];
-    
-    allPublications.push({
-      id: i,
-      author: randomAuthor,
-      role: randomRole,
-      avatar: `https://i.pravatar.cc/40?u=${randomAuthor.replace(/\s/g, '')}`,
-      time: `${Math.floor(Math.random() * 15) + 1} jours`,
-      rating: (Math.random() * 1.5 + 3.5).toFixed(1),
-      likes: Math.floor(Math.random() * 200) + 20,
-      comments: Math.floor(Math.random() * 50) + 5,
-      views: Math.floor(Math.random() * 1000) + 100,
-      image: `https://picsum.photos/id/${100 + i}/250/150`,
-      title: randomTitle,
-      content: "Découvrez cette nouvelle publication passionnante sur l'élevage moderne. Des conseils pratiques et des astuces pour améliorer votre production...",
-      fullContent: "Découvrez cette nouvelle publication passionnante sur l'élevage moderne. Des conseils pratiques et des astuces pour améliorer votre production. Nous partageons notre expérience et nos connaissances pour aider toute la communauté à progresser.",
-      userLiked: false,
-      type: randomType
-    });
-  }
-  
-  return allPublications;
-}
-
-const allGeneratedPublications = generatePublications();
-
-// ================= DONNÉES DES PUBLICATIONS =================
-const publicationsData = {
-  all: [...allGeneratedPublications],
-  conseils: allGeneratedPublications.filter(p => p.type === "conseils"),
-  experiences: allGeneratedPublications.filter(p => p.type === "experiences"),
-  alertes: allGeneratedPublications.filter(p => p.type === "alertes"),
-  tendances: allGeneratedPublications.filter(p => p.type === "tendances")
+const CONFIG = {
+    API_URL: window.location.origin + '/api',
+    CSRF_TOKEN: document.querySelector('meta[name="csrf-token"]')?.content || '',
+    ITEMS_PER_PAGE: 6
 };
 
-// Variables d'état
-let currentTab = 'all';
-let currentPage = 1;
-const itemsPerPage = 20; 
-let likedPosts = new Set();
-let toastTimeout = null;
+// ============================================================
+// ÉTAT DE L'APPLICATION
+// ============================================================
 
-// ================= FONCTIONS TOAST =================
-function showToast(message, type = 'info') {
-  const existingToast = document.querySelector('.custom-toast');
-  if (existingToast) existingToast.remove();
-  if (toastTimeout) clearTimeout(toastTimeout);
-  
-  const toast = document.createElement('div');
-  toast.className = `custom-toast ${type}`;
-  
-  let icon = 'fa-info-circle';
-  if (type === 'success') icon = 'fa-check-circle';
-  else if (type === 'danger') icon = 'fa-exclamation-circle';
-  else if (type === 'warning') icon = 'fa-exclamation-triangle';
-  
-  toast.innerHTML = `
-    <div class="toast-content">
-      <i class="fas ${icon}"></i>
-      <span>${message}</span>
-    </div>
-  `;
-  
-  document.body.appendChild(toast);
-  setTimeout(() => toast.classList.add('show'), 10);
-  
-  toastTimeout = setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
+const state = {
+    posts: [],
+    currentPage: 1,
+    totalPages: 0,
+    currentCategory: 'all',
+    isLoading: false,
+    toastTimeout: null,
+    expandedPosts: new Set() // ✅ Pour suivre les publications développées
+};
 
-// ================= FONCTIONS D'INTERACTION =================
-function likePost(postId) {
-  let post = null;
-  for (const tab in publicationsData) {
-    const found = publicationsData[tab].find(p => p.id === postId);
-    if (found) {
-      post = found;
-      break;
+// ============================================================
+// FONCTIONS UTILITAIRES
+// ============================================================
+
+function log(message, data) {
+    data = data || null;
+    const timestamp = new Date().toISOString();
+    if (data) {
+        console.log('[' + timestamp + '] 📝 ' + message, data);
+    } else {
+        console.log('[' + timestamp + '] 📝 ' + message);
     }
-  }
-  if (!post) return;
-  
-  const likeBtn = document.querySelector(`.like-btn-${postId}`);
-  const likeCountSpan = document.querySelector(`.like-count-${postId}`);
-  
-  if (likedPosts.has(postId)) {
-    likedPosts.delete(postId);
-    post.likes--;
-    if (likeBtn) likeBtn.classList.remove('liked');
-    showToast('Vous n\'aimez plus cette publication', 'info');
-  } else {
-    likedPosts.add(postId);
-    post.likes++;
-    if (likeBtn) likeBtn.classList.add('liked');
-    showToast('Publication aimée !', 'success');
-  }
-  
-  if (likeCountSpan) likeCountSpan.textContent = post.likes;
-  updateStats();
 }
 
-function sharePost(postId, postTitle) {
-  const shareUrl = `${window.location.origin}/post/${postId}`;
-  navigator.clipboard.writeText(shareUrl).then(() => {
-    showToast(`"${postTitle}" - Lien copié dans le presse-papier !`, 'success');
-  }).catch(() => {
-    showToast(`Partagez "${postTitle}" avec vos amis !`, 'success');
-  });
-}
-
-function openCommentModal(postId, postTitle) {
-  const comment = prompt(`Laissez un commentaire sur "${postTitle}" :`);
-  if (comment && comment.trim()) {
-    showToast(`Commentaire ajouté : "${comment.substring(0, 50)}${comment.length > 50 ? '...' : ''}"`, 'success');
-    let post = null;
-    for (const tab in publicationsData) {
-      const found = publicationsData[tab].find(p => p.id === postId);
-      if (found) {
-        post = found;
-        break;
-      }
+function logError(message, error) {
+    error = error || null;
+    const timestamp = new Date().toISOString();
+    if (error) {
+        console.error('[' + timestamp + '] ❌ ' + message, error);
+    } else {
+        console.error('[' + timestamp + '] ❌ ' + message);
     }
-    if (post) {
-      post.comments++;
-      const commentSpan = document.querySelector(`.comment-count-${postId}`);
-      if (commentSpan) commentSpan.textContent = post.comments;
-      updateStats();
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function truncateText(text, maxLength) {
+    if (!text) return '';
+    return text.length <= maxLength ? text : text.substring(0, maxLength) + '...';
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    var date = new Date(dateString);
+    var now = new Date();
+    var diff = now - date;
+    
+    if (diff < 60000) return 'À l\'instant';
+    if (diff < 3600000) return 'Il y a ' + Math.floor(diff / 60000) + ' min';
+    if (diff < 86400000) return 'Il y a ' + Math.floor(diff / 3600000) + 'h';
+    if (diff < 604800000) return 'Il y a ' + Math.floor(diff / 86400000) + 'j';
+    return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+}
+
+function fixImageUrl(url) {
+    if (!url) return '';
+    var clean = url.trim();
+    if (clean.indexOf('http://') === 0 || clean.indexOf('https://') === 0) {
+        return clean;
     }
-  } else if (comment !== null) {
-    showToast('Le commentaire ne peut pas être vide', 'warning');
-  }
-}
-
-function openReadMore(postId) {
-  let post = null;
-  for (const tab in publicationsData) {
-    const found = publicationsData[tab].find(p => p.id === postId);
-    if (found) {
-      post = found;
-      break;
+    clean = clean.replace(/\/storage\/\/storage\//g, '/storage/');
+    clean = clean.replace(/storage\/\/storage\//g, 'storage/');
+    clean = clean.replace(/\/\/storage\//g, '/storage/');
+    clean = clean.replace(/storage\/storage\//g, 'storage/');
+    if (clean.indexOf('storage/') === 0) {
+        clean = window.location.origin + '/' + clean;
+    } else if (clean.indexOf('/storage/') === 0) {
+        clean = window.location.origin + clean;
+    } else if (clean && clean.indexOf('http') !== 0) {
+        clean = window.location.origin + '/storage/' + clean;
     }
-  }
-  if (post) {
-    showModal(`
-      <h3>${post.title}</h3>
-      <div class="modal-meta">
-        <span><i class="fas fa-user"></i> ${post.author} (${post.role})</span>
-        <span><i class="far fa-clock"></i> ${post.time}</span>
-      </div>
-      <div class="modal-image">
-        <img src="${post.image}" alt="${post.title}">
-      </div>
-      <div class="modal-content-text">
-        <p>${post.fullContent || post.content}</p>
-      </div>
-      <div class="modal-stats">
-        <span><i class="fas fa-heart"></i> ${post.likes} likes</span>
-        <span><i class="fas fa-comment"></i> ${post.comments} commentaires</span>
-        <span><i class="fas fa-eye"></i> ${post.views} vues</span>
-      </div>
-    `, "Publication complète");
-  }
+    return clean;
 }
 
-function showModal(content, title = "Détails") {
-  const existingModal = document.querySelector('.custom-modal');
-  if (existingModal) existingModal.remove();
-  
-  const modal = document.createElement('div');
-  modal.className = 'custom-modal';
-  modal.innerHTML = `
-    <div class="modal-overlay"></div>
-    <div class="modal-container">
-      <div class="modal-header">
-        <h3>${title}</h3>
-        <button class="modal-close"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="modal-body">
-        ${content}
-      </div>
-    </div>
-  `;
-  
-  document.body.appendChild(modal);
-  document.body.style.overflow = 'hidden';
-  setTimeout(() => modal.classList.add('show'), 10);
-  
-  const closeModal = () => {
-    modal.classList.remove('show');
-    setTimeout(() => {
-      modal.remove();
-      document.body.style.overflow = '';
-    }, 300);
-  };
-  
-  modal.querySelector('.modal-overlay').addEventListener('click', closeModal);
-  modal.querySelector('.modal-close').addEventListener('click', closeModal);
+function getAvatarUrl(photoUrl, name) {
+    if (photoUrl && photoUrl.trim()) {
+        var fixed = fixImageUrl(photoUrl);
+        if (fixed) return fixed;
+    }
+    var defaultName = name || 'User';
+    return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(defaultName) + '&background=4F46E5&color=fff';
 }
 
-// ================= AFFICHAGE DES PUBLICATIONS =================
-function renderPosts() {
-  const container = document.getElementById('posts-container');
-  if (!container) return;
-  
-  const currentPosts = publicationsData[currentTab] || [];
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedPosts = currentPosts.slice(startIndex, endIndex);
-  
-  if (paginatedPosts.length === 0) {
-    container.innerHTML = `
-      <div class="empty-posts">
-        <i class="fas fa-newspaper"></i>
-        <h4>Aucune publication</h4>
-        <p>Aucune publication disponible dans cette catégorie pour le moment.</p>
-      </div>
+// ============================================================
+// TOAST
+// ============================================================
+
+function showToast(message, type) {
+    type = type || 'info';
+    var existing = document.querySelector('.custom-toast');
+    if (existing) existing.remove();
+    if (state.toastTimeout) clearTimeout(state.toastTimeout);
+    
+    var toast = document.createElement('div');
+    toast.className = 'custom-toast ' + type;
+    
+    var icons = {
+        success: 'fa-check-circle',
+        danger: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+    
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="fas ` + (icons[type] || icons.info) + `"></i>
+            <span>` + message + `</span>
+        </div>
     `;
-    return;
-  }
-  
-  container.innerHTML = paginatedPosts.map(post => `
-    <article class="post-card" data-post-id="${post.id}">
-      <div class="post-top">
-        <img src="${post.avatar}" class="avatar" alt="${post.author}">
-        <div class="post-info">
-          <a href="{{ url('/profilEleveur') }}">
-            <h4>${post.author} - ${post.role} <i class="fas fa-circle-check text-info"></i> • ${post.time}</h4>
-          </a>
-          <div class="post-meta">
-            <span><i class="fas fa-star text-warning"></i> ${post.rating} (${post.likes} likes)</span>
-            <span><i class="far fa-comment-dots"></i> ${post.comments} commentaires</span>
-            <span><i class="far fa-eye"></i> ${post.views} vues</span>
-          </div>
-        </div>
-      </div>
-      <div class="post-content">
-        <img src="${post.image}" alt="${post.title}">
-        <div class="post-text">
-          <h3>${post.title}</h3>
-          <p>${post.content}</p>
-          <div class="post-actions">
-            <button class="like-btn like-btn-${post.id} ${likedPosts.has(post.id) ? 'liked' : ''}" onclick="likePost(${post.id})">
-              <i class="far fa-thumbs-up"></i> Liker <span class="like-count-${post.id}">${post.likes}</span>
-            </button>
-            <button onclick="openCommentModal(${post.id}, '${post.title.replace(/'/g, "\\'")}')">
-              <i class="far fa-comment-dots"></i> Commenter <span class="comment-count-${post.id}">${post.comments}</span>
-            </button>
-            <button onclick="sharePost(${post.id}, '${post.title.replace(/'/g, "\\'")}')">
-              <i class="fas fa-share-alt"></i> Partager
-            </button>
-            <a href="#" class="read-more" onclick="openReadMore(${post.id}); return false;">
-              Lire la suite <i class="fas fa-arrow-right"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-    </article>
-  `).join('');
+    document.body.appendChild(toast);
+    
+    requestAnimationFrame(function() { toast.classList.add('show'); });
+    
+    state.toastTimeout = setTimeout(function() {
+        toast.classList.remove('show');
+        setTimeout(function() { toast.remove(); }, 300);
+    }, 3000);
 }
 
-// ================= PAGINATION =================
-function updatePagination() {
-  const currentPosts = publicationsData[currentTab] || [];
-  const totalPages = Math.ceil(currentPosts.length / itemsPerPage);
-  const pageNumbersDiv = document.getElementById('pageNumbers');
-  const prevBtn = document.getElementById('prevPage');
-  const nextBtn = document.getElementById('nextPage');
-  
-  if (!pageNumbersDiv) return;
-  
-  if (totalPages <= 1) {
-    pageNumbersDiv.innerHTML = '';
-    if (prevBtn) prevBtn.disabled = true;
-    if (nextBtn) nextBtn.disabled = true;
-    return;
-  }
-  
-  let pagesHtml = '';
-  const maxVisiblePages = 5;
-  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-  let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-  
-  if (endPage - startPage + 1 < maxVisiblePages) {
-    startPage = Math.max(1, endPage - maxVisiblePages + 1);
-  }
-  
-  if (startPage > 1) {
-    pagesHtml += `<button class="page-number" data-page="1">1</button>`;
-    if (startPage > 2) pagesHtml += `<span class="page-dots">...</span>`;
-  }
-  
-  for (let i = startPage; i <= endPage; i++) {
-    pagesHtml += `<button class="page-number ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
-  }
-  
-  if (endPage < totalPages) {
-    if (endPage < totalPages - 1) pagesHtml += `<span class="page-dots">...</span>`;
-    pagesHtml += `<button class="page-number" data-page="${totalPages}">${totalPages}</button>`;
-  }
-  
-  pageNumbersDiv.innerHTML = pagesHtml;
-  
-  if (prevBtn) prevBtn.disabled = currentPage === 1;
-  if (nextBtn) nextBtn.disabled = currentPage === totalPages;
-  
-  document.querySelectorAll('.page-number').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentPage = parseInt(btn.dataset.page);
-      renderPosts();
-      updatePagination();
-      document.querySelector('.posts-scroll-container').scrollTop = 0;
-    });
-  });
-}
+// ============================================================
+// API CALLS
+// ============================================================
 
-// ================= STATISTIQUES DYNAMIQUES =================
-function updateStats() {
-  const totalUsers = 127;
-  let totalPosts = publicationsData.all.length;
-  let totalLikes = 0;
-  let totalComments = 0;
-  
-  publicationsData.all.forEach(post => {
-    totalLikes += post.likes;
-    totalComments += post.comments;
-  });
-  
-  const statUsers = document.getElementById('statUsers');
-  const statPosts = document.getElementById('statPosts');
-  const statLikes = document.getElementById('statLikes');
-  const statComments = document.getElementById('statComments');
-  
-  if (statUsers) statUsers.textContent = totalUsers;
-  if (statPosts) statPosts.textContent = totalPosts;
-  if (statLikes) statLikes.textContent = totalLikes > 1000 ? `${(totalLikes / 1000).toFixed(1)}k` : totalLikes;
-  if (statComments) statComments.textContent = totalComments > 1000 ? `${(totalComments / 1000).toFixed(1)}k` : totalComments;
-}
+async function apiCall(endpoint, options) {
+    options = options || {};
+    var defaultHeaders = {
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': CONFIG.CSRF_TOKEN
+    };
 
-// ================= FILTRAGE PAR TAB =================
-function switchTab(tabName) {
-  currentTab = tabName;
-  currentPage = 1;
-  renderPosts();
-  updatePagination();
-  
-  const container = document.getElementById('posts-container');
-  container.style.opacity = '0';
-  setTimeout(() => {
-    container.style.opacity = '1';
-  }, 150);
-  
-  let tabDisplayName = '';
-  switch(tabName) {
-    case 'all': tabDisplayName = 'Toutes les publications'; break;
-    case 'conseils': tabDisplayName = 'Conseils'; break;
-    case 'experiences': tabDisplayName = 'Expériences'; break;
-    case 'alertes': tabDisplayName = 'Alertes'; break;
-    case 'tendances': tabDisplayName = 'Tendances'; break;
-    default: tabDisplayName = tabName;
-  }
-  showToast(`Affichage : ${tabDisplayName}`, 'info');
-}
+    var config = {
+        method: options.method || 'GET',
+        headers: Object.assign({}, defaultHeaders, options.headers || {})
+    };
 
-// ================= CARROUSEL =================
-function initCarousel() {
-  const slides = document.querySelectorAll('.carousel-slide');
-  const dots = document.querySelectorAll('.dot');
-  let currentSlide = 0;
-  let carouselInterval;
-  
-  function showSlide(index) {
-    slides.forEach((slide, i) => {
-      slide.classList.toggle('active', i === index);
-      if (dots[i]) dots[i].classList.toggle('active', i === index);
-    });
-    currentSlide = index;
-  }
-  
-  function nextSlide() {
-    const next = (currentSlide + 1) % slides.length;
-    showSlide(next);
-  }
-  
-  function startAutoPlay() {
-    if (carouselInterval) clearInterval(carouselInterval);
-    carouselInterval = setInterval(nextSlide, 5000);
-  }
-  
-  function stopAutoPlay() {
-    if (carouselInterval) {
-      clearInterval(carouselInterval);
-      carouselInterval = null;
+    if (config.body && typeof config.body === 'object') {
+        config.body = JSON.stringify(config.body);
     }
-  }
-  
-  startAutoPlay();
-  
-  dots.forEach(dot => {
-    dot.addEventListener('click', () => {
-      stopAutoPlay();
-      showSlide(parseInt(dot.dataset.slide));
-      startAutoPlay();
-    });
-  });
-  
-  const carousel = document.querySelector('.hero-carousel');
-  if (carousel) {
-    carousel.addEventListener('mouseenter', stopAutoPlay);
-    carousel.addEventListener('mouseleave', startAutoPlay);
-  }
+
+    var url = endpoint.indexOf('http') === 0 ? endpoint : CONFIG.API_URL + endpoint;
+    log('🌐 Requête ' + (options.method || 'GET') + ' ' + url);
+
+    try {
+        var response = await fetch(url, config);
+        var data = await response.json();
+
+        if (!response.ok) {
+            logError('Erreur HTTP ' + response.status, data);
+            var error = new Error(data.message || 'Erreur API');
+            error.status = response.status;
+            error.errors = data.errors;
+            throw error;
+        }
+
+        log('✅ Réponse reçue', { status: response.status });
+        return data;
+    } catch (error) {
+        logError('Erreur API', error);
+        throw error;
+    }
 }
 
-// ================= INITIALISATION =================
+// ============================================================
+// CHARGEMENT DES PUBLICATIONS
+// ============================================================
+
+async function loadPosts(page, category) {
+    page = page || 1;
+    category = category || 'all';
+    
+    if (state.isLoading) return;
+    state.isLoading = true;
+    state.currentPage = page;
+    state.currentCategory = category;
+    
+    var container = document.getElementById('postsList');
+    container.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-success" role="status">
+                <span class="sr-only">Chargement...</span>
+            </div>
+            <p class="mt-2 text-muted">Chargement des publications...</p>
+        </div>
+    `;
+    
+    try {
+        var result = await apiCall('/home/posts?page=' + page + '&per_page=' + CONFIG.ITEMS_PER_PAGE + '&category=' + category);
+        
+        if (result.success === true && result.data) {
+            state.posts = result.data.data || [];
+            var meta = result.data.meta || {};
+            state.totalPages = meta.last_page || 1;
+            
+            // ✅ Réinitialiser les publications développées
+            state.expandedPosts = new Set();
+            
+            renderPosts();
+            updatePagination();
+            log('✅ ' + state.posts.length + ' publications chargées');
+        } else {
+            showToast(result.message || 'Erreur lors du chargement', 'danger');
+            state.posts = [];
+            renderPosts();
+            updatePagination();
+        }
+    } catch (error) {
+        logError('Erreur chargement publications', error);
+        showToast('Erreur lors du chargement des publications', 'danger');
+        state.posts = [];
+        renderPosts();
+        updatePagination();
+    } finally {
+        state.isLoading = false;
+    }
+}
+
+// ============================================================
+// CHARGEMENT DES STATISTIQUES
+// ============================================================
+
+async function loadStats() {
+    try {
+        var result = await apiCall('/home/stats');
+        
+        if (result.success === true && result.data) {
+            var stats = result.data;
+            
+            var users = stats.total_users || stats.users || 0;
+            var posts = stats.total_posts || stats.posts || 0;
+            var likes = stats.total_likes || stats.likes || 0;
+            var comments = stats.total_comments || stats.comments || 0;
+            
+            document.getElementById('statUsers').textContent = users;
+            document.getElementById('statPosts').textContent = posts;
+            document.getElementById('statLikes').textContent = likes > 1000 ? (likes / 1000).toFixed(1) + 'k' : likes;
+            document.getElementById('statComments').textContent = comments > 1000 ? (comments / 1000).toFixed(1) + 'k' : comments;
+            
+            log('✅ Statistiques chargées', stats);
+        } else {
+            // Fallback avec les données du serveur
+            var serverStats = {!! json_encode($stats ?? []) !!};
+            if (serverStats) {
+                document.getElementById('statUsers').textContent = serverStats.total_users || 0;
+                document.getElementById('statPosts').textContent = serverStats.total_posts || 0;
+                var likes = serverStats.total_likes || 0;
+                document.getElementById('statLikes').textContent = likes > 1000 ? (likes / 1000).toFixed(1) + 'k' : likes;
+                var comments = serverStats.total_comments || 0;
+                document.getElementById('statComments').textContent = comments > 1000 ? (comments / 1000).toFixed(1) + 'k' : comments;
+            }
+        }
+    } catch (error) {
+        logError('Erreur chargement statistiques', error);
+        var serverStats = {!! json_encode($stats ?? []) !!};
+        if (serverStats) {
+            document.getElementById('statUsers').textContent = serverStats.total_users || 0;
+            document.getElementById('statPosts').textContent = serverStats.total_posts || 0;
+            var likes = serverStats.total_likes || 0;
+            document.getElementById('statLikes').textContent = likes > 1000 ? (likes / 1000).toFixed(1) + 'k' : likes;
+            var comments = serverStats.total_comments || 0;
+            document.getElementById('statComments').textContent = comments > 1000 ? (comments / 1000).toFixed(1) + 'k' : comments;
+        }
+    }
+}
+
+// ============================================================
+// AFFICHAGE DES PUBLICATIONS - AVEC "PLUS..." ET "MOINS..."
+// ============================================================
+
+function renderPosts() {
+    var container = document.getElementById('postsList');
+    
+    if (!state.posts || state.posts.length === 0) {
+        container.innerHTML = `
+            <div class="empty-posts">
+                <i class="fas fa-newspaper"></i>
+                <h4>Aucune publication</h4>
+                <p>Aucune publication disponible dans cette catégorie pour le moment.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    var html = '';
+    for (var i = 0; i < state.posts.length; i++) {
+        var post = state.posts[i];
+        var isExpanded = state.expandedPosts.has(post.id);
+        
+        // Extraire les données
+        var authorName = post.auteur?.name || post.user?.name || 'Utilisateur';
+        var authorAvatar = getAvatarUrl(post.auteur?.photo_url || post.user?.photo_url, authorName);
+        var authorRole = post.auteur?.role === 'admin' ? 'Administrateur' : 'Éleveur';
+        var time = formatDate(post.published_at || post.created_at);
+        
+        var categoryIcon = post.categorie === 'experience' ? '💡' : 
+                          post.categorie === 'alerte' ? '⚠️' : '🌾';
+        var categoryLabel = post.categorie_label || post.categorie || 'Conseil';
+        
+        // Statistiques
+        var likes = post.statistiques?.likes || post.nbr_likes || 0;
+        var comments = post.statistiques?.commentaires || post.nbr_commentaires || 0;
+        var shares = post.statistiques?.partages || post.nbr_partages || 0;
+        var views = post.statistiques?.vues || post.nbr_vues || 0;
+        
+        var imageUrl = post.images && post.images.length > 0 ? post.images[0] : (post.image_url || 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?q=80&w=400');
+        var title = post.titre || 'Sans titre';
+        var fullContent = post.contenu || 'Contenu non disponible';
+        var profileUrl = '/profilEleveur/' + (post.user_id || post.user?.id);
+        
+        // ✅ Gestion du contenu avec "plus..." et "moins..."
+        var maxLength = 200;
+        var contentExcerpt = truncateText(stripHtml(fullContent), maxLength);
+        var isTruncated = fullContent.length > maxLength;
+        
+        var contentHtml = '';
+        if (isExpanded) {
+            contentHtml = fullContent.replace(/\n/g, '<br>') + 
+                '<span class="read-more-btn" onclick="toggleFullContent(' + post.id + ')"> moins...</span>';
+        } else if (isTruncated) {
+            contentHtml = contentExcerpt + 
+                ' <span class="read-more-btn" onclick="toggleFullContent(' + post.id + ')">plus...</span>';
+        } else {
+            contentHtml = fullContent.replace(/\n/g, '<br>');
+        }
+        
+        html += `
+        <article class="post-card" data-post-id="` + post.id + `">
+            <div class="post-top">
+                <img src="` + authorAvatar + `" class="avatar" alt="` + escapeHtml(authorName) + `" onerror="this.src='https://ui-avatars.com/api/?name=User&background=4F46E5&color=fff'">
+                <div class="post-info">
+                    <a href="` + profileUrl + `" style="text-decoration: none; color: inherit;">
+                      <h4>` + escapeHtml(authorName) + ` - ` + authorRole + ` <i class="fas fa-circle-check text-info"></i> • ` + time + `</h4>
+                    </a>
+                    <div class="post-meta">
+                        <span><i class="fas fa-tag"></i> ` + categoryIcon + ` ` + categoryLabel + `</span>
+                    </div>
+                </div>
+            </div>
+            <div class="post-content">
+                <div class="post-text">
+
+                    <h3>` + escapeHtml(title) + `</h3>
+                    <p class="post-text-content" data-full="` + (isExpanded ? 'true' : 'false') + `">
+                        ` + contentHtml + `
+                    </p>
+                    <img src="` + fixImageUrl(imageUrl) + `" alt="` + escapeHtml(title) + `" onerror="this.src='https://images.unsplash.com/photo-1500595046743-cd271d694d30?q=80&w=400'">
+                    
+                    <div class="post-actions">
+                        <!-- Statistiques publiques -->
+                        <span class="stat-item">
+                            <i class="fas fa-heart"></i> <span class="stat-count">` + likes + `</span>
+                        </span>
+                        <span class="stat-item">
+                            <i class="fas fa-comment"></i> <span class="stat-count">` + comments + `</span>
+                        </span>
+                        <span class="stat-item">
+                            <i class="fas fa-share-alt"></i> <span class="stat-count">` + shares + `</span>
+                        </span>
+                        <span class="stat-item">
+                            <i class="fas fa-eye"></i> <span class="stat-count">` + views + `</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </article>`;
+    }
+    
+    container.innerHTML = html;
+}
+
+// ============================================================
+// FONCTION POUR SUPPRIMER LES BALISES HTML
+// ============================================================
+
+function stripHtml(html) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+}
+
+// ============================================================
+// TOGGLE DU CONTENU COMPLET
+// ============================================================
+
+function toggleFullContent(postId) {
+    if (state.expandedPosts.has(postId)) {
+        state.expandedPosts.delete(postId);
+    } else {
+        state.expandedPosts.add(postId);
+    }
+    renderPosts();
+}
+
+// ============================================================
+// PAGINATION
+// ============================================================
+
+function updatePagination() {
+    var pageNumbersDiv = document.getElementById('pageNumbers');
+    var prevBtn = document.getElementById('prevPage');
+    var nextBtn = document.getElementById('nextPage');
+    
+    if (state.totalPages <= 1) {
+        pageNumbersDiv.innerHTML = '';
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        return;
+    }
+    
+    var html = '';
+    var maxVisible = 5;
+    var start = Math.max(1, state.currentPage - Math.floor(maxVisible / 2));
+    var end = Math.min(state.totalPages, start + maxVisible - 1);
+    
+    if (end - start + 1 < maxVisible) {
+        start = Math.max(1, end - maxVisible + 1);
+    }
+    
+    if (start > 1) {
+        html += '<button class="page-number" data-page="1">1</button>';
+        if (start > 2) html += '<span class="page-dots">...</span>';
+    }
+    
+    for (var i = start; i <= end; i++) {
+        html += '<button class="page-number ' + (i === state.currentPage ? 'active' : '') + '" data-page="' + i + '">' + i + '</button>';
+    }
+    
+    if (end < state.totalPages) {
+        if (end < state.totalPages - 1) html += '<span class="page-dots">...</span>';
+        html += '<button class="page-number" data-page="' + state.totalPages + '">' + state.totalPages + '</button>';
+    }
+    
+    pageNumbersDiv.innerHTML = html;
+    prevBtn.disabled = state.currentPage === 1;
+    nextBtn.disabled = state.currentPage === state.totalPages;
+    
+    document.querySelectorAll('.page-number').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var page = parseInt(this.dataset.page);
+            if (page !== state.currentPage) {
+                loadPosts(page, state.currentCategory);
+                document.getElementById('postsContainer').scrollTop = 0;
+            }
+        });
+    });
+}
+
+// ============================================================
+// FILTRES
+// ============================================================
+
+function setupTabs() {
+    document.querySelectorAll('.tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+            this.classList.add('active');
+            
+            var category = this.dataset.tab;
+            loadPosts(1, category);
+        });
+    });
+}
+
+// ============================================================
+// INITIALISATION
+// ============================================================
+
 document.addEventListener('DOMContentLoaded', function() {
-  initCarousel();
-  updateStats();
-  renderPosts();
-  updatePagination();
-  
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      this.classList.add('active');
-      const tabName = this.dataset.tab;
-      switchTab(tabName);
+    log('🚀 Initialisation de la page d\'accueil');
+    
+    // Charger les statistiques
+    loadStats();
+    
+    // Charger les publications
+    loadPosts(1, 'all');
+    
+    // Configurer les filtres
+    setupTabs();
+    
+    // Pagination
+    document.getElementById('prevPage').addEventListener('click', function() {
+        if (state.currentPage > 1) {
+            loadPosts(state.currentPage - 1, state.currentCategory);
+            document.getElementById('postsContainer').scrollTop = 0;
+        }
     });
-  });
-  
-  const prevBtn = document.getElementById('prevPage');
-  const nextBtn = document.getElementById('nextPage');
-  
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        renderPosts();
-        updatePagination();
-        document.querySelector('.posts-scroll-container').scrollTop = 0;
-      }
+    
+    document.getElementById('nextPage').addEventListener('click', function() {
+        if (state.currentPage < state.totalPages) {
+            loadPosts(state.currentPage + 1, state.currentCategory);
+            document.getElementById('postsContainer').scrollTop = 0;
+        }
     });
-  }
-  
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      const currentPosts = publicationsData[currentTab] || [];
-      const totalPages = Math.ceil(currentPosts.length / itemsPerPage);
-      if (currentPage < totalPages) {
-        currentPage++;
-        renderPosts();
-        updatePagination();
-        document.querySelector('.posts-scroll-container').scrollTop = 0;
-      }
-    });
-  }
-  
-  const style = document.createElement('style');
-  style.textContent = `
-    #posts-container { transition: opacity 0.15s ease; }
-    .empty-posts { text-align: center; padding: 60px 20px; background: white; border-radius: 12px; border: 1px solid #dee2e6; }
-    .empty-posts i { font-size: 48px; color: #6c757d; margin-bottom: 15px; }
-    .empty-posts h4 { font-size: 18px; margin-bottom: 8px; color: #343a40; }
-    .empty-posts p { font-size: 14px; color: #6c757d; }
-    .like-btn.liked { color: #e83e8c; }
-    .like-btn.liked i { font-weight: 900; }
-    .pagination .page-numbers { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; align-items: center; }
-    .page-number { padding: 7px 12px; border: 1px solid #dee2e6; background: white; cursor: pointer; border-radius: 4px; font-size: 12px; transition: all 0.2s; }
-    .page-number:hover { background: #e9ecef; }
-    .page-number.active { background: #28a745; color: white; border-color: #28a745; }
-    .page-dots { padding: 0 5px; color: #6c757d; }
-    #prevPage:disabled, #nextPage:disabled { opacity: 0.5; cursor: not-allowed; }
-    #pagination { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
-    .post-card { transition: transform 0.2s ease, box-shadow 0.2s ease; margin-bottom: 20px; }
-    .post-card:hover { transform: translateY(-2px); }
-    .posts-scroll-container { height: 700px; overflow-y: auto; padding-right: 10px; }
-    .posts-scroll-container::-webkit-scrollbar { width: 8px; }
-    .posts-scroll-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-    .posts-scroll-container::-webkit-scrollbar-thumb { background: #28a745; border-radius: 10px; }
-    .posts-scroll-container::-webkit-scrollbar-thumb:hover { background: #146c43; }
-    .posts-section { flex: 2; }
-  `;
-  document.head.appendChild(style);
+    
+    log('✅ Page d\'accueil initialisée avec succès');
 });
+
+// ============================================================
+// STYLES DYNAMIQUES
+// ============================================================
+
+var style = document.createElement('style');
+style.textContent = `
+    .custom-toast {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 10000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+        max-width: 90%;
+    }
+    .custom-toast.show { transform: translateX(0); }
+    .custom-toast .toast-content {
+        background: #343a40;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        font-size: 14px;
+    }
+    .custom-toast.success .toast-content { background: #198754; }
+    .custom-toast.danger .toast-content { background: #dc3545; }
+    .custom-toast.warning .toast-content { background: #ffc107; color: #343a40; }
+    .custom-toast.info .toast-content { background: #0dcaf0; color: #343a40; }
+    
+    @media (max-width: 768px) {
+        .custom-toast {
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
+            transform: translateY(100px);
+        }
+        .custom-toast.show { transform: translateY(0); }
+    }
+    
+    #postsList {
+        transition: opacity 0.3s ease;
+    }
+    .empty-posts {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+    }
+    .empty-posts i {
+        font-size: 48px;
+        color: #6c757d;
+        margin-bottom: 15px;
+    }
+    .empty-posts h4 {
+        font-size: 18px;
+        margin-bottom: 8px;
+        color: #343a40;
+    }
+    .empty-posts p {
+        font-size: 14px;
+        color: #6c757d;
+    }
+    
+    .pagination .page-numbers {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+    }
+    .page-number {
+        padding: 7px 12px;
+        border: 1px solid #dee2e6;
+        background: white;
+        cursor: pointer;
+        border-radius: 4px;
+        font-size: 12px;
+        transition: all 0.2s;
+    }
+    .page-number:hover {
+        background: #e9ecef;
+    }
+    .page-number.active {
+        background: #28a745;
+        color: white;
+        border-color: #28a745;
+    }
+    .page-dots {
+        padding: 0 5px;
+        color: #6c757d;
+    }
+    #prevPage:disabled, #nextPage:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    #pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+    
+    .posts-scroll-container {
+        max-height: 700px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+    .posts-scroll-container::-webkit-scrollbar {
+        width: 8px;
+    }
+    .posts-scroll-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    .posts-scroll-container::-webkit-scrollbar-thumb {
+        background: #28a745;
+        border-radius: 10px;
+    }
+    .posts-scroll-container::-webkit-scrollbar-thumb:hover {
+        background: #146c43;
+    }
+    
+    .post-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        margin-bottom: 20px;
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        overflow: hidden;
+        background: white;
+    }
+    .post-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .post-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px 20px;
+    }
+    .post-top .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    .post-top .post-info h4 {
+        margin: 0 0 4px 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #1a202c;
+    }
+    .post-top .post-info .post-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        font-size: 12px;
+        color: #6c757d;
+    }
+    .post-top .post-info .post-meta i {
+        margin-right: 3px;
+    }
+    
+    .post-content {
+        display: flex;
+        flex-direction: column;
+    }
+    .post-content img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    .post-content .post-text {
+        padding: 15px 20px;
+    }
+    .post-content .post-text h3 {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #1a202c;
+    }
+    .post-content .post-text p {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #4a5568;
+        margin-bottom: 12px;
+    }
+    
+    /* ✅ Style pour le bouton "plus..." et "moins..." */
+    .read-more-btn {
+        color: #28a745;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+        display: inline-block;
+    }
+    .read-more-btn:hover {
+        color: #146c43;
+        text-decoration: underline;
+    }
+    
+    .post-content .post-text .post-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        padding-top: 10px;
+        border-top: 1px solid #e9ecef;
+        margin-top: 10px;
+    }
+    .post-content .post-text .post-actions .stat-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 13px;
+        color: #6c757d;
+        padding: 4px 8px;
+        border-radius: 4px;
+        background: #f8f9fa;
+    }
+    .post-content .post-text .post-actions .stat-item i {
+        font-size: 14px;
+    }
+    .post-content .post-text .post-actions .stat-item .stat-count {
+        font-weight: 600;
+        color: #343a40;
+    }
+    .post-content .post-text .post-actions .stat-item .fa-heart {
+        color: #dc3545;
+    }
+    .post-content .post-text .post-actions .stat-item .fa-comment {
+        color: #0dcaf0;
+    }
+    .post-content .post-text .post-actions .stat-item .fa-share-alt {
+        color: #6c757d;
+    }
+    .post-content .post-text .post-actions .stat-item .fa-eye {
+        color: #6c757d;
+    }
+    
+    .posts-section {
+        flex: 2;
+    }
+    
+    @media (max-width: 768px) {
+        .post-content {
+            flex-direction: column;
+        }
+        .post-content img {
+            height: 150px;
+        }
+        .post-top .post-info .post-meta {
+            gap: 8px;
+        }
+        .post-content .post-text .post-actions {
+            gap: 8px;
+        }
+        .posts-scroll-container {
+            max-height: 500px;
+        }
+        .post-content .post-text .post-actions .stat-item {
+            font-size: 12px;
+            padding: 3px 6px;
+        }
+    }
+`;
+document.head.appendChild(style);
 </script>
 
 @endsection

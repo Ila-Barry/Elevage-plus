@@ -98,7 +98,7 @@ class UpdateAnimalRequest extends ApiRequest
                 'nullable',
                 'image',
                 'mimes:jpeg,png,jpg,webp',
-                'max:2048',
+                'max:5048',
             ],
             'delete_image' => [
                 'sometimes',
@@ -126,7 +126,7 @@ class UpdateAnimalRequest extends ApiRequest
             'pere_id.exists' => 'Le père sélectionné n\'existe pas.',
             'mere_id.exists' => 'La mère sélectionnée n\'existe pas.',
             'image.image' => 'Le fichier doit être une image.',
-            'image.max' => 'L\'image ne doit pas dépasser 2 Mo.',
+            'image.max' => 'L\'image ne doit pas dépasser 5 Mo.',
         ];
     }
 }

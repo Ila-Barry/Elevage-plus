@@ -26,7 +26,7 @@ class TacheRappelNotification extends Notification
     {
         $channels = ['database'];
         
-        if ($notifiable->email_notifications) {
+        if ($notifiable->email_notifications ?? false) {
             $channels[] = 'mail';
         }
         
@@ -77,12 +77,26 @@ class TacheRappelNotification extends Notification
         };
         
         return new DatabaseMessage([
-            'title' => "Rappel: {$this->tache->titre}",
+            'title' => "🔔 Rappel: {$this->tache->titre}",
             'message' => "La tâche '{$this->tache->titre}' est prévue pour {$entite} {$quand}.",
             'type' => 'rappel_tache',
+            'icon' => '🔔',
             'tache_id' => $this->tache->id,
             'tache_titre' => $this->tache->titre,
             'date_planifiee' => $this->tache->date_planifiee->format('Y-m-d'),
+            'url' => "/tasks/{$this->tache->id}",
+            'actions' => [
+                [
+                    'label' => 'Voir la tâche',
+                    'url' => "/tasks/{$this->tache->id}",
+                    'type' => 'primary'
+                ],
+                [
+                    'label' => 'Marquer comme terminée',
+                    'url' => "/tasks/{$this->tache->id}/complete",
+                    'type' => 'success'
+                ]
+            ]
         ]);
     }
 
