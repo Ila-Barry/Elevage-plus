@@ -1,0 +1,39 @@
+# render.yaml
+services:
+  - type: web
+    name: elevage-plus
+    runtime: image
+    repo: https://github.com/votre-username/elevage-plus
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_HOST
+        value: mysql-35ac8206-barryila20-f192.h.aivencloud.com
+      - key: DB_PORT
+        value: 12747
+      - key: DB_DATABASE
+        value: defaultdb
+      - key: DB_USERNAME
+        value: avnadmin
+      - key: DB_PASSWORD
+        sync: false
+      - key: MYSQL_ATTR_SSL_CA
+        value: /etc/ssl/certs/ca-certificates.crt
+      - key: MAIL_USERNAME
+        value: barryila20@gmail.com
+      - key: MAIL_PASSWORD
+        value: hjohxefwadprrucm
+      - key: WEBPUSH_VAPID_PUBLIC_KEY
+        value: BAiWA3kESH1AaR4jfbzFJFJMtn-2eQngAYNFOVpcTSxBiEkJC5mlnV4o9iaHl5INQzdQNxLgbaQoF_JpJJ3Eiv8
+      - key: WEBPUSH_VAPID_PRIVATE_KEY
+        value: CyKQO1Rps0kGWpWty0LhW750Cw14YayuwZhx3VPA41s
+      - key: WEBPUSH_VAPID_SUBJECT
+        value: mailto:contact@elevageplus.com

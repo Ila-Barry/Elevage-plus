@@ -1,5 +1,5 @@
 <?php
-// notification de nouveau partage, déclenchée par le partage d'une publication sur une plateforme
+// app/Notifications/NewShareNotification.php
 
 namespace App\Notifications;
 
@@ -23,6 +23,7 @@ class NewShareNotification extends BaseNotification
             'twitter' => 'Twitter',
             'whatsapp' => 'WhatsApp',
             'copie_lien' => 'copie du lien',
+            'linkedin' => 'LinkedIn',
         ];
         
         $this->title = '🔄 Nouveau partage';
@@ -30,5 +31,13 @@ class NewShareNotification extends BaseNotification
                          ($plateformes[$plateforme] ?? $plateforme);
         $this->type = 'info';
         $this->url = "/publications/{$publication->id}";
+        
+        $this->actions = [
+            [
+                'label' => 'Voir la publication',
+                'url' => "/publications/{$publication->id}",
+                'type' => 'primary'
+            ]
+        ];
     }
 }

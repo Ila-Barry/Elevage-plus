@@ -1,3 +1,5 @@
+{{-- resources/views/auth/profile.blade.php --}}
+
 @extends('layouts.menu')
 
 @section('title', 'Mon Profil - Élevage+')
@@ -44,18 +46,20 @@
                 <div class="card-body">
                     <div class="profile-photo-section">
                         <div class="profile-avatar">
-                            <div class="avatar-placeholder" id="avatarPlaceholder">
+                            <div class="avatar-placeholder" id="avatarPlaceholder" style="{{ $user->photo_url ? 'display:none;' : 'display:flex;' }}">
                                 <i class="fas fa-user-alt"></i>
                             </div>
-                            <img id="profileImage" style="display: none; width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #2e7d32; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                            <img id="profileImage" 
+                                 src="{{ $user->photo_url ?? '' }}" 
+                                 style="{{ $user->photo_url ? 'display:block;' : 'display:none;' }} width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #2e7d32; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                         </div>
-                        <h2 class="profile-name" id="profileDisplayName">ILIA BARRY</h2>
+                        <h2 class="profile-name" id="profileDisplayName">{{ strtoupper($user->name) }}</h2>
                         
                         <div class="photo-actions">
                             <button class="btn-photo btn-change" id="changePhotoBtn">
                                 <i class="fas fa-camera"></i> Changer ma photo
                             </button>
-                            <button class="btn-photo btn-delete" id="deletePhotoBtn">
+                            <button class="btn-photo btn-delete" id="deletePhotoBtn" {{ $user->photo_url ? '' : 'style=display:none;' }}>
                                 <i class="fas fa-trash-alt"></i> Supprimer la photo
                             </button>
                         </div>
@@ -72,7 +76,7 @@
                 </div>
             </div>
             
-            <!-- Version mobile des infos personnelles (cachée sur desktop) -->
+            <!-- Version mobile des infos personnelles -->
             <div class="profile-card d-md-none">
                 <div class="card-header">
                     <h3><i class="fas fa-address-card"></i> INFORMATIONS PERSONNELLES</h3>
@@ -80,26 +84,26 @@
                 <div class="card-body">
                     <div class="form-group">
                         <label><i class="fas fa-user"></i> NOM COMPLET *</label>
-                        <input type="text" id="mobileFullname" value="Jean Dupont" readonly>
+                        <input type="text" id="mobileFullname" value="{{ $user->name }}" readonly>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-envelope"></i> E-MAIL *</label>
-                        <input type="email" id="mobileEmail" value="jeandupont@gmail.com" readonly>
+                        <input type="email" id="mobileEmail" value="{{ $user->email }}" readonly>
                         <div class="email-note">
                             <i class="fas fa-shield-alt"></i> Changer d'email nécessite une vérification
                         </div>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-map-marker-alt"></i> LOCALISATION *</label>
-                        <input type="text" id="mobileLocation" value="Thies, Sénégal" readonly>
+                        <input type="text" id="mobileLocation" value="{{ $user->localisation ?? 'Non renseignée' }}" readonly>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-paw"></i> TYPE(s) ÉLEVAGE *</label>
-                        <input type="text" id="mobileType" value="Bovins" readonly>
+                        <input type="text" id="mobileType" value="{{ $user->type_elevage ?? 'Non renseigné' }}" readonly>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-align-left"></i> BIOGRAPHIE (optionnel)</label>
-                        <textarea id="mobileBio" readonly>Éleveur passionné depuis 10 ans, je partage mon expérience et mes connaissances avec la communauté. Spécialisé dans l'élevage bovin traditionnel et moderne.</textarea>
+                        <textarea id="mobileBio" readonly>{{ $user->bio ?? 'Aucune biographie renseignée.' }}</textarea>
                     </div>
                 </div>
             </div>
@@ -109,7 +113,7 @@
         <!-- COLONNE DROITE -->
         <div class="profile-right">
             
-            <!-- Carte Informations personnelles complète (visible sur desktop) -->
+            <!-- Carte Informations personnelles -->
             <div class="profile-card d-none d-md-block">
                 <div class="card-header">
                     <h3><i class="fas fa-address-card"></i> INFORMATIONS PERSONNELLES</h3>
@@ -118,38 +122,43 @@
                     <form id="profileForm">
                         <div class="form-group">
                             <label><i class="fas fa-user"></i> NOM COMPLET *</label>
-                            <input type="text" name="fullname" id="fullname" value="Jean Dupont">
+                            <input type="text" name="name" id="fullname" value="{{ $user->name }}">
                         </div>
                         
                         <div class="form-group">
                             <label><i class="fas fa-envelope"></i> E-MAIL *</label>
-                            <input type="email" name="email" id="email" value="jeandupont@gmail.com">
+                            <input type="email" name="email" id="email" value="{{ $user->email }}">
                             <div class="email-note">
                                 <i class="fas fa-shield-alt"></i> Changer d'email nécessite une vérification
                             </div>
                         </div>
                         
                         <div class="form-group">
+                            <label><i class="fas fa-phone"></i> TÉLÉPHONE *</label>
+                            <input type="text" name="telephone" id="telephone" value="{{ $user->telephone ?? '' }}">
+                        </div>
+                        
+                        <div class="form-group">
                             <label><i class="fas fa-map-marker-alt"></i> LOCALISATION *</label>
-                            <input type="text" name="location" id="location" value="Thies, Sénégal">
+                            <input type="text" name="localisation" id="location" value="{{ $user->localisation ?? '' }}">
                         </div>
                         
                         <div class="form-group">
                             <label><i class="fas fa-paw"></i> TYPE(s) ÉLEVAGE *</label>
-                            <select name="livestock_type" id="livestockType">
-                                <option value="bovins" selected>Bovins</option>
-                                <option value="ovins">Ovins</option>
-                                <option value="caprins">Caprins</option>
-                                <option value="volailles">Volailles</option>
-                                <option value="porcins">Porcins</option>
-                                <option value="équins">Équins</option>
-                                <option value="mixtes">Mixtes</option>
+                            <select name="type_elevage" id="livestockType">
+                                <option value="bovins" {{ ($user->type_elevage ?? '') == 'bovins' ? 'selected' : '' }}>Bovins</option>
+                                <option value="ovins" {{ ($user->type_elevage ?? '') == 'ovins' ? 'selected' : '' }}>Ovins</option>
+                                <option value="caprins" {{ ($user->type_elevage ?? '') == 'caprins' ? 'selected' : '' }}>Caprins</option>
+                                <option value="volailles" {{ ($user->type_elevage ?? '') == 'volailles' ? 'selected' : '' }}>Volailles</option>
+                                <option value="porcins" {{ ($user->type_elevage ?? '') == 'porcins' ? 'selected' : '' }}>Porcins</option>
+                                <option value="equins" {{ ($user->type_elevage ?? '') == 'equins' ? 'selected' : '' }}>Équins</option>
+                                <option value="mixte" {{ ($user->type_elevage ?? '') == 'mixte' ? 'selected' : '' }}>Mixte</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label><i class="fas fa-align-left"></i> BIOGRAPHIE (optionnel)</label>
-                            <textarea name="bio" id="bio" rows="4">Éleveur passionné depuis 10 ans, je partage mon expérience et mes connaissances avec la communauté. Spécialisé dans l'élevage bovin traditionnel et moderne.</textarea>
+                            <textarea name="bio" id="bio" rows="4">{{ $user->bio ?? '' }}</textarea>
                         </div>
                         
                         <div class="save-section">
@@ -165,7 +174,7 @@
         
     </div>
     
-    <!-- STATISTIQUES DU COMPTE - EN BAS DES DEUX COLONNES -->
+    <!-- STATISTIQUES DU COMPTE -->
     <div class="stats-wrapper">
         <div class="stats-card">
             <div class="card-header">
@@ -177,39 +186,46 @@
                         <div class="stat-icon">
                             <i class="fas fa-newspaper"></i>
                         </div>
-                        <div class="stat-value" id="statPublications">48</div>
-                        <div class="stat-label">Publications reçues</div>
+                        <div class="stat-value" id="statPublications">{{ $stats['publications'] ?? 0 }}</div>
+                        <div class="stat-label">Publications</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-icon">
                             <i class="fas fa-heart"></i>
                         </div>
-                        <div class="stat-value" id="statLikes">2 345</div>
+                        <div class="stat-value" id="statLikes">{{ number_format($stats['likes_received'] ?? 0) }}</div>
                         <div class="stat-label">Likes reçus</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-icon">
                             <i class="fas fa-comment"></i>
                         </div>
-                        <div class="stat-value" id="statComments">127</div>
-                        <div class="stat-label">Commentaires reçus</div>
+                        <div class="stat-value" id="statComments">{{ $stats['commentaires'] ?? 0 }}</div>
+                        <div class="stat-label">Commentaires</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-horse"></i>
+                        </div>
+                        <div class="stat-value" id="statElevages">{{ $stats['elevages'] ?? 0 }}</div>
+                        <div class="stat-label">Élevages</div>
                     </div>
                 </div>
                 
                 <div class="member-info">
                     <div class="member-since">
                         <i class="fas fa-calendar-alt"></i>
-                        <span>Membre depuis : 15 mars 2025</span>
+                        <span>Membre depuis : {{ $user->created_at ? $user->created_at->format('d/m/Y') : 'N/A' }}</span>
                     </div>
-                    <a href="#" class="profile-link" id="publicProfileLink">
+                    <div class="profile-link">
                         <i class="fas fa-link"></i>
-                        <span>Lien vers mon profil public : elevageplus.com/profile/jean-d</span>
-                    </a>
+                        <span>Statut : {{ $user->role === 'admin' ? 'Administrateur' : 'Éleveur' }}</span>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- BOUTONS ANNULER ET ENREGISTRER CENTRÉS -->
+        <!-- BOUTONS -->
         <div class="action-buttons">
             <button class="btn-action btn-cancel" id="cancelButton">
                 <i class="fas fa-times"></i> Annuler
@@ -223,20 +239,26 @@
 </div>
 
 <script>
-// ================= DONNÉES DU PROFIL =================
-const profileData = {
-    fullname: "Jean Dupont",
-    email: "jeandupont@gmail.com",
-    location: "Thies, Sénégal",
-    livestockType: "bovins",
-    bio: "Éleveur passionné depuis 10 ans, je partage mon expérience et mes connaissances avec la communauté. Spécialisé dans l'élevage bovin traditionnel et moderne.",
-    displayName: "ILIA BARRY",
-    memberSince: "15 mars 2025",
-    profileLink: "elevageplus.com/profile/jean-d",
+// ================= CONFIGURATION =================
+const API_URL = '/api';
+const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+// Données initiales du profil (depuis le backend)
+const initialProfile = {
+    name: "{{ $user->name }}",
+    email: "{{ $user->email }}",
+    telephone: "{{ $user->telephone ?? '' }}",
+    localisation: "{{ $user->localisation ?? '' }}",
+    type_elevage: "{{ $user->type_elevage ?? 'bovins' }}",
+    bio: "{{ $user->bio ?? '' }}",
+    displayName: "{{ strtoupper($user->name) }}",
+    photo_url: "{{ $user->photo_url ?? '' }}",
+    memberSince: "{{ $user->created_at ? $user->created_at->format('d/m/Y') : 'N/A' }}",
     stats: {
-        publications: 48,
-        likes: 2345,
-        comments: 127
+        publications: {{ $stats['publications'] ?? 0 }},
+        likes_received: {{ $stats['likes_received'] ?? 0 }},
+        commentaires: {{ $stats['commentaires'] ?? 0 }},
+        elevages: {{ $stats['elevages'] ?? 0 }}
     }
 };
 
@@ -272,29 +294,26 @@ function showToast(message, type = 'info') {
 // ================= GESTION DES CHAMPS =================
 function updateFields() {
     // Desktop
-    document.getElementById('fullname').value = profileData.fullname;
-    document.getElementById('email').value = profileData.email;
-    document.getElementById('location').value = profileData.location;
-    document.getElementById('livestockType').value = profileData.livestockType;
-    document.getElementById('bio').value = profileData.bio;
-    document.getElementById('profileDisplayName').textContent = profileData.displayName;
+    document.getElementById('fullname').value = initialProfile.name;
+    document.getElementById('email').value = initialProfile.email;
+    document.getElementById('telephone').value = initialProfile.telephone;
+    document.getElementById('location').value = initialProfile.localisation;
+    document.getElementById('livestockType').value = initialProfile.type_elevage;
+    document.getElementById('bio').value = initialProfile.bio;
+    document.getElementById('profileDisplayName').textContent = initialProfile.displayName;
     
     // Mobile
-    document.getElementById('mobileFullname').value = profileData.fullname;
-    document.getElementById('mobileEmail').value = profileData.email;
-    document.getElementById('mobileLocation').value = profileData.location;
-    document.getElementById('mobileType').value = 
-        profileData.livestockType.charAt(0).toUpperCase() + profileData.livestockType.slice(1);
-    document.getElementById('mobileBio').value = profileData.bio;
+    document.getElementById('mobileFullname').value = initialProfile.name;
+    document.getElementById('mobileEmail').value = initialProfile.email;
+    document.getElementById('mobileLocation').value = initialProfile.localisation || 'Non renseignée';
+    document.getElementById('mobileType').value = initialProfile.type_elevage || 'Non renseigné';
+    document.getElementById('mobileBio').value = initialProfile.bio || 'Aucune biographie renseignée.';
     
     // Stats
-    document.getElementById('statPublications').textContent = profileData.stats.publications;
-    document.getElementById('statLikes').textContent = profileData.stats.likes.toLocaleString();
-    document.getElementById('statComments').textContent = profileData.stats.comments;
-    
-    // Lien public
-    document.querySelector('.profile-link span').textContent = `Lien vers mon profil public : ${profileData.profileLink}`;
-    document.querySelector('.member-since span').textContent = `Membre depuis : ${profileData.memberSince}`;
+    document.getElementById('statPublications').textContent = initialProfile.stats.publications;
+    document.getElementById('statLikes').textContent = initialProfile.stats.likes_received.toLocaleString();
+    document.getElementById('statComments').textContent = initialProfile.stats.commentaires;
+    document.getElementById('statElevages').textContent = initialProfile.stats.elevages;
 }
 
 // ================= GESTION DE LA PHOTO =================
@@ -324,43 +343,13 @@ document.getElementById('changePhotoBtn').addEventListener('click', function() {
             img.style.display = 'block';
             placeholder.style.display = 'none';
             
-            showToast('Photo de profil mise à jour !', 'success');
-            
-            // Simuler un upload
-            simulateUpload();
+            showToast('Photo de profil sélectionnée ! Cliquez sur Enregistrer.', 'success');
         };
         reader.readAsDataURL(file);
     };
     
     input.click();
 });
-
-function simulateUpload() {
-    const progressContainer = document.getElementById('uploadProgress');
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    
-    progressContainer.style.display = 'block';
-    let progress = 0;
-    
-    const interval = setInterval(() => {
-        progress += Math.random() * 15 + 5;
-        if (progress > 100) progress = 100;
-        
-        progressBar.style.width = progress + '%';
-        progressText.textContent = Math.round(progress) + '%';
-        
-        if (progress >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-                progressContainer.style.display = 'none';
-                progressBar.style.width = '0%';
-                progressText.textContent = '0%';
-                showToast('Photo de profil téléchargée avec succès !', 'success');
-            }, 500);
-        }
-    }, 200);
-}
 
 document.getElementById('deletePhotoBtn').addEventListener('click', function() {
     if (confirm('Êtes-vous sûr de vouloir supprimer votre photo de profil ?')) {
@@ -372,15 +361,72 @@ document.getElementById('deletePhotoBtn').addEventListener('click', function() {
         placeholder.style.display = 'flex';
         profileImageFile = null;
         
-        showToast('Photo de profil supprimée', 'info');
+        showToast('Photo de profil supprimée. Cliquez sur Enregistrer.', 'info');
     }
 });
 
+// ================= API CALLS =================
+async function updateProfile(data) {
+    const token = localStorage.getItem('access_token');
+    
+    try {
+        const response = await fetch(`${API_URL}/auth/profile`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token,
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw result;
+        }
+
+        return result;
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function updatePhoto(file) {
+    const token = localStorage.getItem('access_token');
+    const formData = new FormData();
+    formData.append('photo', file);
+    formData.append('_method', 'PUT');
+    
+    try {
+        const response = await fetch(`${API_URL}/auth/profile`, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            },
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw result;
+        }
+
+        return result;
+    } catch (error) {
+        throw error;
+    }
+}
+
 // ================= ENREGISTREMENT DU PROFIL =================
-function saveProfile() {
+async function saveProfile() {
     // Récupérer les valeurs
     const fullname = document.getElementById('fullname').value.trim();
     const email = document.getElementById('email').value.trim();
+    const telephone = document.getElementById('telephone').value.trim();
     const location = document.getElementById('location').value.trim();
     const livestockType = document.getElementById('livestockType').value;
     const bio = document.getElementById('bio').value.trim();
@@ -406,23 +452,82 @@ function saveProfile() {
         return;
     }
     
-    // Mettre à jour les données
-    profileData.fullname = fullname;
-    profileData.email = email;
-    profileData.location = location;
-    profileData.livestockType = livestockType;
-    profileData.bio = bio;
-    profileData.displayName = fullname.toUpperCase();
-    
-    // Mettre à jour l'UI
-    updateFields();
-    hasChanges = false;
-    
     // Désactiver les boutons
     document.getElementById('saveButton').disabled = true;
     document.querySelector('.btn-save').disabled = true;
+    document.getElementById('saveButton').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
     
-    showToast('Profil mis à jour avec succès !', 'success');
+    try {
+        let result;
+        
+        // Si une photo a été sélectionnée, l'uploader d'abord
+        if (profileImageFile) {
+            result = await updatePhoto(profileImageFile);
+            if (result.status === 'success' && result.data) {
+                // Mettre à jour la photo dans l'UI
+                const img = document.getElementById('profileImage');
+                const placeholder = document.getElementById('avatarPlaceholder');
+                if (result.data.photo_url) {
+                    img.src = result.data.photo_url;
+                    img.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    document.getElementById('deletePhotoBtn').style.display = 'inline-block';
+                }
+                profileImageFile = null;
+            }
+        }
+        
+        // Mettre à jour les informations du profil
+        const updateData = {
+            name: fullname,
+            email: email,
+            telephone: telephone,
+            localisation: location,
+            type_elevage: livestockType,
+            bio: bio
+        };
+        
+        result = await updateProfile(updateData);
+        
+        if (result.status === 'success') {
+            // Mettre à jour les données locales
+            initialProfile.name = fullname;
+            initialProfile.email = email;
+            initialProfile.telephone = telephone;
+            initialProfile.localisation = location;
+            initialProfile.type_elevage = livestockType;
+            initialProfile.bio = bio;
+            initialProfile.displayName = fullname.toUpperCase();
+            
+            // Mettre à jour l'UI
+            updateFields();
+            hasChanges = false;
+            
+            // Mettre à jour le localStorage
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                const userData = JSON.parse(userStr);
+                userData.name = fullname;
+                userData.email = email;
+                userData.telephone = telephone;
+                if (result.data?.photo_url) {
+                    userData.photo_url = result.data.photo_url;
+                }
+                localStorage.setItem('user', JSON.stringify(userData));
+            }
+            
+            showToast('Profil mis à jour avec succès !', 'success');
+        } else {
+            showToast(result.message || 'Erreur lors de la mise à jour', 'danger');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showToast(error.message || 'Erreur lors de la mise à jour du profil', 'danger');
+    } finally {
+        document.getElementById('saveButton').disabled = false;
+        document.querySelector('.btn-save').disabled = false;
+        document.getElementById('saveButton').innerHTML = '<i class="fas fa-save"></i> Enregistrer';
+    }
 }
 
 // ================= ANNULATION DES MODIFICATIONS =================
@@ -445,16 +550,19 @@ function cancelChanges() {
 function detectChanges() {
     const fullname = document.getElementById('fullname').value.trim();
     const email = document.getElementById('email').value.trim();
+    const telephone = document.getElementById('telephone').value.trim();
     const location = document.getElementById('location').value.trim();
     const livestockType = document.getElementById('livestockType').value;
     const bio = document.getElementById('bio').value.trim();
     
     const hasChanged = 
-        fullname !== profileData.fullname ||
-        email !== profileData.email ||
-        location !== profileData.location ||
-        livestockType !== profileData.livestockType ||
-        bio !== profileData.bio;
+        fullname !== initialProfile.name ||
+        email !== initialProfile.email ||
+        telephone !== initialProfile.telephone ||
+        location !== initialProfile.localisation ||
+        livestockType !== initialProfile.type_elevage ||
+        bio !== initialProfile.bio ||
+        profileImageFile !== null;
     
     hasChanges = hasChanged;
     
@@ -471,6 +579,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Écouteurs d'événements pour la détection de changements
     document.getElementById('fullname').addEventListener('input', detectChanges);
     document.getElementById('email').addEventListener('input', detectChanges);
+    document.getElementById('telephone').addEventListener('input', detectChanges);
     document.getElementById('location').addEventListener('input', detectChanges);
     document.getElementById('livestockType').addEventListener('change', detectChanges);
     document.getElementById('bio').addEventListener('input', detectChanges);
@@ -486,19 +595,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('viewPublicProfile').addEventListener('click', function(e) {
         e.preventDefault();
         showToast('Ouverture de votre profil public', 'info');
-        window.open('#', '_blank');
     });
     
     // Paramètres du compte
     document.getElementById('accountSettings').addEventListener('click', function(e) {
         e.preventDefault();
-        showToast('Paramètres du compte (fonctionnalité à venir)', 'info');
-    });
-    
-    // Lien profil public
-    document.getElementById('publicProfileLink').addEventListener('click', function(e) {
-        e.preventDefault();
-        showToast('Ouverture de votre profil public', 'info');
+        window.location.href = '/auth/parametre';
     });
     
     // Ajouter les styles manquants
@@ -526,7 +628,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .custom-toast.success .toast-content { background: #2e7d32; }
         .custom-toast.danger .toast-content { background: #dc3545; }
         .custom-toast.warning .toast-content { background: #ffc107; color: #343a40; }
-        .custom-toast.info .toast-content { background: #0dcaf0; color: #343a40; }
         
         @media (max-width: 768px) {
             .custom-toast {
@@ -542,140 +643,11 @@ document.addEventListener('DOMContentLoaded', function() {
             opacity: 0.6;
             cursor: not-allowed;
         }
-        
-        .profile-avatar {
-            position: relative;
-        }
-        
-        #uploadProgress {
-            margin-top: 10px;
-        }
-        
-        #progressBar {
-            transition: width 0.3s ease;
-        }
     `;
     document.head.appendChild(style);
 });
 
-// ================= TOAST SUPPLÉMENTAIRE POUR LE BOUTON ENREGISTRER =================
-document.querySelector('.btn-save')?.addEventListener('click', function() {
-    if (!this.disabled) {
-        saveProfile();
-    }
-});
-</script>
-
-<style>
-/* Styles supplémentaires pour le toast et les modals */
-.custom-toast {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    z-index: 10000;
-    transform: translateX(400px);
-    transition: transform 0.3s ease;
-}
-
-.custom-toast.show {
-    transform: translateX(0);
-}
-
-.custom-toast .toast-content {
-    background: #343a40;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-.custom-toast.success .toast-content {
-    background: #2e7d32;
-}
-
-.custom-toast.danger .toast-content {
-    background: #dc3545;
-}
-
-.custom-toast.warning .toast-content {
-    background: #ffc107;
-    color: #343a40;
-}
-
-.custom-toast.info .toast-content {
-    background: #0dcaf0;
-    color: #343a40;
-}
-
-/* Responsive pour mobile */
-@media (max-width: 576px) {
-    .custom-toast {
-        left: 15px;
-        right: 15px;
-        bottom: 15px;
-        transform: translateY(100px);
-    }
-    .custom-toast.show {
-        transform: translateY(0);
-    }
-}
-
-/* Animation de la barre de progression */
-@keyframes progressPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-#uploadProgress {
-    animation: progressPulse 1.5s ease-in-out infinite;
-}
-
-/* Style pour les champs modifiés */
-.form-group input.modified,
-.form-group select.modified,
-.form-group textarea.modified {
-    border-color: #2e7d32;
-    background: #f0f7f0;
-}
-
-/* Animation des stats */
-.stat-value {
-    transition: all 0.3s ease;
-}
-
-.stat-item:hover .stat-value {
-    transform: scale(1.05);
-    color: #2e7d32;
-}
-
-/* Animation de la photo */
-.profile-avatar img {
-    transition: all 0.3s ease;
-}
-
-.profile-avatar img:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(46, 125, 50, 0.3);
-}
-</style>
-
-@endsection
-
-@push('scripts')
-<script>
-// Script supplémentaire pour les interactions avancées
 $(document).ready(function() {
-    // Gestionnaire pour les champs en lecture seule avec double-clic pour modifier
-    $('.form-group input[readonly]').dblclick(function() {
-        $(this).prop('readonly', false);
-        $(this).css('background', 'white');
-        $(this).focus();
-        showToast('Vous pouvez maintenant modifier ce champ', 'info');
-    });
-    
     // Animation de la carte de statistiques au survol
     $('.stat-item').hover(
         function() {
@@ -687,4 +659,4 @@ $(document).ready(function() {
     );
 });
 </script>
-@endpush
+@endsection

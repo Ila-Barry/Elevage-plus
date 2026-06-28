@@ -1,5 +1,4 @@
 <?php
-// app/Http/Requests/Api/Elevage/UpdateElevageRequest.php
 
 namespace App\Http\Requests\Api\Elevage;
 
@@ -7,30 +6,24 @@ use App\Http\Requests\Api\ApiRequest;
 use App\Models\Elevage;
 use Illuminate\Validation\Rule;
 
-/**
- * Requête de validation pour la mise à jour d'un élevage
- */
 class UpdateElevageRequest extends ApiRequest
 {
-    /**
-     * Règles de validation
-     */
     public function rules(): array
     {
         return [
             'nom' => [
-                'sometimes',
+                'required', 
                 'string',
                 'min:3',
                 'max:100',
             ],
             'type_elevage' => [
-                'sometimes',
+                'required',  
                 'string',
                 Rule::in(array_keys(Elevage::TYPES_ELEVAGE)),
             ],
             'localisation' => [
-                'sometimes',
+                'nullable',
                 'string',
                 'max:200',
             ],
@@ -45,82 +38,54 @@ class UpdateElevageRequest extends ApiRequest
                 'string',
                 'max:2000',
             ],
-            'adresse' => [
-                'nullable',
-                'string',
-                'max:200',
-            ],
-            'ville' => [
-                'nullable',
-                'string',
-                'max:100',
-            ],
-            'code_postal' => [
-                'nullable',
-                'string',
-                'max:20',
-            ],
-            'pays' => [
-                'nullable',
-                'string',
-                'max:100',
-            ],
-            'latitude' => [
-                'nullable',
-                'numeric',
-                'between:-90,90',
-            ],
-            'longitude' => [
-                'nullable',
-                'numeric',
-                'between:-180,180',
-            ],
-            'telephone' => [
-                'nullable',
-                'string',
-                'max:20',
-                'regex:/^([0-9\s\-\+\(\)]*)$/',
-            ],
-            'email_contact' => [
-                'nullable',
-                'email',
-                'max:100',
-            ],
             'image' => [
                 'nullable',
                 'image',
                 'mimes:jpeg,png,jpg,webp',
-                'max:2048',
-            ],
-            'statut' => [
-                'sometimes',
-                Rule::in(array_keys(Elevage::STATUTS)),
+                'max:5120',
             ],
             'delete_image' => [
-                'sometimes',
-                'boolean',
+                'nullable',
+                'string',
+            ],
+            'statut' => [
+                'nullable',
+                Rule::in(array_keys(Elevage::STATUTS)),
             ],
         ];
     }
 
-    /**
-     * Messages d'erreur personnalisés
-     */
     public function messages(): array
     {
         return [
+            'nom.required' => 'Le nom de l\'élevage est obligatoire.',
             'nom.min' => 'Le nom doit contenir au moins 3 caractères.',
             'nom.max' => 'Le nom ne peut pas dépasser 100 caractères.',
+            'type_elevage.required' => 'Le type d\'élevage est obligatoire.',
             'type_elevage.in' => 'Le type d\'élevage sélectionné n\'est pas valide.',
             'superficie.numeric' => 'La superficie doit être un nombre.',
             'superficie.min' => 'La superficie doit être supérieure ou égale à 0.',
-            'latitude.between' => 'La latitude doit être comprise entre -90 et 90.',
-            'longitude.between' => 'La longitude doit être comprise entre -180 et 180.',
-            'telephone.regex' => 'Le numéro de téléphone n\'est pas valide.',
-            'email_contact.email' => 'L\'email de contact n\'est pas valide.',
             'image.image' => 'Le fichier doit être une image.',
-            'image.max' => 'L\'image ne doit pas dépasser 2 Mo.',
+            'image.max' => 'L\'image ne doit pas dépasser 5 Mo.',
             'statut.in' => 'Le statut sélectionné n\'est pas valide.',
         ];
+    }
+
+    // Préparation des données avant validation
+    protected function prepareForValidation(): void
+    {
+        // Nettoyer les champs vides
+        if ($this->has('nom') && empty($this->nom)) {
+            $this->merge(['nom' => null]);
+        }
+        
+        if ($this->has('type_elevage') && empty($this->type_elevage)) {
+            $this->merge(['type_elevage' => null]);
+        }
+        
+        // S'assurer que les champs numériques sont bien formatés
+        if ($this->has('superficie')) {
+            $this->merge(['superficie' => $this->superficie === '' ? null : $this->superficie]);
+        }
     }
 }
