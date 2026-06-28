@@ -1,5 +1,5 @@
 <?php
-// app/Notifications/NewLikeNotification.php
+// notification de nouveau like, déclenchée par l'ajout d'un like à une publication
 
 namespace App\Notifications;
 
@@ -20,18 +20,5 @@ class NewLikeNotification extends BaseNotification
         $this->message = "{$auteur->name} a aimé votre publication '{$publication->titre}'";
         $this->type = 'success';
         $this->url = "/publications/{$publication->id}";
-        
-        $this->actions = [
-            [
-                'label' => 'Voir la publication',
-                'url' => "/publications/{$publication->id}",
-                'type' => 'primary'
-            ],
-            [
-                'label' => 'Voir le profil',
-                'url' => "/profilEleveur/{$auteur->id}",
-                'type' => 'secondary'
-            ]
-        ];
     }
 }

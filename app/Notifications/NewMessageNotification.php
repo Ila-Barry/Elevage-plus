@@ -1,6 +1,5 @@
 <?php
-// app/Notifications/NewMessageNotification.php
-
+// notification de nouveau message, déclenchée par l'envoi d'un message dans une conversation
 namespace App\Notifications;
 
 use App\Models\User;
@@ -18,35 +17,8 @@ class NewMessageNotification extends BaseNotification
         
         $this->title = '💬 Nouveau message';
         $this->message = "{$expediteur->name} vous a envoyé un message : " . 
-                         substr($message->contenu, 0, 60) . (strlen($message->contenu) > 60 ? '...' : '');
+                         substr($message->contenu, 0, 50) . (strlen($message->contenu) > 50 ? '...' : '');
         $this->type = 'info';
         $this->url = "/messages?conversation={$message->conversation_id}";
-        
-        $this->actions = [
-            [
-                'label' => 'Voir le message',
-                'url' => "/messages?conversation={$message->conversation_id}",
-                'type' => 'primary'
-            ],
-            [
-                'label' => 'Répondre',
-                'url' => "/messages?conversation={$message->conversation_id}",
-                'type' => 'secondary'
-            ]
-        ];
-    }
-
-    protected function getAdditionalInfo(): string
-    {
-        $message = "📎 Type de message : ";
-        $message .= match($this->message->type) {
-            'text' => 'Texte',
-            'image' => 'Image',
-            'video' => 'Vidéo',
-            'file' => 'Fichier',
-            'sticker' => 'Sticker',
-            default => 'Inconnu',
-        };
-        return $message;
     }
 }

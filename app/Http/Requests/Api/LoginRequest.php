@@ -14,15 +14,17 @@ class LoginRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'login' => [  
+            'email' => [
                 'required',
                 'string',
+                'email',
                 'max:255',
+                'exists:users,email',
             ],
             'password' => [
                 'required',
                 'string',
-                'min:6',
+                'min:8',
             ],
             'remember' => [
                 'nullable',
@@ -37,10 +39,12 @@ class LoginRequest extends ApiRequest
     public function messages(): array
     {
         return [
-            'login.required' => 'L\'email ou le téléphone est obligatoire.',
+            'email.required' => 'L\'email est obligatoire.',
+            'email.email' => 'Veuillez entrer une adresse email valide.',
+            'email.exists' => 'Aucun compte n\'est associé à cet email.',
             
             'password.required' => 'Le mot de passe est obligatoire.',
-            'password.min' => 'Le mot de passe doit contenir au moins 6 caractères.',
+            'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
         ];
     }
 }

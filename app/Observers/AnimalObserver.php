@@ -4,7 +4,7 @@
 namespace App\Observers;
 
 use App\Models\Animal;
-use App\Models\AnimalHistorique;
+use App\Models\AnimalHistory;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -16,7 +16,7 @@ class AnimalObserver
     public function created(Animal $animal): void
     {
         try {
-            AnimalHistorique::create([
+            AnimalHistory::create([
                 'animal_id' => $animal->id,
                 'user_id' => auth()->id(),
                 'champ_modifie' => 'all',
@@ -51,7 +51,7 @@ class AnimalObserver
                     continue;
                 }
                 
-                AnimalHistorique::create([
+                AnimalHistory::create([
                     'animal_id' => $animal->id,
                     'user_id' => auth()->id(),
                     'champ_modifie' => $field,
@@ -76,7 +76,7 @@ class AnimalObserver
             // Sauvegarder les données avant suppression
             $data = $animal->getAttributes();
             
-            AnimalHistorique::create([
+            AnimalHistory::create([
                 'animal_id' => $animal->id,
                 'user_id' => auth()->id(),
                 'champ_modifie' => 'all',

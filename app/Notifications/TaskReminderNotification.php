@@ -1,6 +1,5 @@
 <?php
-// app/Notifications/TaskReminderNotification.php
-
+// notification de rappel de tâche, déclenchée par les commandes planifiées pour les tâches
 namespace App\Notifications;
 
 use App\Models\Tache;
@@ -30,18 +29,5 @@ class TaskReminderNotification extends BaseNotification
         if ($reminderType === 'retard') {
             $this->message .= " Cliquez ici pour la marquer comme terminée.";
         }
-        
-        $this->actions = [
-            [
-                'label' => 'Voir la tâche',
-                'url' => "/taches/{$tache->id}",
-                'type' => 'primary'
-            ],
-            [
-                'label' => 'Marquer comme terminée',
-                'url' => "/taches/{$tache->id}/complete",
-                'type' => 'success'
-            ]
-        ];
     }
 }
