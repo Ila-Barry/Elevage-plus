@@ -1766,4 +1766,162 @@ window.addEventListener('click',(e)=>{
 
 
 </script>
+
+<!-- =====================================
+     MODALE INFORMATIONS UTILISATEUR
+===================================== -->
+
+<div class="modal" id="viewUserModal">
+
+
+    <div class="modal-content">
+
+
+        <h2>
+            👤 Informations utilisateur
+        </h2>
+
+
+        <p>
+            <strong>Nom :</strong>
+            <span id="viewName"></span>
+        </p>
+
+
+        <p>
+            <strong>Email :</strong>
+            <span id="viewEmail"></span>
+        </p>
+
+
+        <p>
+            <strong>Rôle :</strong>
+            <span id="viewRole"></span>
+        </p>
+
+
+        <p>
+            <strong>Date inscription :</strong>
+            <span id="viewDate"></span>
+        </p>
+
+
+        <div class="modal-buttons">
+
+
+            <button 
+            class="btn-close"
+            id="closeViewModal">
+
+                Fermer
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+<script>
+
+
+const viewModal = document.getElementById('viewUserModal');
+
+const closeViewModal = document.getElementById('closeViewModal');
+
+
+
+document.addEventListener('click', function(e){
+
+
+    const btn = e.target.closest('.btn-view');
+
+
+    if(btn){
+
+
+        // récupérer la ligne du tableau
+
+        const row = btn.closest('tr');
+
+
+        // récupérer les colonnes
+
+        const name = row.children[1].innerText;
+
+        const email = row.children[2].innerText;
+
+        const role = row.children[3].innerText;
+
+        const date = row.children[4].innerText;
+
+
+
+        // afficher dans la modale
+
+        document.getElementById('viewName').textContent = name;
+
+        document.getElementById('viewEmail').textContent = email;
+
+        document.getElementById('viewRole').textContent = role;
+
+        document.getElementById('viewDate').textContent = date;
+
+
+
+        // ouvrir
+
+        viewModal.classList.add('show');
+
+        document.body.classList.add('modal-open');
+
+
+    }
+
+
+});
+
+
+
+
+// fermer bouton
+
+closeViewModal.addEventListener('click',()=>{
+
+
+    viewModal.classList.remove('show');
+
+    document.body.classList.remove('modal-open');
+
+
+});
+
+
+
+
+
+// fermer en cliquant dehors
+
+window.addEventListener('click',(e)=>{
+
+
+    if(e.target === viewModal){
+
+
+        viewModal.classList.remove('show');
+
+        document.body.classList.remove('modal-open');
+
+
+    }
+
+
+});
+
+
+
+</script>
 @endsection
