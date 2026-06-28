@@ -100,17 +100,45 @@ button {
 
 /* Boutons exporter */
 
+/* =====================================
+   EFFET SURVOL BOUTONS EXPORT / NEWSLETTER
+===================================== */
+
+
 .btn-export {
 
-    background: white;
+    background:white;
 
-    border: 2px solid #ddd;
+    border:2px solid #ddd;
 
-    padding: 10px 18px;
+    padding:10px 18px;
 
-    border-radius: 8px;
+    border-radius:8px;
 
-    font-weight: bold;
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:all .25s ease;
+
+}
+
+
+
+/* Effet hover export CSV */
+
+.btn-export:hover {
+
+    background:#2563eb;
+
+    color:white;
+
+    border-color:#2563eb;
+
+    transform:translateY(-3px);
+
+    box-shadow:
+    0 6px 15px rgba(37,99,235,0.35);
 
 }
 
@@ -183,6 +211,64 @@ button {
 }
 
 
+/* =====================================
+   EFFET SURVOL BOUTONS STATUT
+===================================== */
+
+
+.status {
+
+    padding:10px 25px;
+
+    border-radius:10px;
+
+    background:white;
+
+    border:2px solid #ddd;
+
+    cursor:pointer;
+
+    transition:all .25s ease;
+
+}
+
+
+
+/* Bouton Actifs */
+
+.status.active:hover {
+
+    background:#16a34a;
+
+    color:white;
+
+    border-color:#16a34a;
+
+    transform:translateY(-3px);
+
+    box-shadow:
+    0 6px 15px rgba(22,163,74,0.35);
+
+}
+
+
+
+/* Bouton Bannis */
+
+.status.banned:hover {
+
+    background:#dc2626;
+
+    color:white;
+
+    border-color:#dc2626;
+
+    transform:translateY(-3px);
+
+    box-shadow:
+    0 6px 15px rgba(220,38,38,0.35);
+
+}
 
 /* =====================================
    CARTES STATISTIQUES
