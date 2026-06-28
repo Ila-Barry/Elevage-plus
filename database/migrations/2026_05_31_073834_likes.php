@@ -1,27 +1,26 @@
 <?php
-// app/Models/Like.php
 
-namespace App\Models;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class Like extends Model
+return new class extends Migration
 {
-    use HasFactory;
-
-    protected $fillable = [
-        'publication_id',
-        'user_id',
-    ];
-
-    public function publication()
+    public function up(): void
     {
-        return $this->belongsTo(Publication::class);
+        Schema::create('likes', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('publication_id');
+            $table->foreign('publication_id')->references('id')->on('publications')->onDelete('cascade');
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->timestamps();
+            $table->unique(['publication_id', 'user_id']);
+        });
     }
 
-    public function user()
+    public function down(): void
     {
-        return $this->belongsTo(User::class);
+        Schema::dropIfExists('likes');
     }
-}
+};
