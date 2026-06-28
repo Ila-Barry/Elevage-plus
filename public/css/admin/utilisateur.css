@@ -957,3 +957,43 @@ window.addEventListener('click',(e)=>{
 
 
 });
+
+/* =====================================
+   BOUTON SUPPRESSION MODALE
+===================================== */
+
+
+.btn-confirm-delete {
+
+    background:#dc2626;
+
+    color:white;
+
+    border:none;
+
+    padding:10px 18px;
+
+    border-radius:8px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:.25s ease;
+
+}
+
+
+
+.btn-confirm-delete:hover {
+
+    background:#b91c1c;
+
+    transform:translateY(-3px);
+
+
+    box-shadow:
+
+    0 6px 15px rgba(220,38,38,0.35);
+
+}

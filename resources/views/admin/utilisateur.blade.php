@@ -1924,4 +1924,403 @@ window.addEventListener('click',(e)=>{
 
 
 </script>
+
+
+<!-- =====================================
+     MODALE BLOQUER UTILISATEUR
+===================================== -->
+
+
+<div class="modal" id="lockUserModal">
+
+
+    <div class="modal-content">
+
+
+        <h2>
+            🔒 Bloquer utilisateur
+        </h2>
+
+
+
+        <p>
+
+            Voulez-vous bloquer :
+
+            <strong id="lockUserName"></strong>
+
+            ?
+
+        </p>
+
+
+
+        <div class="modal-buttons">
+
+
+            <button 
+            class="btn-close"
+            id="cancelLock">
+
+                Annuler
+
+            </button>
+
+
+
+            <button 
+            class="btn-save"
+            id="confirmLock">
+
+                Bloquer
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+<script>
+
+
+const lockModal = document.getElementById('lockUserModal');
+
+const cancelLock = document.getElementById('cancelLock');
+
+const confirmLock = document.getElementById('confirmLock');
+
+
+let userToBlock = null;
+
+
+
+// ouverture de la modale
+
+document.addEventListener('click', function(e){
+
+
+    const button = e.target.closest('.btn-lock');
+
+
+    if(button){
+
+
+        // récupérer la ligne du bouton cliqué
+
+        userToBlock = button.closest('tr');
+
+
+
+        // récupérer le nom
+
+        let name = userToBlock.children[1].innerText;
+
+
+
+        document.getElementById('lockUserName').innerText = name;
+
+
+
+        // afficher modale
+
+        lockModal.classList.add('show');
+
+
+        document.body.classList.add('modal-open');
+
+
+    }
+
+
+});
+
+
+
+
+
+// bouton BLOQUER
+
+confirmLock.addEventListener('click',()=>{
+
+
+    if(userToBlock){
+
+
+
+        // récupérer le badge rôle/statut
+
+        let badge = userToBlock.querySelector('.role');
+
+
+
+        if(badge){
+
+
+            badge.innerText = "Banni";
+
+
+            badge.className = "role visiteur-role";
+
+
+        }
+
+
+
+        alert("Utilisateur bloqué avec succès");
+
+
+    }
+
+
+
+    lockModal.classList.remove('show');
+
+
+    document.body.classList.remove('modal-open');
+
+
+});
+
+
+
+
+
+
+// bouton annuler
+
+cancelLock.addEventListener('click',()=>{
+
+
+    lockModal.classList.remove('show');
+
+
+    document.body.classList.remove('modal-open');
+
+
+});
+
+
+
+
+
+
+
+// fermeture en cliquant dehors
+
+window.addEventListener('click',(e)=>{
+
+
+    if(e.target === lockModal){
+
+
+        lockModal.classList.remove('show');
+
+
+        document.body.classList.remove('modal-open');
+
+
+    }
+
+
+});
+
+
+
+</script>
+
+<!-- =====================================
+     MODALE SUPPRIMER UTILISATEUR
+===================================== -->
+
+
+<div class="modal" id="deleteUserModal">
+
+
+    <div class="modal-content">
+
+
+        <h2>
+            🗑️ Supprimer utilisateur
+        </h2>
+
+
+
+        <p>
+
+            Voulez-vous supprimer :
+
+            <strong id="deleteUserName"></strong>
+
+            ?
+
+        </p>
+
+
+
+        <div class="modal-buttons">
+
+
+            <button 
+            class="btn-close"
+            id="cancelDelete">
+
+                Annuler
+
+            </button>
+
+
+
+            <button 
+class="btn-confirm-delete"
+id="confirmDelete">
+
+    Supprimer
+
+</button>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+<script>
+
+
+const deleteModal = document.getElementById('deleteUserModal');
+
+const cancelDelete = document.getElementById('cancelDelete');
+
+const confirmDelete = document.getElementById('confirmDelete');
+
+
+let userToDelete = null;
+
+
+
+
+
+// ouverture modale suppression
+
+document.addEventListener('click', function(e){
+
+
+    const button = e.target.closest('.btn-delete');
+
+
+    if(button){
+
+
+        userToDelete = button.closest('tr');
+
+
+
+        let name = userToDelete.children[1].innerText;
+
+
+
+        document.getElementById('deleteUserName').innerText = name;
+
+
+
+        deleteModal.classList.add('show');
+
+
+        document.body.classList.add('modal-open');
+
+
+    }
+
+
+});
+
+
+
+
+
+
+
+// confirmer suppression
+
+confirmDelete.addEventListener('click',()=>{
+
+
+    if(userToDelete){
+
+
+        // supprimer la ligne du tableau
+
+        userToDelete.remove();
+
+
+
+        alert("Utilisateur supprimé avec succès");
+
+
+    }
+
+
+
+    deleteModal.classList.remove('show');
+
+
+    document.body.classList.remove('modal-open');
+
+
+});
+
+
+
+
+
+
+
+// annuler
+
+cancelDelete.addEventListener('click',()=>{
+
+
+    deleteModal.classList.remove('show');
+
+
+    document.body.classList.remove('modal-open');
+
+
+});
+
+
+
+
+
+
+
+
+// fermer en cliquant dehors
+
+window.addEventListener('click',(e)=>{
+
+
+    if(e.target === deleteModal){
+
+
+        deleteModal.classList.remove('show');
+
+
+        document.body.classList.remove('modal-open');
+
+
+    }
+
+
+});
+
+
+
+</script>
 @endsection
