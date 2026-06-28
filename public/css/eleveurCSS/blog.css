@@ -1536,3 +1536,139 @@
         grid-template-columns: repeat(2, 1fr) !important;
     }
 }
+
+/* ================= COMMENTAIRES ================= */
+.comments-section {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.comment-item {
+    transition: background 0.2s ease;
+}
+
+.comment-item:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.comment-item:last-child {
+    border-bottom: none !important;
+}
+
+.comment-form input:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
+}
+
+.counter-item {
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.counter-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.counter-item i {
+    transition: all 0.2s;
+}
+
+.counter-item:hover i {
+    transform: scale(1.1);
+}
+
+/* ================= LIKES ================= */
+.like-btn {
+    transition: all 0.3s ease;
+}
+
+.like-btn:hover {
+    color: #dc3545 !important;
+}
+
+.like-btn.liked {
+    color: #dc3545 !important;
+    background: rgba(220, 53, 69, 0.1);
+    border-color: rgba(220, 53, 69, 0.2);
+}
+
+.like-btn.liked i {
+    animation: heartBounce 0.3s ease;
+}
+
+@keyframes heartBounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+.counter-item-like i {
+    transition: all 0.3s ease;
+}
+
+.counter-item-like:hover i {
+    transform: scale(1.2);
+}
+
+.counter-item-like .fa-heart.text-danger {
+    animation: heartPulse 1s ease infinite;
+}
+
+@keyframes heartPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* ================= PARTAGES ================= */
+.share-btn {
+    transition: all 0.3s ease;
+}
+
+.share-btn:hover {
+    color: #0d6efd !important;
+    background: rgba(13, 110, 253, 0.1);
+    border-color: rgba(13, 110, 253, 0.2);
+}
+
+.share-btn i {
+    transition: all 0.3s ease;
+}
+
+.share-btn:hover i {
+    transform: rotate(20deg) scale(1.1);
+}
+
+.counter-item .fa-share-alt {
+    transition: all 0.3s ease;
+}
+
+.counter-item:hover .fa-share-alt {
+    transform: scale(1.1);
+}
+
+/* Toast personnalisé pour les partages */
+.share-toast {
+    background: #0d6efd !important;
+}
+
+.share-toast .toast-content i {
+    animation: sharePulse 1s ease infinite;
+}
+
+@keyframes sharePulse {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.2) rotate(15deg); }
+}

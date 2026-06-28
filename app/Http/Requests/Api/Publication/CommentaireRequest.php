@@ -1,5 +1,5 @@
 <?php
-// app/Http/Requests/Api/CommentaireRequest.php
+// app/Http/Requests/Api/publication/CommentaireRequest.php
 
 namespace App\Http\Requests\Api;
 

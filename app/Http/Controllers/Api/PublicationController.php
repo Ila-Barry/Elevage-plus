@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Publication;
+use App\Models\Commentaire;
+use App\Models\Like;
+use App\Models\Share;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -334,4 +337,305 @@ class PublicationController extends Controller
             default => $categorie,
         };
     }
+
+    /**
+     * commentaire à une publication
+     */
+    public function addComment(Request $request, $id)
+    {
+        $publication = Publication::findOrFail($id);
+        
+        $validator = Validator::make($request->all(), [
+            'contenu' => 'required|string|min:1|max:5000',
+            'parent_id' => 'nullable|exists:commentaires,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur de validation',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $commentaire = Commentaire::create([
+            'publication_id' => $publication->id,
+            'user_id' => Auth::id(),
+            'parent_id' => $request->parent_id,
+            'contenu' => $request->contenu,
+        ]);
+
+        // Incrémenter le compteur de commentaires
+        $publication->increment('nbr_commentaires');
+
+        $commentaire->load('user');
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Commentaire ajouté avec succès',
+            'data' => [
+                'id' => $commentaire->id,
+                'contenu' => $commentaire->contenu,
+                'created_at' => $commentaire->created_at->toIso8601String(),
+                'created_at_human' => $commentaire->created_at->diffForHumans(),
+                'user' => [
+                    'id' => $commentaire->user->id,
+                    'name' => $commentaire->user->name,
+                    'photo_url' => $commentaire->user->photo_url,
+                ]
+            ]
+        ], 201);
+    }
+
+    /**
+     * Récupérer les commentaires d'une publication
+     */
+    public function getComments($id)
+    {
+        $publication = Publication::findOrFail($id);
+        
+        $commentaires = Commentaire::with(['user'])
+            ->where('publication_id', $id)
+            ->whereNull('parent_id')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Formater les commentaires
+        $formatted = $commentaires->map(function($comment) {
+            return [
+                'id' => $comment->id,
+                'contenu' => $comment->contenu,
+                'created_at' => $comment->created_at->toIso8601String(),
+                'created_at_human' => $comment->created_at->diffForHumans(),
+                'user' => [
+                    'id' => $comment->user->id,
+                    'name' => $comment->user->name,
+                    'photo_url' => $comment->user->photo_url,
+                ]
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $formatted
+        ]);
+    }
+
+    /**
+     * Supprimer un commentaire
+     */
+    public function deleteComment($id)
+    {
+        $commentaire = Commentaire::findOrFail($id);
+        
+        // Vérifier les droits (auteur ou admin)
+        if (Auth::id() !== $commentaire->user_id && Auth::user()->role !== 'admin') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Action non autorisée'
+            ], 403);
+        }
+
+        $publication_id = $commentaire->publication_id;
+        $commentaire->delete();
+
+        // Décrémenter le compteur de commentaires
+        Publication::where('id', $publication_id)->decrement('nbr_commentaires');
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Commentaire supprimé'
+        ]);
+    }
+
+    /**
+     * ou retirer un like
+     */
+    public function toggleLike($id)
+    {
+        $publication = Publication::findOrFail($id);
+        $user = Auth::user();
+        
+        // Vérifier si l'utilisateur a déjà liké
+        $existingLike = Like::where('publication_id', $publication->id)
+                            ->where('user_id', $user->id)
+                            ->first();
+        
+        if ($existingLike) {
+            // Supprimer le like
+            $existingLike->delete();
+            $publication->decrement('nbr_likes');
+            $liked = false;
+            $message = 'Like retiré';
+        } else {
+            // Ajouter le like
+            Like::create([
+                'publication_id' => $publication->id,
+                'user_id' => $user->id,
+            ]);
+            $publication->increment('nbr_likes');
+            $liked = true;
+            $message = 'Like ajouté';
+            
+            // 🔔 Notification (optionnel - à décommenter si vous avez la notification)
+            // if ($publication->user_id !== $user->id) {
+            //     $publication->user->notify(new NewLikeNotification($user, $publication));
+            // }
+        }
+        
+        // Recharger pour avoir le compteur à jour
+        $publication->refresh();
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => $message,
+            'data' => [
+                'liked' => $liked,
+                'total_likes' => $publication->nbr_likes
+            ]
+        ]);
+    }
+
+    /**
+     * Vérifier si l'utilisateur a liké une publication
+     */
+    public function checkLike($id)
+    {
+        $publication = Publication::findOrFail($id);
+        $user = Auth::user();
+        
+        $liked = Like::where('publication_id', $publication->id)
+                    ->where('user_id', $user->id)
+                    ->exists();
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'liked' => $liked,
+                'total_likes' => $publication->nbr_likes
+            ]
+        ]);
+    }
+
+    /**
+     * Récupérer la liste des utilisateurs qui ont liké
+     */
+    public function getLikes($id)
+    {
+        $publication = Publication::findOrFail($id);
+        
+        $likes = Like::with('user')
+            ->where('publication_id', $publication->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($like) {
+                return [
+                    'id' => $like->user->id,
+                    'name' => $like->user->name,
+                    'photo_url' => $like->user->photo_url,
+                    'liked_at' => $like->created_at->diffForHumans(),
+                ];
+            });
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => $likes
+        ]);
+    }
+
+    /**
+     * Partager une publication
+     */
+    public function share(Request $request, $id)
+    {
+        $publication = Publication::findOrFail($id);
+        $user = Auth::user();
+        
+        $validator = Validator::make($request->all(), [
+            'plateforme' => 'required|string|in:facebook,twitter,whatsapp,copie_lien',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Plateforme de partage invalide',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Enregistrer le partage
+        Share::create([
+            'publication_id' => $publication->id,
+            'user_id' => $user->id,
+            'plateforme' => $request->plateforme,
+        ]);
+
+        // Incrémenter le compteur de partages
+        $publication->increment('nbr_partages');
+
+        // Générer l'URL de partage
+        $shareUrl = url('/blog/' . $publication->id);
+        
+        // URLs spécifiques aux plateformes
+        $platformUrls = [
+            'facebook' => 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode($shareUrl),
+            'twitter' => 'https://twitter.com/intent/tweet?url=' . urlencode($shareUrl) . '&text=' . urlencode($publication->titre),
+            'whatsapp' => 'https://api.whatsapp.com/send?text=' . urlencode($publication->titre . ' - ' . $shareUrl),
+            'copie_lien' => $shareUrl,
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Partage effectué avec succès',
+            'data' => [
+                'share_url' => $platformUrls[$request->plateforme] ?? $shareUrl,
+                'total_shares' => $publication->nbr_partages,
+                'plateforme' => $request->plateforme,
+            ]
+        ]);
+    }
+
+    /**
+     * Récupérer les statistiques de partage
+     */
+    public function getShares($id)
+    {
+        $publication = Publication::findOrFail($id);
+        
+        $shares = Share::with('user')
+            ->where('publication_id', $publication->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($share) {
+                return [
+                    'id' => $share->id,
+                    'plateforme' => $share->plateforme,
+                    'user' => [
+                        'id' => $share->user->id,
+                        'name' => $share->user->name,
+                        'photo_url' => $share->user->photo_url,
+                    ],
+                    'shared_at' => $share->created_at->diffForHumans(),
+                ];
+            });
+        
+        // Statistiques par plateforme
+        $stats = Share::where('publication_id', $publication->id)
+            ->select('plateforme', \DB::raw('count(*) as total'))
+            ->groupBy('plateforme')
+            ->get()
+            ->pluck('total', 'plateforme')
+            ->toArray();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'total' => $publication->nbr_partages,
+                'shares' => $shares,
+                'stats' => $stats,
+            ]
+        ]);
+    }
+
+
 }

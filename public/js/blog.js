@@ -491,6 +491,67 @@ function renderPosts() {
                 ` + videosHtml + `
                 ` + documentsHtml + `
             </div>
+            
+            <div class="custom-post-footer">
+                <div class="post-counters">
+                    <!-- ✅ LIKES -->
+                    <span class="counter-item counter-item-like" onclick="toggleLike(` + post.id + `)" style="cursor: pointer;">
+                        <i class="` + (post.interactions?.liked_by_user ? 'fas fa-heart text-danger' : 'far fa-heart') + `"></i> 
+                        <span class="likes-count" id="likes-count-` + post.id + `">` + (post.statistiques?.likes || 0) + `</span>
+                    </span>
+                    
+                    <!-- ✅ COMMENTAIRES -->
+                    <span class="counter-item" onclick="toggleComments(` + post.id + `)" style="cursor: pointer;">
+                        <i class="far fa-comment"></i> 
+                        <span class="comments-count" id="comments-count-` + post.id + `">` + (post.statistiques?.commentaires || 0) + `</span>
+                    </span>
+                    
+                    <!-- ✅ PARTAGES -->
+                    <span class="counter-item" style="cursor: default;">
+                        <i class="fas fa-share-alt"></i> 
+                        <span class="shares-count" id="shares-count-` + post.id + `">` + (post.statistiques?.partages || 0) + `</span>
+                    </span>
+                </div>
+                
+                <div class="post-action-triggers">
+                    <!-- ✅ BOUTON LIKE -->
+                    <button class="trigger-btn like-btn ` + (post.interactions?.liked_by_user ? 'liked' : '') + `" onclick="toggleLike(` + post.id + `)">
+                        <i class="` + (post.interactions?.liked_by_user ? 'fas' : 'far') + ` fa-heart"></i> 
+                        ` + (post.interactions?.liked_by_user ? 'Aimé' : 'Liker') + `
+                    </button>
+                    
+                    <!-- ✅ BOUTON COMMENTAIRE -->
+                    <button class="trigger-btn" onclick="toggleComments(` + post.id + `)">
+                        <i class="far fa-comment"></i> Commenter
+                    </button>
+                    
+                    <!-- ✅ BOUTON PARTAGER -->
+                    <button class="trigger-btn" onclick="handleShare(` + post.id + `)">
+                        <i class="fas fa-share-alt"></i> Partager
+                    </button>
+                </div>
+            </div>
+
+            <!-- ✅ SECTION COMMENTAIRES -->
+            <div class="comments-section" id="comments-list-` + post.id + `" style="display: none; padding: 15px 20px; border-top: 1px solid #e9ecef; background: #f8f9fa; border-radius: 0 0 8px 8px;">
+                <div class="comments-list" id="comments-list-inner-` + post.id + `">
+                    <div class="text-center text-muted py-2" style="font-size: 13px;">
+                        <i class="fas fa-spinner fa-spin"></i> Chargement des commentaires...
+                    </div>
+                </div>
+                <form class="comment-form" id="comment-form-` + post.id + `" data-post-id="` + post.id + `" style="margin-top: 12px;" onsubmit="event.preventDefault(); addComment(` + post.id + `);">
+                    <div class="d-flex gap-2" style="display: flex; gap: 8px;">
+                        <input type="text" 
+                            class="form-control form-control-sm" 
+                            placeholder="Écrire un commentaire..." 
+                            id="comment-input-` + post.id + `"
+                            style="border-radius: 20px; font-size: 13px; flex: 1;">
+                        <button type="submit" class="btn btn-sm btn-success" style="border-radius: 20px; white-space: nowrap;">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </article>`;
     }
     container.innerHTML = html;
@@ -1087,7 +1148,383 @@ function handlePublishSubmit(event) {
 }
 
 // ============================================================
-// INITIALISATION - VERSION SIMPLIFIÉE
+// GESTION DES COMMENTAIRES
+// ============================================================
+
+/**
+ * Basculer l'affichage des commentaires
+ */
+function toggleComments(postId) {
+    var commentsSection = document.getElementById('comments-list-' + postId);
+    if (!commentsSection) return;
+    
+    var isVisible = commentsSection.style.display !== 'none';
+    if (isVisible) {
+        commentsSection.style.display = 'none';
+    } else {
+        commentsSection.style.display = 'block';
+        // Charger les commentaires
+        loadComments(postId);
+    }
+}
+
+/**
+ * Charger les commentaires d'une publication
+ */
+async function loadComments(postId) {
+    var container = document.getElementById('comments-list-inner-' + postId);
+    if (!container) return;
+    
+    // Afficher un loader
+    container.innerHTML = `
+        <div class="text-center text-muted py-2" style="font-size: 13px;">
+            <i class="fas fa-spinner fa-spin"></i> Chargement des commentaires...
+        </div>
+    `;
+    
+    try {
+        var result = await apiCall('/publications/' + postId + '/comments', {
+            method: 'GET'
+        });
+        
+        if (result.status === 'success' && result.data) {
+            var comments = result.data;
+            
+            if (comments.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-3" style="font-size: 13px;">
+                        <i class="far fa-comment-dots"></i> Aucun commentaire pour le moment
+                    </div>
+                `;
+                return;
+            }
+            
+            var html = '';
+            for (var i = 0; i < comments.length; i++) {
+                var comment = comments[i];
+                var userName = comment.user?.name || 'Utilisateur';
+                var userAvatar = getAvatarUrl(comment.user?.photo_url, userName);
+                
+                html += `
+                    <div class="comment-item d-flex gap-2 py-2" style="border-bottom: 1px solid #e9ecef; padding: 8px 0;">
+                        <img src="${userAvatar}" 
+                             alt="${userName}" 
+                             style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;"
+                             onerror="this.src='https://ui-avatars.com/api/?name=User&background=4F46E5&color=fff'">
+                        <div style="flex: 1;">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <strong style="font-size: 13px;">${escapeHtml(userName)}</strong>
+                                <span style="font-size: 11px; color: #6c757d;">${comment.created_at_human || 'N/A'}</span>
+                            </div>
+                            <p style="font-size: 13px; margin: 2px 0 0 0; color: #343a40;">${escapeHtml(comment.contenu)}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-danger py-2" style="font-size: 13px;">
+                    <i class="fas fa-exclamation-circle"></i> Erreur lors du chargement
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Erreur chargement commentaires:', error);
+        container.innerHTML = `
+            <div class="text-center text-danger py-2" style="font-size: 13px;">
+                <i class="fas fa-exclamation-circle"></i> Erreur de chargement
+            </div>
+        `;
+    }
+}
+
+/**
+ * Ajouter un commentaire
+ */
+async function addComment(postId) {
+    var input = document.getElementById('comment-input-' + postId);
+    var content = input.value.trim();
+    
+    if (!content) {
+        showToast('Veuillez écrire un commentaire', 'warning');
+        return;
+    }
+    
+    if (content.length < 1) {
+        showToast('Le commentaire est trop court', 'warning');
+        return;
+    }
+    
+    var submitBtn = document.querySelector('#comment-form-' + postId + ' button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    try {
+        var result = await apiCall('/publications/' + postId + '/comments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contenu: content })
+        });
+        
+        if (result.status === 'success') {
+            showToast('💬 Commentaire ajouté !', 'success');
+            input.value = '';
+            
+            // Mettre à jour le compteur
+            var countSpan = document.getElementById('comments-count-' + postId);
+            if (countSpan) {
+                var currentCount = parseInt(countSpan.textContent, 10) || 0;
+                countSpan.textContent = currentCount + 1;
+            }
+            
+            // Recharger les commentaires
+            await loadComments(postId);
+        } else {
+            showToast(result.message || 'Erreur', 'danger');
+        }
+    } catch (error) {
+        console.error('Erreur ajout commentaire:', error);
+        showToast(error.message || 'Erreur lors de l\'ajout', 'danger');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+    }
+}
+
+/**
+ * Supprimer un commentaire
+ */
+async function deleteComment(commentId) {
+    if (!confirm('Supprimer ce commentaire ?')) return;
+    
+    try {
+        var result = await apiCall('/publications/comments/' + commentId, {
+            method: 'DELETE'
+        });
+        
+        if (result.status === 'success') {
+            showToast('Commentaire supprimé', 'success');
+            // Recharger la page ou les commentaires
+            location.reload();
+        } else {
+            showToast(result.message || 'Erreur', 'danger');
+        }
+    } catch (error) {
+        showToast(error.message || 'Erreur', 'danger');
+    }
+}
+
+// ============================================================
+// GESTION DES LIKES
+// ============================================================
+
+/**
+ * Ajouter ou retirer un like
+ */
+async function toggleLike(postId) {
+    try {
+        var result = await apiCall('/publications/' + postId + '/like', {
+            method: 'POST'
+        });
+        
+        if (result.status === 'success') {
+            // Mettre à jour le compteur
+            var countSpan = document.getElementById('likes-count-' + postId);
+            if (countSpan && result.data) {
+                countSpan.textContent = result.data.total_likes || 0;
+            }
+            
+            // Mettre à jour l'état du bouton
+            var likeBtn = document.querySelector('.custom-post-card[data-id="' + postId + '"] .like-btn');
+            var counterIcon = document.querySelector('.custom-post-card[data-id="' + postId + '"] .counter-item-like i');
+            
+            if (likeBtn) {
+                if (result.data.liked) {
+                    likeBtn.innerHTML = '<i class="fas fa-heart"></i> Aimé';
+                    likeBtn.classList.add('liked');
+                } else {
+                    likeBtn.innerHTML = '<i class="far fa-heart"></i> Liker';
+                    likeBtn.classList.remove('liked');
+                }
+            }
+            
+            if (counterIcon) {
+                counterIcon.className = result.data.liked ? 'fas fa-heart text-danger' : 'far fa-heart';
+            }
+            
+            showToast(result.message, result.data.liked ? 'success' : 'info');
+        } else {
+            showToast(result.message || 'Erreur', 'danger');
+        }
+    } catch (error) {
+        console.error('Erreur like:', error);
+        showToast(error.message || 'Erreur lors du like', 'danger');
+    }
+}
+
+/**
+ * Récupérer la liste des likes
+ */
+async function loadLikesList(postId) {
+    try {
+        var result = await apiCall('/publications/' + postId + '/likes', {
+            method: 'GET'
+        });
+        
+        if (result.status === 'success' && result.data) {
+            var likes = result.data;
+            var container = document.getElementById('likes-list-' + postId);
+            
+            if (!container) return;
+            
+            if (likes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-2" style="font-size: 13px;">
+                        <i class="far fa-heart"></i> Soyez le premier à aimer !
+                    </div>
+                `;
+                return;
+            }
+            
+            var html = '<div class="d-flex flex-wrap gap-2 py-2">';
+            for (var i = 0; i < Math.min(likes.length, 10); i++) {
+                var like = likes[i];
+                var avatar = getAvatarUrl(like.photo_url, like.name);
+                html += `
+                    <div class="d-flex align-items-center gap-2" style="background: #f8f9fa; padding: 4px 12px 4px 4px; border-radius: 20px;">
+                        <img src="${avatar}" 
+                             alt="${like.name}" 
+                             style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;"
+                             onerror="this.src='https://ui-avatars.com/api/?name=User&background=4F46E5&color=fff'">
+                        <span style="font-size: 12px; font-weight: 500;">${escapeHtml(like.name)}</span>
+                    </div>
+                `;
+            }
+            if (likes.length > 10) {
+                html += `<span style="font-size: 12px; color: #6c757d;">+ ${likes.length - 10} autres</span>`;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        }
+    } catch (error) {
+        console.error('Erreur chargement likes:', error);
+    }
+}
+
+// ============================================================
+// GESTION DES PARTAGES
+// ============================================================
+
+/**
+ * Partager une publication
+ */
+async function handleShare(postId) {
+    // Afficher une modale ou un menu de choix
+    var choix = prompt(
+        'Choisissez une plateforme de partage :\n\n' +
+        '1. 📋 Copier le lien\n' +
+        '2. 📘 Facebook\n' +
+        '3. 🐦 Twitter\n' +
+        '4. 💬 WhatsApp\n\n' +
+        'Entrez le numéro (1-4) :'
+    );
+    
+    if (choix === null) {
+        showToast('Partage annulé', 'info');
+        return;
+    }
+    
+    var plateformes = {
+        '1': 'copie_lien',
+        '2': 'facebook',
+        '3': 'twitter',
+        '4': 'whatsapp'
+    };
+    
+    var plateforme = plateformes[choix.trim()];
+    if (!plateforme) {
+        showToast('❌ Option invalide. Veuillez choisir entre 1 et 4.', 'warning');
+        return;
+    }
+    
+    try {
+        var result = await apiCall('/publications/' + postId + '/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plateforme: plateforme })
+        });
+        
+        if (result.status === 'success') {
+            var url = result.data?.share_url || '';
+            
+            if (plateforme === 'copie_lien') {
+                // Copier le lien dans le presse-papier
+                try {
+                    await navigator.clipboard.writeText(url);
+                    showToast('📋 Lien copié dans le presse-papier !', 'success');
+                } catch {
+                    // Fallback pour les navigateurs sans Clipboard API
+                    var copyInput = document.createElement('input');
+                    copyInput.value = url;
+                    document.body.appendChild(copyInput);
+                    copyInput.select();
+                    document.execCommand('copy');
+                    copyInput.remove();
+                    showToast('📋 Lien copié !', 'success');
+                }
+            } else {
+                // Ouvrir dans une nouvelle fenêtre
+                window.open(url, '_blank');
+                showToast('🔗 Partagé sur ' + plateforme + ' !', 'success');
+            }
+            
+            // Mettre à jour le compteur
+            var countSpan = document.getElementById('shares-count-' + postId);
+            if (countSpan && result.data) {
+                countSpan.textContent = result.data.total_shares || 0;
+            }
+            
+            // Recharger les publications pour mettre à jour les statistiques
+            setTimeout(function() {
+                loadPosts(state.currentPage, state.currentCategory, state.currentScope);
+            }, 1000);
+        } else {
+            showToast(result.message || 'Erreur lors du partage', 'danger');
+        }
+    } catch (error) {
+        console.error('Erreur partage:', error);
+        showToast(error.message || 'Erreur lors du partage', 'danger');
+    }
+}
+
+/**
+ * Copier le lien d'une publication (raccourci)
+ */
+async function copyLink(postId) {
+    var post = state.posts.find(function(p) { return p.id === postId; });
+    if (!post) {
+        showToast('Publication non trouvée', 'danger');
+        return;
+    }
+    
+    try {
+        var url = window.location.origin + '/blog/' + postId;
+        await navigator.clipboard.writeText(url);
+        showToast('📋 Lien copié !', 'success');
+    } catch {
+        var copyInput = document.createElement('input');
+        copyInput.value = window.location.origin + '/blog/' + postId;
+        document.body.appendChild(copyInput);
+        copyInput.select();
+        document.execCommand('copy');
+        copyInput.remove();
+        showToast('📋 Lien copié !', 'success');
+    }
+}
+
+// ============================================================
+// INITIALISATION 
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {

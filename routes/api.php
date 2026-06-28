@@ -35,6 +35,7 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 |--------------------------------------------------------------------------
 */
 
+// Routes Home (publiques)
 Route::prefix('home')->group(function () {
     Route::get('/posts', [HomeController::class, 'getPosts']);
     Route::get('/stats', [HomeController::class, 'getStats']);
@@ -111,19 +112,22 @@ Route::middleware(['auth:api'])->prefix('publications')->group(function () {
     Route::put('/{id}', [PublicationController::class, 'update']);
     Route::delete('/{id}', [PublicationController::class, 'destroy']);
     
-    // Likes
+     // ✅ Likes
     Route::post('/{id}/like', [PublicationController::class, 'toggleLike']);
+    Route::get('/{id}/likes', [PublicationController::class, 'getLikes']);
+    Route::get('/{id}/check-like', [PublicationController::class, 'checkLike']);
     
     // Commentaires
+    Route::get('/{id}/comments', [PublicationController::class, 'getComments']);
     Route::post('/{id}/comments', [PublicationController::class, 'addComment']);
-    Route::put('/comments/{id}', [PublicationController::class, 'updateComment']);
     Route::delete('/comments/{id}', [PublicationController::class, 'deleteComment']);
     
     // Signalements
     Route::post('/{id}/report', [PublicationController::class, 'report']);
     
-    // Partages
+   // ✅ Partages
     Route::post('/{id}/share', [PublicationController::class, 'share']);
+    Route::get('/{id}/shares', [PublicationController::class, 'getShares']);
 });
 
 // Routes admin (authentification + rôle admin)
