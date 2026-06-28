@@ -1,860 +1,641 @@
 <?php
-// app/Http/Controllers/Api/PublicationController.php
+// app/Http/Controllers/PublicationController.php
 
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\Publication\CreatePublicationRequest;
-use App\Http\Requests\Api\Publication\UpdatePublicationRequest;
-use App\Http\Requests\Api\Publication\ReportPublicationRequest;
-use App\Http\Requests\Api\CommentaireRequest;
-use App\Http\Resources\PublicationResource;
-use App\Http\Resources\CommentaireResource;
 use App\Models\Publication;
 use App\Models\Commentaire;
 use App\Models\Like;
-use App\Models\Report;
 use App\Models\Share;
-use App\Events\PublicationViewed;
-use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
-/**
- * Contrôleur PublicationController
- * 
- * Gère toutes les opérations liées aux publications :
- * - CRUD des publications
- * - Gestion des likes, commentaires, partages
- * - Gestion des signalements
- * - Compteur de vues
- * - Upload de fichiers
- */
 class PublicationController extends Controller
 {
-    use ApiResponseTrait;
-
     /**
-     * Constructeur avec middleware
-     */
-    public function __construct()
-    {
-        $this->middleware('auth:api')->except([
-            'index',
-            'show',
-            'publicIndex',
-            'publicShow',
-        ]);
-    }
-
-    // ========== CRUD PUBLICATIONS ==========
-
-    /**
-     * Liste des publications (publique)
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * Récupérer toutes les publications (mélangées)
      */
     public function index(Request $request)
     {
-        $query = Publication::with('user')
-            ->published()
-            ->where('statut', 'publiee');
+        $query = Publication::with(['user'])->published();
 
-        // Filtre par catégorie
-        if ($request->filled('categorie')) {
+        // Filtrer par catégorie
+        if ($request->has('categorie') && $request->categorie !== 'all' && !empty($request->categorie)) {
             $query->byCategory($request->categorie);
         }
 
-        // Filtre par recherche
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('titre', 'LIKE', "%{$search}%")
-                  ->orWhere('contenu', 'LIKE', "%{$search}%");
-            });
+        // Filtrer par auteur (mes publications)
+        if ($request->has('scope') && $request->scope === 'mine') {
+            $query->where('user_id', Auth::id());
         }
 
-        // Tri
-        $sort = $request->get('sort', 'recent');
-        switch ($sort) {
-            case 'popular':
-                $query->orderBy('nbr_likes', 'desc');
-                break;
-            case 'most_viewed':
-                $query->orderBy('nbr_vues', 'desc');
-                break;
-            case 'most_commented':
-                $query->orderBy('nbr_commentaires', 'desc');
-                break;
-            default:
-                $query->orderBy('published_at', 'desc');
-        }
+        // ✅ Mélange aléatoire pour un flux dynamique
+        $publications = $query->inRandomOrder()->paginate(10);
 
-        $perPage = $request->get('per_page', 15);
-        $publications = $query->paginate($perPage);
+        // Formatage des données
+        $formatted = $publications->through(function ($post) {
+            return $this->formatPublication($post);
+        });
 
-        return $this->successResponse([
-            'data' => PublicationResource::collection($publications),
+        return response()->json([
+            'status' => 'success',
+            'data' => $formatted,
             'meta' => [
                 'current_page' => $publications->currentPage(),
                 'last_page' => $publications->lastPage(),
-                'per_page' => $publications->perPage(),
                 'total' => $publications->total(),
-            ],
+            ]
         ]);
     }
 
     /**
      * Créer une nouvelle publication
-     *
-     * @param CreatePublicationRequest $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(CreatePublicationRequest $request)
+    public function store(Request $request)
     {
-        DB::beginTransaction();
+        $validator = Validator::make($request->all(), [
+            'titre' => 'required|string|min:5|max:255',
+            'categorie' => 'required|string|in:conseil,experience,alerte',
+            'contenu' => 'required|string|min:10',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'videos.*' => 'nullable|file|mimes:mp4,mov,avi,webm|max:51200',
+            'documents.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar|max:10240',
+        ]);
 
-        try {
-            $user = $request->user();
-            $data = $request->validated();
-            $data['user_id'] = $user->id;
-            $data['published_at'] = now();
-
-            // ✅ Upload des images multiples
-            if ($request->hasFile('images')) {
-                $imageUrls = [];
-                $files = $request->file('images');
-                // ✅ S'assurer que c'est un tableau
-                $files = is_array($files) ? $files : [$files];
-                
-                foreach ($files as $image) {
-                    if ($image && $image->isValid()) {
-                        $imageUrls[] = $this->uploadFile($image, 'publications/images');
-                    }
-                }
-                if (!empty($imageUrls)) {
-                    $data['image_url'] = implode(',', $imageUrls);
-                }
-            }
-
-            // ✅ Upload des vidéos multiples
-            if ($request->hasFile('videos')) {
-                $videoUrls = [];
-                $files = $request->file('videos');
-                $files = is_array($files) ? $files : [$files];
-                
-                foreach ($files as $video) {
-                    if ($video && $video->isValid()) {
-                        $videoUrls[] = $this->uploadFile($video, 'publications/videos');
-                    }
-                }
-                if (!empty($videoUrls)) {
-                    $data['video_url'] = implode(',', $videoUrls);
-                }
-            }
-
-            // ✅ Upload des documents multiples
-            if ($request->hasFile('documents')) {
-                $documentUrls = [];
-                $documentNames = [];
-                $files = $request->file('documents');
-                $files = is_array($files) ? $files : [$files];
-                
-                foreach ($files as $document) {
-                    if ($document && $document->isValid()) {
-                        $documentUrls[] = $this->uploadFile($document, 'publications/files');
-                        $documentNames[] = $document->getClientOriginalName();
-                    }
-                }
-                if (!empty($documentUrls)) {
-                    $data['fichier_url'] = implode(',', $documentUrls);
-                    $data['fichier_nom'] = implode(',', $documentNames);
-                }
-            }
-
-            $publication = Publication::create($data);
-
-            DB::commit();
-
-            return $this->successResponse(
-                new PublicationResource($publication->load('user')),
-                'Publication créée avec succès.',
-                201
-            );
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Erreur création publication: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la création de la publication: ' . $e->getMessage(), 500);
-        }
-    }
-
-    /**
-     * Afficher une publication spécifique
-     *
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-
-    public function show($id)
-    {
-        $publication = Publication::with(['user', 'commentaires.user', 'commentaires.replies.user'])
-            ->where('statut', '!=', 'bloquee')
-            ->findOrFail($id);
-
-        // Si la publication est bloquée, seul l'auteur ou l'admin peut la voir
-        if ($publication->statut === 'bloquee') {
-            $user = auth()->user();
-            if (!$user || ($user->id !== $publication->user_id && !$user->isAdmin())) {
-                return $this->errorResponse('Cette publication n\'est pas disponible.', 403);
-            }
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur de validation',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        // Déclencher l'event pour incrémenter les vues
-        event(new PublicationViewed($publication));
+        // Traitement des fichiers
+        $images = $this->uploadMultipleFiles($request->file('images'), 'uploads/publications/images');
+        $videos = $this->uploadMultipleFiles($request->file('videos'), 'uploads/publications/videos');
+        $documents = $this->uploadMultipleDocuments($request->file('documents'), 'uploads/publications/documents');
 
-        return $this->successResponse(
-            PublicationResource::make($publication)
-        );
+        // Création
+        $publication = Publication::create([
+            'titre' => $request->titre,
+            'categorie' => $request->categorie,
+            'contenu' => $request->contenu,
+            'user_id' => Auth::id(),
+            'images' => $images,
+            'videos' => $videos,
+            'documents' => $documents,
+            'published_at' => now(),
+        ]);
+
+        // Charger la relation user
+        $publication->load('user');
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Article publié avec succès !',
+            'data' => $this->formatPublication($publication)
+        ], 201);
     }
 
     /**
      * Mettre à jour une publication
-     *
-     * @param UpdatePublicationRequest $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(UpdatePublicationRequest $request, $id)
+    public function update(Request $request, $id)
     {
         $publication = Publication::findOrFail($id);
-        $user = $request->user();
 
-        if ($user->id !== $publication->user_id && !$user->isAdmin()) {
-            return $this->forbiddenResponse('Vous n\'êtes pas autorisé à modifier cette publication.');
+        // Vérifier les droits
+        if (!$publication->canManage(Auth::user())) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Action non autorisée. Vous n\'êtes pas l\'auteur de cette publication.'
+            ], 403);
         }
 
-        DB::beginTransaction();
+        $validator = Validator::make($request->all(), [
+            'titre' => 'sometimes|string|min:5|max:255',
+            'categorie' => 'sometimes|string|in:conseil,experience,alerte',
+            'contenu' => 'sometimes|string|min:10',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'videos.*' => 'nullable|file|mimes:mp4,mov,avi,webm|max:51200',
+            'documents.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar|max:10240',
+        ]);
 
-        try {
-            $data = $request->validated();
-
-            // ✅ Gestion des images multiples
-            if ($request->hasFile('images')) {
-                // Supprimer les anciennes images
-                if ($publication->image_url) {
-                    $oldImages = explode(',', $publication->image_url);
-                    foreach ($oldImages as $oldImage) {
-                        $this->deleteFile($oldImage);
-                    }
-                }
-                $imageUrls = [];
-                $files = $request->file('images');
-                $files = is_array($files) ? $files : [$files];
-                foreach ($files as $image) {
-                    if ($image && $image->isValid()) {
-                        $imageUrls[] = $this->uploadFile($image, 'publications/images');
-                    }
-                }
-                if (!empty($imageUrls)) {
-                    $data['image_url'] = implode(',', $imageUrls);
-                }
-            } elseif ($request->input('delete_images')) {
-                if ($publication->image_url) {
-                    $oldImages = explode(',', $publication->image_url);
-                    foreach ($oldImages as $oldImage) {
-                        $this->deleteFile($oldImage);
-                    }
-                }
-                $data['image_url'] = null;
-            }
-
-            // ✅ Gestion des vidéos multiples
-            if ($request->hasFile('videos')) {
-                if ($publication->video_url) {
-                    $oldVideos = explode(',', $publication->video_url);
-                    foreach ($oldVideos as $oldVideo) {
-                        $this->deleteFile($oldVideo);
-                    }
-                }
-                $videoUrls = [];
-                $files = $request->file('videos');
-                $files = is_array($files) ? $files : [$files];
-                foreach ($files as $video) {
-                    if ($video && $video->isValid()) {
-                        $videoUrls[] = $this->uploadFile($video, 'publications/videos');
-                    }
-                }
-                if (!empty($videoUrls)) {
-                    $data['video_url'] = implode(',', $videoUrls);
-                }
-            } elseif ($request->input('delete_videos')) {
-                if ($publication->video_url) {
-                    $oldVideos = explode(',', $publication->video_url);
-                    foreach ($oldVideos as $oldVideo) {
-                        $this->deleteFile($oldVideo);
-                    }
-                }
-                $data['video_url'] = null;
-            }
-
-            // ✅ Gestion des documents multiples
-            if ($request->hasFile('documents')) {
-                if ($publication->fichier_url) {
-                    $oldDocuments = explode(',', $publication->fichier_url);
-                    foreach ($oldDocuments as $oldDocument) {
-                        $this->deleteFile($oldDocument);
-                    }
-                }
-                $documentUrls = [];
-                $documentNames = [];
-                $files = $request->file('documents');
-                $files = is_array($files) ? $files : [$files];
-                foreach ($files as $document) {
-                    if ($document && $document->isValid()) {
-                        $documentUrls[] = $this->uploadFile($document, 'publications/files');
-                        $documentNames[] = $document->getClientOriginalName();
-                    }
-                }
-                if (!empty($documentUrls)) {
-                    $data['fichier_url'] = implode(',', $documentUrls);
-                    $data['fichier_nom'] = implode(',', $documentNames);
-                }
-            } elseif ($request->input('delete_documents')) {
-                if ($publication->fichier_url) {
-                    $oldDocuments = explode(',', $publication->fichier_url);
-                    foreach ($oldDocuments as $oldDocument) {
-                        $this->deleteFile($oldDocument);
-                    }
-                }
-                $data['fichier_url'] = null;
-                $data['fichier_nom'] = null;
-            }
-
-            $publication->update($data);
-
-            DB::commit();
-
-            return $this->successResponse(
-                new PublicationResource($publication->load('user')),
-                'Publication mise à jour avec succès.'
-            );
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Erreur mise à jour publication: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la mise à jour de la publication.', 500);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur de validation',
+                'errors' => $validator->errors()
+            ], 422);
         }
+
+        // Récupérer les fichiers existants
+        $images = $publication->getAttributes()['images'] ?? [];
+        $videos = $publication->getAttributes()['videos'] ?? [];
+        $documents = $publication->getAttributes()['documents'] ?? [];
+
+        // Supprimer des fichiers si demandé
+        if ($request->has('delete_images') && $request->delete_images) {
+            $this->deleteMultipleFiles($images, 'public');
+            $images = [];
+        }
+        if ($request->has('delete_videos') && $request->delete_videos) {
+            $this->deleteMultipleFiles($videos, 'public');
+            $videos = [];
+        }
+        if ($request->has('delete_documents') && $request->delete_documents) {
+            $this->deleteMultipleDocuments($documents, 'public');
+            $documents = [];
+        }
+
+        // Ajouter les nouveaux fichiers
+        if ($request->hasFile('images')) {
+            $newImages = $this->uploadMultipleFiles($request->file('images'), 'uploads/publications/images');
+            $images = array_merge($images, $newImages);
+        }
+        if ($request->hasFile('videos')) {
+            $newVideos = $this->uploadMultipleFiles($request->file('videos'), 'uploads/publications/videos');
+            $videos = array_merge($videos, $newVideos);
+        }
+        if ($request->hasFile('documents')) {
+            $newDocuments = $this->uploadMultipleDocuments($request->file('documents'), 'uploads/publications/documents');
+            $documents = array_merge($documents, $newDocuments);
+        }
+
+        // Mise à jour
+        $updateData = [];
+        if ($request->has('titre')) $updateData['titre'] = $request->titre;
+        if ($request->has('categorie')) $updateData['categorie'] = $request->categorie;
+        if ($request->has('contenu')) $updateData['contenu'] = $request->contenu;
+        $updateData['images'] = $images;
+        $updateData['videos'] = $videos;
+        $updateData['documents'] = $documents;
+
+        $publication->update($updateData);
+        $publication->load('user');
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Publication mise à jour avec succès !',
+            'data' => $this->formatPublication($publication)
+        ]);
     }
 
     /**
      * Supprimer une publication
-     *
-     * @param Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(Request $request, $id)
+    public function destroy($id)
     {
         $publication = Publication::findOrFail($id);
-        $user = $request->user();
 
-        // Vérifier les permissions
-        if ($user->id !== $publication->user_id && !$user->isAdmin()) {
-            return $this->forbiddenResponse('Vous n\'êtes pas autorisé à supprimer cette publication.');
+        if (!$publication->canManage(Auth::user())) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Action non autorisée.'
+            ], 403);
         }
 
-        DB::beginTransaction();
+        // Supprimer les fichiers
+        $this->deleteMultipleFiles($publication->getAttributes()['images'] ?? [], 'public');
+        $this->deleteMultipleFiles($publication->getAttributes()['videos'] ?? [], 'public');
+        $this->deleteMultipleDocuments($publication->getAttributes()['documents'] ?? [], 'public');
 
-        try {
-            // Supprimer les fichiers associés
-            if ($publication->image_url) {
-                $this->deleteFile($publication->image_url);
-            }
-            if ($publication->video_url) {
-                $this->deleteFile($publication->video_url);
-            }
-            if ($publication->fichier_url) {
-                $this->deleteFile($publication->fichier_url);
-            }
+        $publication->delete();
 
-            // Supprimer les likes, commentaires, signalements, partages (cascade)
-            $publication->delete();
-
-            DB::commit();
-
-            return $this->successResponse(null, 'Publication supprimée avec succès.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Erreur suppression publication: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la suppression de la publication.', 500);
-        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Publication supprimée avec succès.'
+        ]);
     }
 
-    // ========== GESTION DES LIKES ==========
+    // ============================================================
+    // MÉTHODES UTILITAIRES DE FICHIERS
+    // ============================================================
 
     /**
-     * Liker ou unliker une publication
-     *
-     * @param Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * Upload multiple fichiers
      */
-    public function toggleLike(Request $request, $id)
+    private function uploadMultipleFiles($files, $directory)
     {
-        $publication = Publication::findOrFail($id);
-        $user = $request->user();
-
-        // Vérifier que la publication n'est pas bloquée
-        if ($publication->statut === 'bloquee') {
-            return $this->errorResponse('Cette publication n\'est pas disponible.', 403);
+        if (empty($files)) {
+            return [];
         }
 
-        DB::beginTransaction();
+        $uploaded = [];
+        foreach ($files as $file) {
+            $path = $file->store($directory, 'public');
+            $uploaded[] = $path;
+        }
+        return $uploaded;
+    }
 
-        try {
-            $like = Like::where('publication_id', $publication->id)
-                ->where('user_id', $user->id)
-                ->first();
+    /**
+     * Upload multiple documents (avec noms)
+     */
+    private function uploadMultipleDocuments($files, $directory)
+    {
+        if (empty($files)) {
+            return [];
+        }
 
-            if ($like) {
-                // Unlike
-                $like->delete();
-                $publication->decrementLikes();
-                $message = 'Like retiré.';
-                $liked = false;
+        $uploaded = [];
+        foreach ($files as $file) {
+            $originalName = $file->getClientOriginalName();
+            $path = $file->store($directory, 'public');
+            $uploaded[] = [
+                'url' => $path,
+                'nom' => $originalName
+            ];
+        }
+        return $uploaded;
+    }
+
+    /**
+     * Supprimer plusieurs fichiers
+     */
+    private function deleteMultipleFiles($files, $disk = 'public')
+    {
+        if (empty($files)) {
+            return;
+        }
+
+        foreach ($files as $file) {
+            if (is_array($file) && isset($file['url'])) {
+                Storage::disk($disk)->delete($file['url']);
             } else {
-                // Like
-                Like::create([
-                    'publication_id' => $publication->id,
-                    'user_id' => $user->id,
-                ]);
-                $publication->incrementLikes();
-                $message = 'Publication likée.';
-                $liked = true;
+                Storage::disk($disk)->delete($file);
             }
-
-            DB::commit();
-
-            return $this->successResponse([
-                'liked' => $liked,
-                'total_likes' => $publication->fresh()->nbr_likes,
-            ], $message);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Erreur like/unlike: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de l\'opération.', 500);
-        }
-    }
-
-    // ========== GESTION DES COMMENTAIRES ==========
-
-    /**
-     * Ajouter un commentaire
-     *
-     * @param CommentaireRequest $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function addComment(CommentaireRequest $request, $id)
-    {
-        $publication = Publication::findOrFail($id);
-        $user = $request->user();
-
-        // Vérifier que la publication n'est pas bloquée
-        if ($publication->statut === 'bloquee') {
-            return $this->errorResponse('Cette publication n\'est pas disponible.', 403);
-        }
-
-        DB::beginTransaction();
-
-        try {
-            $commentaire = Commentaire::create([
-                'publication_id' => $publication->id,
-                'user_id' => $user->id,
-                'parent_id' => $request->parent_id,
-                'contenu' => $request->contenu,
-            ]);
-
-            $publication->incrementCommentaires();
-
-            DB::commit();
-
-            return $this->successResponse(
-                new CommentaireResource($commentaire->load('user')),
-                'Commentaire ajouté avec succès.',
-                201
-            );
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Erreur ajout commentaire: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de l\'ajout du commentaire.', 500);
         }
     }
 
     /**
-     * Modifier un commentaire
-     *
-     * @param CommentaireRequest $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * Supprimer plusieurs documents
      */
-    public function updateComment(CommentaireRequest $request, $id)
+    private function deleteMultipleDocuments($documents, $disk = 'public')
     {
-        $commentaire = Commentaire::findOrFail($id);
-        $user = $request->user();
-
-        // Vérifier les permissions
-        if ($user->id !== $commentaire->user_id && !$user->isAdmin()) {
-            return $this->forbiddenResponse('Vous n\'êtes pas autorisé à modifier ce commentaire.');
+        if (empty($documents)) {
+            return;
         }
 
-        try {
-            $commentaire->update([
-                'contenu' => $request->contenu,
-                'is_edited' => true,
-            ]);
-
-            return $this->successResponse(
-                new CommentaireResource($commentaire->load('user')),
-                'Commentaire modifié avec succès.'
-            );
-
-        } catch (\Exception $e) {
-            \Log::error('Erreur modification commentaire: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la modification du commentaire.', 500);
+        foreach ($documents as $doc) {
+            if (is_array($doc) && isset($doc['url'])) {
+                Storage::disk($disk)->delete($doc['url']);
+            }
         }
     }
 
     /**
-     * Supprimer un commentaire
-     *
-     * @param Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * Formater une publication pour la réponse API
      */
-    public function deleteComment(Request $request, $id)
+    private function formatPublication(Publication $post)
     {
-        $commentaire = Commentaire::findOrFail($id);
-        $user = $request->user();
-
-        // Vérifier les permissions
-        if ($user->id !== $commentaire->user_id && !$user->isAdmin()) {
-            return $this->forbiddenResponse('Vous n\'êtes pas autorisé à supprimer ce commentaire.');
-        }
-
-        DB::beginTransaction();
-
-        try {
-            $publication = $commentaire->publication;
-            
-            // Compter le nombre de commentaires à supprimer (incluant les réponses)
-            $count = 1 + $commentaire->replies()->count();
-            
-            $commentaire->delete();
-            
-            // Décrémenter le compteur de la publication
-            $publication->decrement('nbr_commentaires', $count);
-
-            DB::commit();
-
-            return $this->successResponse(null, 'Commentaire supprimé avec succès.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Erreur suppression commentaire: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la suppression du commentaire.', 500);
-        }
-    }
-
-    // ========== GESTION DES SIGNALEMENTS ==========
-
-    /**
-     * Signaler une publication
-     *
-     * @param ReportPublicationRequest $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function report(ReportPublicationRequest $request, $id)
-    {
-        $publication = Publication::findOrFail($id);
-        $user = $request->user();
-
-        // Vérifier que l'utilisateur ne signale pas sa propre publication
-        if ($user->id === $publication->user_id) {
-            return $this->errorResponse('Vous ne pouvez pas signaler votre propre publication.', 422);
-        }
-
-        // Vérifier si l'utilisateur a déjà signalé
-        if ($publication->isReportedByUser($user)) {
-            return $this->errorResponse('Vous avez déjà signalé cette publication.', 422);
-        }
-
-        DB::beginTransaction();
-
-        try {
-            Report::create([
-                'publication_id' => $publication->id,
-                'user_id' => $user->id,
-                'motif' => $request->motif,
-                'commentaire' => $request->commentaire,
-            ]);
-
-            $publication->incrementSignalements();
-
-            DB::commit();
-
-            return $this->successResponse(null, 'Publication signalée. Notre équipe va l\'examiner.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Erreur signalement: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors du signalement.', 500);
-        }
-    }
-
-    // ========== GESTION DES PARTAGES ==========
-
-    /**
-     * Enregistrer un partage
-     *
-     * @param Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function share(Request $request, $id)
-    {
-        $publication = Publication::findOrFail($id);
-        $user = $request->user();
-
-        // ✅ Validation des données
-        $validated = $request->validate([
-            'plateforme' => 'required|string|in:whatsapp,facebook,twitter,copie_lien,linkedin',
-        ]);
-
-        DB::beginTransaction();
-
-        try {
-            Share::create([
-                'publication_id' => $publication->id,
-                'user_id' => $user->id,
-                'plateforme' => $validated['plateforme'],
-            ]);
-
-            $publication->incrementPartages();
-
-            DB::commit();
-
-            // Générer l'URL de partage
-            $shareUrl = $this->generateShareUrl($publication, $validated['plateforme']);
-
-            return $this->successResponse([
-                'share_url' => $shareUrl,
-                'total_shares' => $publication->fresh()->nbr_partages,
-            ], 'Partage enregistré.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Erreur partage: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors du partage.', 500);
-        }
-    }
-
-    // ========== MÉTHODES ADMIN ==========
-
-    /**
-     * Liste des publications pour l'admin (avec toutes les statistiques)
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function adminIndex(Request $request)
-    {
-        $this->authorizeAdmin();
-
-        $query = Publication::with('user');
-
-        // Filtre par statut
-        if ($request->filled('statut')) {
-            $query->where('statut', $request->statut);
-        }
-
-        // Filtre par catégorie
-        if ($request->filled('categorie')) {
-            $query->where('categorie', $request->categorie);
-        }
-
-        // Recherche
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('titre', 'LIKE', "%{$search}%")
-                  ->orWhereHas('user', function ($q) use ($search) {
-                      $q->where('name', 'LIKE', "%{$search}%");
-                  });
-            });
-        }
-
-        $perPage = $request->get('per_page', 20);
-        $publications = $query->orderBy('created_at', 'desc')->paginate($perPage);
-
-        return $this->successResponse([
-            'data' => PublicationResource::collection($publications),
-            'meta' => [
-                'current_page' => $publications->currentPage(),
-                'last_page' => $publications->lastPage(),
-                'per_page' => $publications->perPage(),
-                'total' => $publications->total(),
+        $user = Auth::user();
+        
+        return [
+            'id' => $post->id,
+            'titre' => $post->titre,
+            'categorie' => $post->categorie,
+            'categorie_label' => $this->getCategorieLabel($post->categorie),
+            'contenu' => $post->contenu,
+            'resume' => $post->resume,
+            'images' => $post->images ?? [],
+            'videos' => $post->videos ?? [],
+            'documents' => $post->documents ?? [],
+            'statistiques' => [
+                'likes' => $post->nbr_likes,
+                'commentaires' => $post->nbr_commentaires,
+                'partages' => $post->nbr_partages,
+                'vues' => $post->nbr_vues,
             ],
-        ]);
+            'interactions' => [
+                'liked_by_user' => $post->isLikedByUser($user),
+            ],
+            'user' => [
+                'id' => $post->user->id,
+                'name' => $post->user->name,
+                'photo_url' => $post->user->photo_url ?? null,
+                'role' => $post->user->role ?? 'user',
+            ],
+            'can_manage' => $post->canManage($user),
+            'published_at_human' => $post->published_at?->diffForHumans(),
+            'published_at' => $post->published_at?->toIso8601String(),
+            'created_at' => $post->created_at?->toIso8601String(),
+            'updated_at' => $post->updated_at?->toIso8601String(),
+        ];
     }
 
-    /**
-     * Blocker une publication (admin)
-     *
-     * @param Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function adminBlock(Request $request, $id)
+    private function getCategorieLabel($categorie)
     {
-        $this->authorizeAdmin();
-
-        $request->validate([
-            'raison' => 'required|string|min:10|max:500',
-        ]);
-
-        $publication = Publication::findOrFail($id);
-        $publication->block($request->raison);
-
-        return $this->successResponse(
-            new PublicationResource($publication->load('user')),
-            'Publication bloquée avec succès.'
-        );
-    }
-
-    /**
-     * Débloquer une publication (admin)
-     *
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function adminUnblock($id)
-    {
-        $this->authorizeAdmin();
-
-        $publication = Publication::findOrFail($id);
-        $publication->unblock();
-
-        return $this->successResponse(
-            new PublicationResource($publication->load('user')),
-            'Publication débloquée avec succès.'
-        );
-    }
-
-    /**
-     * Supprimer un signalement (admin)
-     *
-     * @param int $reportId
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function adminDeleteReport($reportId)
-    {
-        $this->authorizeAdmin();
-
-        $report = Report::findOrFail($reportId);
-        $publication = $report->publication;
-
-        DB::beginTransaction();
-
-        try {
-            $report->delete();
-            
-            // Recalculer le nombre de signalements
-            $newCount = Report::where('publication_id', $publication->id)->count();
-            $publication->update([
-                'nbr_signalements' => $newCount,
-                'statut' => $newCount >= 5 ? 'signalee' : 'publiee',
-            ]);
-
-            DB::commit();
-
-            return $this->successResponse(null, 'Signalement supprimé.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return $this->errorResponse('Erreur lors de la suppression.', 500);
-        }
-    }
-
-    // ========== MÉTHODES PRIVÉES ==========
-
-    /**
-     * Upload de fichier
-     *
-     * @param \Illuminate\Http\UploadedFile $file
-     * @param string $directory
-     * @return string
-     */
-    private function uploadFile($file, string $directory): string
-    {
-        $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-        // ✅ Stocker SANS le préfixe 'storage/' car asset('storage/') l'ajoute
-        $path = $file->storeAs($directory, $filename, 'public');
-        return $path; // Retourne par exemple "publications/images/1782329401_tiJQWxbzK1.png"
-    }
-
-    /**
-     * Suppression de fichier
-     *
-     * @param string|null $path
-     * @return void
-     */
-    private function deleteFile(?string $path): void
-    {
-        if ($path && Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
-        }
-    }
-
-    /**
-     * Générer l'URL de partage selon la plateforme
-     *
-     * @param Publication $publication
-     * @param string $plateforme
-     * @return string
-     */
-    private function generateShareUrl(Publication $publication, string $plateforme): string
-    {
-        $url = url("/publications/{$publication->id}");
-        $text = urlencode($publication->titre);
-
-        return match($plateforme) {
-            'facebook' => "https://www.facebook.com/sharer/sharer.php?u={$url}",
-            'twitter' => "https://twitter.com/intent/tweet?text={$text}&url={$url}",
-            'whatsapp' => "https://wa.me/?text={$text}%20{$url}",
-            'linkedin' => "https://www.linkedin.com/sharing/share-offsite/?url={$url}",
-            default => $url,
+        return match($categorie) {
+            'experience' => '💡 Expérience',
+            'conseil' => '🌾 Conseil',
+            'alerte' => '⚠️ Alerte',
+            default => $categorie,
         };
     }
 
     /**
-     * Vérifier si l'utilisateur est admin
-     *
-     * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+     * commentaire à une publication
      */
-    private function authorizeAdmin(): void
+    public function addComment(Request $request, $id)
     {
-        $user = auth()->user();
-        if (!$user || !$user->isAdmin()) {
-            abort(403, 'Accès réservé aux administrateurs.');
+        $publication = Publication::findOrFail($id);
+        
+        $validator = Validator::make($request->all(), [
+            'contenu' => 'required|string|min:1|max:5000',
+            'parent_id' => 'nullable|exists:commentaires,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur de validation',
+                'errors' => $validator->errors()
+            ], 422);
         }
+
+        $commentaire = Commentaire::create([
+            'publication_id' => $publication->id,
+            'user_id' => Auth::id(),
+            'parent_id' => $request->parent_id,
+            'contenu' => $request->contenu,
+        ]);
+
+        // Incrémenter le compteur de commentaires
+        $publication->increment('nbr_commentaires');
+
+        $commentaire->load('user');
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Commentaire ajouté avec succès',
+            'data' => [
+                'id' => $commentaire->id,
+                'contenu' => $commentaire->contenu,
+                'created_at' => $commentaire->created_at->toIso8601String(),
+                'created_at_human' => $commentaire->created_at->diffForHumans(),
+                'user' => [
+                    'id' => $commentaire->user->id,
+                    'name' => $commentaire->user->name,
+                    'photo_url' => $commentaire->user->photo_url,
+                ]
+            ]
+        ], 201);
     }
+
+    /**
+     * Récupérer les commentaires d'une publication
+     */
+    public function getComments($id)
+    {
+        $publication = Publication::findOrFail($id);
+        
+        $commentaires = Commentaire::with(['user'])
+            ->where('publication_id', $id)
+            ->whereNull('parent_id')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Formater les commentaires
+        $formatted = $commentaires->map(function($comment) {
+            return [
+                'id' => $comment->id,
+                'contenu' => $comment->contenu,
+                'created_at' => $comment->created_at->toIso8601String(),
+                'created_at_human' => $comment->created_at->diffForHumans(),
+                'user' => [
+                    'id' => $comment->user->id,
+                    'name' => $comment->user->name,
+                    'photo_url' => $comment->user->photo_url,
+                ]
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $formatted
+        ]);
+    }
+
+    /**
+     * Supprimer un commentaire
+     */
+    public function deleteComment($id)
+    {
+        $commentaire = Commentaire::findOrFail($id);
+        
+        // Vérifier les droits (auteur ou admin)
+        if (Auth::id() !== $commentaire->user_id && Auth::user()->role !== 'admin') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Action non autorisée'
+            ], 403);
+        }
+
+        $publication_id = $commentaire->publication_id;
+        $commentaire->delete();
+
+        // Décrémenter le compteur de commentaires
+        Publication::where('id', $publication_id)->decrement('nbr_commentaires');
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Commentaire supprimé'
+        ]);
+    }
+
+    /**
+     * ou retirer un like
+     */
+    public function toggleLike($id)
+    {
+        $publication = Publication::findOrFail($id);
+        $user = Auth::user();
+        
+        // Vérifier si l'utilisateur a déjà liké
+        $existingLike = Like::where('publication_id', $publication->id)
+                            ->where('user_id', $user->id)
+                            ->first();
+        
+        if ($existingLike) {
+            // Supprimer le like
+            $existingLike->delete();
+            $publication->decrement('nbr_likes');
+            $liked = false;
+            $message = 'Like retiré';
+        } else {
+            // Ajouter le like
+            Like::create([
+                'publication_id' => $publication->id,
+                'user_id' => $user->id,
+            ]);
+            $publication->increment('nbr_likes');
+            $liked = true;
+            $message = 'Like ajouté';
+            
+            // 🔔 Notification (optionnel - à décommenter si vous avez la notification)
+            // if ($publication->user_id !== $user->id) {
+            //     $publication->user->notify(new NewLikeNotification($user, $publication));
+            // }
+        }
+        
+        // Recharger pour avoir le compteur à jour
+        $publication->refresh();
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => $message,
+            'data' => [
+                'liked' => $liked,
+                'total_likes' => $publication->nbr_likes
+            ]
+        ]);
+    }
+
+    /**
+     * Vérifier si l'utilisateur a liké une publication
+     */
+    public function checkLike($id)
+    {
+        $publication = Publication::findOrFail($id);
+        $user = Auth::user();
+        
+        $liked = Like::where('publication_id', $publication->id)
+                    ->where('user_id', $user->id)
+                    ->exists();
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'liked' => $liked,
+                'total_likes' => $publication->nbr_likes
+            ]
+        ]);
+    }
+
+    /**
+     * Récupérer la liste des utilisateurs qui ont liké
+     */
+    public function getLikes($id)
+    {
+        $publication = Publication::findOrFail($id);
+        
+        $likes = Like::with('user')
+            ->where('publication_id', $publication->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($like) {
+                return [
+                    'id' => $like->user->id,
+                    'name' => $like->user->name,
+                    'photo_url' => $like->user->photo_url,
+                    'liked_at' => $like->created_at->diffForHumans(),
+                ];
+            });
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => $likes
+        ]);
+    }
+
+    /**
+     * Partager une publication
+     */
+    public function share(Request $request, $id)
+    {
+        $publication = Publication::findOrFail($id);
+        $user = Auth::user();
+        
+        $validator = Validator::make($request->all(), [
+            'plateforme' => 'required|string|in:facebook,twitter,whatsapp,copie_lien',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Plateforme de partage invalide',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Enregistrer le partage
+        Share::create([
+            'publication_id' => $publication->id,
+            'user_id' => $user->id,
+            'plateforme' => $request->plateforme,
+        ]);
+
+        // Incrémenter le compteur de partages
+        $publication->increment('nbr_partages');
+
+        // Générer l'URL de partage
+        $shareUrl = url('/blog/' . $publication->id);
+        
+        // URLs spécifiques aux plateformes
+        $platformUrls = [
+            'facebook' => 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode($shareUrl),
+            'twitter' => 'https://twitter.com/intent/tweet?url=' . urlencode($shareUrl) . '&text=' . urlencode($publication->titre),
+            'whatsapp' => 'https://api.whatsapp.com/send?text=' . urlencode($publication->titre . ' - ' . $shareUrl),
+            'copie_lien' => $shareUrl,
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Partage effectué avec succès',
+            'data' => [
+                'share_url' => $platformUrls[$request->plateforme] ?? $shareUrl,
+                'total_shares' => $publication->nbr_partages,
+                'plateforme' => $request->plateforme,
+            ]
+        ]);
+    }
+
+    /**
+     * Récupérer les statistiques de partage
+     */
+    public function getShares($id)
+    {
+        $publication = Publication::findOrFail($id);
+        
+        $shares = Share::with('user')
+            ->where('publication_id', $publication->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($share) {
+                return [
+                    'id' => $share->id,
+                    'plateforme' => $share->plateforme,
+                    'user' => [
+                        'id' => $share->user->id,
+                        'name' => $share->user->name,
+                        'photo_url' => $share->user->photo_url,
+                    ],
+                    'shared_at' => $share->created_at->diffForHumans(),
+                ];
+            });
+        
+        // Statistiques par plateforme
+        $stats = Share::where('publication_id', $publication->id)
+            ->select('plateforme', \DB::raw('count(*) as total'))
+            ->groupBy('plateforme')
+            ->get()
+            ->pluck('total', 'plateforme')
+            ->toArray();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'total' => $publication->nbr_partages,
+                'shares' => $shares,
+                'stats' => $stats,
+            ]
+        ]);
+    }
+
+
 }
