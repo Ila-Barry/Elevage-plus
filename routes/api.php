@@ -51,13 +51,6 @@ Route::prefix('profile')->group(function () {
 | API Routes - Authentification
 |--------------------------------------------------------------------------
 */
-// gere la redirection vers la route de login pour les utilisateurs non authentifiés
-Route::get('/login', function () {
-    return response()->json([
-        'success' => false,
-        'message' => 'Non authentifié. Veuillez vous connecter.'
-    ], 401);
-})->name('login');
 
 // Routes publiques (sans authentification)
 Route::prefix('auth')->group(function () {
@@ -107,7 +100,6 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-// Routes publiques (sans authentification)
 Route::prefix('publications')->group(function () {
     Route::get('/', [PublicationController::class, 'index']);
     Route::get('/{id}', [PublicationController::class, 'show']);
@@ -115,7 +107,6 @@ Route::prefix('publications')->group(function () {
 
 // Routes protégées (authentification requise)
 Route::middleware(['auth:api'])->prefix('publications')->group(function () {
-    // CRUD
     Route::post('/', [PublicationController::class, 'store']);
     Route::put('/{id}', [PublicationController::class, 'update']);
     Route::delete('/{id}', [PublicationController::class, 'destroy']);
