@@ -75,10 +75,10 @@
                                     <span class="d-none d-md-inline">{{ Auth::user()->name ?? 'Utilisateur' }}</span>
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                                    <a class="dropdown-item" href="{{ url('../auth/profile') }}">
+                                    <a class="dropdown-item" href="{{ url('/profil') }}">
                                         <i class="fas fa-user mr-2"></i> Mon profil
                                     </a>
-                                    <a class="dropdown-item" href="{{ url('../auth/parametre') }}">
+                                    <a class="dropdown-item" href="{{ url('/parametres') }}">
                                         <i class="fas fa-cog mr-2"></i> Paramètres
                                     </a>
                                     <div class="dropdown-divider"></div>

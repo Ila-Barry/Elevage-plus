@@ -196,10 +196,8 @@ class AnimalController extends Controller
             ->with(['elevage', 'pere', 'mere', 'taches'])
             ->findOrFail($id);
         
-        // ✅ CORRECTION : Utiliser withHistory() au lieu de make()
         return $this->successResponse(
-            AnimalResource::withHistory($animal),
-            'Détails de l\'animal récupérés avec succès.'
+            AnimalResource::make($animal, true)
         );
     }
 

@@ -5,9 +5,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Notification;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Hash;
@@ -19,7 +17,7 @@ use App\Notifications\TwoFactorCodeNotification;
  * Représente un utilisateur de la plateforme Élevage+
  * Gère l'authentification, les rôles, les préférences et les relations.
  */
-class User extends Authenticatable implements JWTSubject, MustVerifyEmail
+class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable;
 
@@ -82,7 +80,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
      */
     protected $attributes = [
         'role' => 'user',
-        'status' => 'inactive',
+        'status' => 'active',
         'profile_visibility' => 'public',
         'email_notifications' => true,
         'web_notifications' => true,
@@ -90,14 +88,6 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'newsletter_subscription' => false,
         'two_factor_enabled' => false,
     ];
-
-    /**
-     * Vérifie si l'utilisateur est actif
-     */
-    // public function isActive(): bool
-    // {
-    //     return $this->status === 'active' && !is_null($this->email_verified_at);
-    // }
 
     // ========== RELATIONS ==========
     
@@ -165,17 +155,6 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function twoFactorCodes()
     {
         return $this->hasMany(TwoFactorCode::class);
-    }
-
-    /**
-     * Envoyer l'email de vérification avec redirection vers le frontend
-     * Cette méthode surcharge celle de Laravel
-     */
-    public function sendEmailVerificationNotification()
-    {
-        // Envoyer immédiatement la notification de vérification
-        // Utilise sendNow pour ne pas dépendre d'un worker de queue en développement
-        Notification::sendNow($this, new \App\Notifications\CustomVerifyEmailNotification());
     }
 
     // ========== JWT METHODS ==========
@@ -355,21 +334,4 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         return $query->where('profile_visibility', 'public');
     }
-
-        /**
-        * Règles de validation pour la création d'un utilisateur
-        */
-    public static function getValidationRules()
-    {
-        return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'telephone' => 'required|string|unique:users|regex:/^(\+221|00221)?(77|78|70|76|75)[0-9]{7}$/',
-            'password' => 'required|string|min:6|confirmed',
-            'type_elevage' => 'nullable|string|max:255',
-            'bio' => 'nullable|string',
-            'photo' => 'nullable|image|max:5120', // 5MB max
-        ];
-    }
 }
-

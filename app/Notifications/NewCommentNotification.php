@@ -1,5 +1,5 @@
 <?php
-// app/Notifications/NewCommentNotification.php
+// notification de nouveau commentaire, déclenchée par l'envoi d'un commentaire sur une publication
 
 namespace App\Notifications;
 
@@ -21,21 +21,8 @@ class NewCommentNotification extends BaseNotification
         
         $this->title = '💬 Nouveau commentaire';
         $this->message = "{$auteur->name} a commenté votre publication '{$publication->titre}' : " .
-                         substr($commentaire->contenu, 0, 60) . (strlen($commentaire->contenu) > 60 ? '...' : '');
+                         substr($commentaire->contenu, 0, 50) . (strlen($commentaire->contenu) > 50 ? '...' : '');
         $this->type = 'info';
         $this->url = "/publications/{$publication->id}#comment-{$commentaire->id}";
-        
-        $this->actions = [
-            [
-                'label' => 'Voir le commentaire',
-                'url' => "/publications/{$publication->id}#comment-{$commentaire->id}",
-                'type' => 'primary'
-            ],
-            [
-                'label' => 'Répondre',
-                'url' => "/publications/{$publication->id}#reply-{$commentaire->id}",
-                'type' => 'secondary'
-            ]
-        ];
     }
 }

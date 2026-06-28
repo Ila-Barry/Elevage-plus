@@ -29,17 +29,6 @@ class MouvementStockResource extends JsonResource
             'reference_facture' => $this->reference_facture,
             'fournisseur' => $this->fournisseur,
             'destinataire' => $this->destinataire,
-            
-            // ========== LA CORRECTION EST ICI ==========
-            'produit_id' => $this->produit_id,
-            'produit' => $this->produit ? [
-                'id' => $this->produit->id,
-                'nom' => $this->produit->nom,
-                'unite' => $this->produit->unite,
-                'categorie' => $this->produit->categorie,
-            ] : null,
-            // ============================================
-
             'user' => $this->user ? [
                 'id' => $this->user->id,
                 'name' => $this->user->name,

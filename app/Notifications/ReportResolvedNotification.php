@@ -1,5 +1,5 @@
 <?php
-// app/Notifications/ReportResolvedNotification.php
+// notification de signalement résolu, déclenchée par la résolution d'un signalement concernant une publication
 
 namespace App\Notifications;
 
@@ -26,13 +26,5 @@ class ReportResolvedNotification extends BaseNotification
                          "et la publication a été {$actions[$action]} par l'équipe de modération.";
         $this->type = 'info';
         $this->url = "/publications/{$publication->id}";
-        
-        $this->actions = [
-            [
-                'label' => 'Voir la publication',
-                'url' => "/publications/{$publication->id}",
-                'type' => 'primary'
-            ]
-        ];
     }
 }

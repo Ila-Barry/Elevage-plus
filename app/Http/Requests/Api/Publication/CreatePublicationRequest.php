@@ -5,7 +5,7 @@ namespace App\Http\Requests\Api\Publication;
 
 use App\Http\Requests\Api\ApiRequest;
 use Illuminate\Validation\Rules\File;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rule; // ← AJOUTER CETTE LIGNE
 
 /**
  * Requête de validation pour la création d'une publication
@@ -33,40 +33,23 @@ class CreatePublicationRequest extends ApiRequest
                 'required',
                 'string',
                 'min:10',
-                'max:1000000',
+                'max:1000000', // 1 million de caractères
             ],
-            // ✅ Images multiples
-            'images' => [
+            'image' => [
                 'nullable',
-                'array',
-                'max:5', // Maximum 5 images
+                File::image()
+                    ->max(5 * 1024) // 5MB
+                    ->dimensions(Rule::dimensions()->maxWidth(2000)->maxHeight(2000)),
             ],
-            'images.*' => [
-                'image',
-                'mimes:jpeg,png,jpg,webp,gif',
-                'max:5120', // 5MB chacune
-            ],
-            // ✅ Vidéos multiples
-            'videos' => [
+            'video' => [
                 'nullable',
-                'array',
-                'max:2', // Maximum 2 vidéos
+                File::types(['mp4', 'mov', 'avi'])
+                    ->max(50 * 1024), // 50MB
             ],
-            'videos.*' => [
-                'file',
-                'mimes:mp4,avi,mov,webm',
-                'max:51200', // 50MB chacune
-            ],
-            // ✅ Documents multiples
-            'documents' => [
+            'fichier' => [
                 'nullable',
-                'array',
-                'max:3', // Maximum 3 documents
-            ],
-            'documents.*' => [
-                'file',
-                'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar',
-                'max:10240', // 10MB chacune
+                File::types(['pdf', 'doc', 'docx', 'xls', 'xlsx'])
+                    ->max(10 * 1024), // 10MB
             ],
         ];
     }
@@ -88,17 +71,10 @@ class CreatePublicationRequest extends ApiRequest
             'contenu.min' => 'Le contenu doit contenir au moins 10 caractères.',
             'contenu.max' => 'Le contenu ne peut pas dépasser 1 million de caractères.',
             
-            'images.max' => 'Vous ne pouvez pas ajouter plus de 5 images.',
-            'images.*.image' => 'Le fichier doit être une image.',
-            'images.*.max' => 'Chaque image ne doit pas dépasser 5 Mo.',
-            
-            'videos.max' => 'Vous ne pouvez pas ajouter plus de 2 vidéos.',
-            'videos.*.file' => 'Le fichier doit être une vidéo.',
-            'videos.*.max' => 'Chaque vidéo ne doit pas dépasser 50 Mo.',
-            
-            'documents.max' => 'Vous ne pouvez pas ajouter plus de 3 documents.',
-            'documents.*.file' => 'Le fichier doit être un document valide.',
-            'documents.*.max' => 'Chaque document ne doit pas dépasser 10 Mo.',
+            'image.image' => 'Le fichier doit être une image.',
+            'image.max' => 'L\'image ne doit pas dépasser 5 Mo.',
+            'video.max' => 'La vidéo ne doit pas dépasser 50 Mo.',
+            'fichier.max' => 'Le fichier ne doit pas dépasser 10 Mo.',
         ];
     }
 
@@ -107,6 +83,7 @@ class CreatePublicationRequest extends ApiRequest
      */
     protected function prepareForValidation(): void
     {
+        // Nettoyer le contenu HTML (strip_tags pour éviter XSS)
         if ($this->has('contenu')) {
             $this->merge([
                 'contenu' => strip_tags($this->contenu, '<p><br><strong><em><u><h1><h2><h3><ul><ol><li>'),

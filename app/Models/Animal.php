@@ -174,7 +174,7 @@ class Animal extends Model
      */
     public function historiques()
     {
-        return $this->hasMany(AnimalHistorique::class);
+        return $this->hasMany(AnimalHistory::class);
     }
 
     // ========== ACCESSORS ==========

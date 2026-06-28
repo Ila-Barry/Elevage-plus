@@ -174,62 +174,47 @@ class ElevageController extends Controller
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-
     public function update(UpdateElevageRequest $request, $id)
     {
         $user = $request->user();
         
         $elevage = Elevage::findOrFail($id);
         
-        // Vérifier le propriétaire
+        // Vérifier le propriétaire via Policy
         $this->authorize('update', $elevage);
         
         DB::beginTransaction();
         
         try {
-            // Récupérer toutes les données validées
             $data = $request->validated();
             
-            // ✅ Gestion de l'image - CORRECTION IMPORTANTE
+            // Gestion de l'image
             if ($request->hasFile('image')) {
                 // Supprimer l'ancienne image
                 if ($elevage->img_url && !str_contains($elevage->img_url, 'default-farm')) {
                     $this->deleteImage($elevage->img_url);
                 }
                 $data['img_url'] = $this->uploadImage($request->file('image'));
-            } elseif ($request->input('delete_image') === 'true' || $request->input('delete_image') === '1') {
-                // Supprimer l'image si demandé
+            } elseif ($request->input('delete_image')) {
                 if ($elevage->img_url && !str_contains($elevage->img_url, 'default-farm')) {
                     $this->deleteImage($elevage->img_url);
                 }
                 $data['img_url'] = null;
-            } else {
-                // Conserver l'image existante
-                // Ne pas modifier img_url si aucune action sur l'image
-                unset($data['image']);
-                unset($data['delete_image']);
             }
             
-            // ✅ Supprimer les champs qui ne sont pas dans la table
-            unset($data['delete_image']);
-            
-            // ✅ Mise à jour
             $elevage->update($data);
             
             DB::commit();
             
             return $this->successResponse(
-                new ElevageResource($elevage->fresh()->load('user')),
+                new ElevageResource($elevage->load('user')),
                 'Élevage mis à jour avec succès.'
             );
             
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Erreur mise à jour élevage: ' . $e->getMessage());
-            return $this->errorResponse(
-                'Erreur lors de la mise à jour de l\'élevage: ' . $e->getMessage(),
-                500
-            );
+            return $this->errorResponse('Erreur lors de la mise à jour de l\'élevage.', 500);
         }
     }
 

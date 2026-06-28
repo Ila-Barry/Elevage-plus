@@ -1,11 +1,7 @@
 /* ===========================
    PAGE ANIMAUX
 =========================== */
-.animaux-container{
-     padding: 20px 24px;
-    background: #f8f9fc;
-    min-height: calc(100vh - 70px);
-}
+
 .animals-page{
     padding:20px;
     background:#f5f6f8;
@@ -44,18 +40,6 @@
 =========================== */
 
 .btn-add-animal{
-    border:none;
-    background:#198754;
-    color:white;
-    padding:10px 18px;
-    border-radius:6px;
-    font-size:14px;
-    font-weight:600;
-    cursor:pointer;
-    transition:.3s;
-}
-
-.btn-filtre{
     border:none;
     background:#198754;
     color:white;
@@ -1233,82 +1217,3 @@ textarea.form-control {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
-
-
-/* Ajouter dans le style dynamique ou dans le fichier CSS */
-.task-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border-bottom: 1px solid #f0f0f0;
-    flex-wrap: wrap;
-}
-
-.task-item:last-child {
-    border-bottom: none;
-}
-
-.task-item.task-done {
-    background: #f8fff8;
-    opacity: 0.8;
-}
-
-.task-type {
-    font-weight: 600;
-    font-size: 13px;
-    color: #198754;
-    min-width: 100px;
-}
-
-.task-title {
-    flex: 1;
-    font-size: 13px;
-    color: #343a40;
-}
-
-.task-date {
-    font-size: 12px;
-    color: #6c757d;
-}
-
-.task-status {
-    font-size: 12px;
-    padding: 2px 10px;
-    border-radius: 12px;
-}
-
-.status-done {
-    background: #d4edda;
-    color: #198754;
-}
-
-.status-pending {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.tasks-list {
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.tasks-list::-webkit-scrollbar {
-    width: 4px;
-}
-
-.tasks-list::-webkit-scrollbar-thumb {
-    background: #198754;
-    border-radius: 4px;
-}
-
-
-.custom-toast { position: fixed; bottom: 20px; right: 20px; z-index: 9999; transform: translateY(100px); opacity: 0; transition: all 0.3s ease; }
-
-.custom-toast.show { transform: translateY(0); opacity: 1; }
-
-.toast-content { background: #333; color: #fff; padding: 12px 24px; border-radius: 4px; display: flex; align-items: center; gap: 8px; }
-
-.custom-toast.success .toast-content { background: #198754; }
-
-.custom-toast.danger .toast-content { background: #dc3545; }

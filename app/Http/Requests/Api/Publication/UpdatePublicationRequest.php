@@ -5,7 +5,7 @@ namespace App\Http\Requests\Api\Publication;
 
 use App\Http\Requests\Api\ApiRequest;
 use Illuminate\Validation\Rules\File;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rule; // ← AJOUTER CETTE LIGNE
 
 /**
  * Requête de validation pour la mise à jour d'une publication
@@ -35,48 +35,31 @@ class UpdatePublicationRequest extends ApiRequest
                 'min:10',
                 'max:1000000',
             ],
-            // ✅ Images multiples
-            'images' => [
+            'image' => [
                 'nullable',
-                'array',
-                'max:5',
+                File::image()
+                    ->max(5 * 1024)
+                    ->dimensions(Rule::dimensions()->maxWidth(2000)->maxHeight(2000)),
             ],
-            'images.*' => [
-                'image',
-                'mimes:jpeg,png,jpg,webp,gif',
-                'max:5120',
-            ],
-            // ✅ Vidéos multiples
-            'videos' => [
+            'video' => [
                 'nullable',
-                'array',
-                'max:2',
+                File::types(['mp4', 'mov', 'avi'])
+                    ->max(50 * 1024),
             ],
-            'videos.*' => [
-                'file',
-                'mimes:mp4,avi,mov,webm',
-                'max:51200',
-            ],
-            // ✅ Documents multiples
-            'documents' => [
+            'fichier' => [
                 'nullable',
-                'array',
-                'max:3',
+                File::types(['pdf', 'doc', 'docx', 'xls', 'xlsx'])
+                    ->max(10 * 1024),
             ],
-            'documents.*' => [
-                'file',
-                'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar',
-                'max:10240',
-            ],
-            'delete_images' => [
+            'delete_image' => [
                 'sometimes',
                 'boolean',
             ],
-            'delete_videos' => [
+            'delete_video' => [
                 'sometimes',
                 'boolean',
             ],
-            'delete_documents' => [
+            'delete_fichier' => [
                 'sometimes',
                 'boolean',
             ],
@@ -93,13 +76,10 @@ class UpdatePublicationRequest extends ApiRequest
             'titre.max' => 'Le titre ne peut pas dépasser 200 caractères.',
             'contenu.min' => 'Le contenu doit contenir au moins 10 caractères.',
             'contenu.max' => 'Le contenu ne peut pas dépasser 1 million de caractères.',
-            'images.max' => 'Vous ne pouvez pas ajouter plus de 5 images.',
-            'images.*.image' => 'Le fichier doit être une image.',
-            'images.*.max' => 'Chaque image ne doit pas dépasser 5 Mo.',
-            'videos.max' => 'Vous ne pouvez pas ajouter plus de 2 vidéos.',
-            'videos.*.max' => 'Chaque vidéo ne doit pas dépasser 50 Mo.',
-            'documents.max' => 'Vous ne pouvez pas ajouter plus de 3 documents.',
-            'documents.*.max' => 'Chaque document ne doit pas dépasser 10 Mo.',
+            'image.image' => 'Le fichier doit être une image.',
+            'image.max' => 'L\'image ne doit pas dépasser 5 Mo.',
+            'video.max' => 'La vidéo ne doit pas dépasser 50 Mo.',
+            'fichier.max' => 'Le fichier ne doit pas dépasser 10 Mo.',
         ];
     }
 }
