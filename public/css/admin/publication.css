@@ -400,3 +400,11 @@ h1 {
         font-size: 0.8rem;
     }
 }
+.bg-success-soft { background-color: #e8f5e9 !important; }
+.bg-warning-soft { background-color: #fff3e0 !important; }
+.bg-danger-soft  { background-color: #ffebee !important; }
+.text-success { color: #2e7d32 !important; }
+.text-warning { color: #ef6c00 !important; }
+.text-danger  { color: #c62828 !important; }
+.extra-small { font-size: 0.75rem; }
+
