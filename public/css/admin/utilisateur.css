@@ -238,7 +238,7 @@ button {
 
 .status.active:hover {
 
-    background:#16a34a;
+    background:#9dbba8;
 
     color:white;
 
@@ -257,7 +257,7 @@ button {
 
 .status.banned:hover {
 
-    background:#dc2626;
+    background:#9c6666;
 
     color:white;
 
