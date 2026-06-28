@@ -1,3 +1,4 @@
+
 /* =====================================
    PAGE PRINCIPALE UTILISATEURS
 ===================================== */
@@ -919,41 +920,3 @@ body.modal-open {
     background:#ddd;
 
 }
-
-
-
-
-
-
-
-/* FERMETURE MODALE *
-
-document.getElementById('closeEditModal')
-.addEventListener('click',()=>{
-
-
-    editModal.classList.remove('show');
-
-    document.body.classList.remove('modal-open');
-
-
-});
-
-
-
-
-// fermeture en cliquant dehors
-
-window.addEventListener('click',(e)=>{
-
-
-    if(e.target === editModal){
-
-        editModal.classList.remove('show');
-
-        document.body.classList.remove('modal-open');
-
-    }
-
-
-});

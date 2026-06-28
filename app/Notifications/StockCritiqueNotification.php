@@ -18,6 +18,19 @@ class StockCritiqueNotification extends BaseNotification
                          "Stock actuel : {$produit->quantite} {$produit->unite}";
         $this->type = 'danger';
         $this->url = "/stock/produits/{$produit->id}";
+        
+        $this->actions = [
+            [
+                'label' => 'Voir le stock',
+                'url' => "/stock/produits/{$produit->id}",
+                'type' => 'danger'
+            ],
+            [
+                'label' => 'Réapprovisionner',
+                'url' => "/stock/produits/{$produit->id}/reapprovisionner",
+                'type' => 'primary'
+            ]
+        ];
     }
 
     protected function getAdditionalInfo(): string

@@ -7,600 +7,554 @@
 @endpush
 
 @section('content')
-
 <div class="messagerie-container">
     
-    <!-- En-tête de la messagerie -->
     <div class="messagerie-header">
         <h1 class="messagerie-title">
             <i class="fas fa-envelope mr-2 text-success"></i> MESSAGERIE
+            <span class="badge-unread" id="totalUnread">0</span>
         </h1>
         <div class="search-bar">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" placeholder="rechercher un éleveur..." class="search-input" id="searchInput">
+            <input type="text" placeholder="rechercher un éleveur..." class="search-input" id="searchContact">
         </div>
     </div>
 
-    <!-- Corps principal : Conversations + Discussion -->
     <div class="messagerie-body">
         
-        <!-- COLONNE GAUCHE : Liste des conversations -->
         <div class="conversations-list">
             <div class="conversations-header">
                 <h3><i class="fas fa-comments mr-2"></i> CONVERSATIONS</h3>
+                <span class="conversations-count" id="conversationsCount">0</span>
             </div>
             
-            <div class="conversations-scroll" id="conversationsScroll">
-                <!-- Les conversations seront générées par JavaScript -->
+            <div class="conversations-scroll" id="conversationsContainer">
+                <div class="text-center py-4 text-muted">Chargement des conversations...</div>
             </div>
-
-            <div class="app-banner-buttons" style="padding: 15px;">
-                <button class="btn-new-conversation" id="newConversationBtn">
+            
+            <div class="app-banner-buttons mt-3">
+                <button class="btn-new-conversation" id="btnNewConv">
                     <i class="fas fa-plus mr-2"></i> Nouvelle conversation
                 </button>
             </div>
         </div>
 
-        <!-- Bouton Nouvelle conversation (mobile) -->
-        <button class="btn-new-conversation-mobile" id="newConversationMobileBtn">
-            <i class="fas fa-plus"></i>
-            <span>Nouvelle conversation</span>
-        </button>
-
-        <!-- COLONNE DROITE : Zone de discussion -->
-        <div class="discussion-area" id="discussionArea">
-            
-            <!-- En-tête de la discussion -->
+        <div class="discussion-area" id="discussionArea" style="display: none;">
             <div class="discussion-header">
                 <div class="discussion-contact">
                     <div class="discussion-avatar">
-                        <img src="https://ui-avatars.com/api/?name=Amadou+Sy&background=198754&color=fff&rounded=true&size=45" alt="Avatar" id="discussionAvatar">
+                        <img id="activeChatAvatar" src="" alt="Avatar">
                         <span class="online-dot large"></span>
                     </div>
                     <div class="discussion-info">
-                        <h3 id="discussionName">Avec: Amadou Sy</h3>
-                        <span class="online-status" id="discussionStatus"><i class="fas fa-circle"></i> En ligne</span>
+                        <h3 id="activeChatName">Sélectionnez un contact</h3>
+                        <span class="online-status" id="activeChatStatus">
+                            <i class="fas fa-circle"></i> En ligne
+                        </span>
                     </div>
                 </div>
                 <div class="discussion-actions">
-                    <button class="action-btn" title="Appeler" id="callBtn">
-                        <i class="fas fa-phone"></i>
-                    </button>
-                    <button class="action-btn" title="Vidéo" id="videoBtn">
-                        <i class="fas fa-video"></i>
-                    </button>
-                    <button class="action-btn" title="Plus" id="moreActionsBtn">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
+                    <button class="action-btn" title="Appeler" id="callBtn"><i class="fas fa-phone"></i></button>
+                    <button class="action-btn" title="Vidéo" id="videoBtn"><i class="fas fa-video"></i></button>
+                    <button class="action-btn" title="Plus" id="moreBtn"><i class="fas fa-ellipsis-v"></i></button>
                 </div>
             </div>
 
-            <!-- Messages de la discussion -->
             <div class="messages-container">
-                <div class="messages-scroll" id="messagesScroll">
-                    <!-- Les messages seront générés par JavaScript -->
+                <div class="messages-scroll" id="messagesContainer">
+                    <!-- Messages chargés dynamiquement -->
                 </div>
             </div>
 
-            <!-- Zone d'envoi de message -->
-            <div class="message-input-area">
+            <form id="sendMessageForm" class="message-input-area">
                 <div class="input-actions">
-                    <button class="input-action-btn" title="Joindre un fichier" id="attachBtn">
+                    <button type="button" class="input-action-btn" title="Joindre un fichier" id="attachBtn">
                         <i class="fas fa-paperclip"></i>
                     </button>
-                    <button class="input-action-btn" title="Émojis" id="emojiBtn">
+                    <button type="button" class="input-action-btn" title="Émojis" id="emojiBtn">
                         <i class="fas fa-smile-wink"></i>
                     </button>
-                    <button class="input-action-btn" title="Image" id="imageBtn">
+                    <button type="button" class="input-action-btn" title="Image" id="imageBtn">
                         <i class="fas fa-image"></i>
                     </button>
                 </div>
                 <div class="message-input-wrapper">
-                    <input type="text" placeholder="Écrire un message..." class="message-input" id="messageInput">
-                    <button class="send-btn" id="sendBtn">
+                    <input type="text" id="messageContent" placeholder="Écrire un message..." class="message-input" autocomplete="off">
+                    <button type="submit" class="send-btn" id="sendBtn">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
-            </div>
+            </form>
+        </div>
 
+        <div class="empty-state" id="emptyDiscussionArea">
+            <i class="fas fa-comments"></i>
+            <h3>Vos discussions s'afficheront ici</h3>
+            <p>Sélectionnez une conversation dans la liste de gauche pour commencer à échanger.</p>
         </div>
         
     </div>
 </div>
 
+<!-- MODALE NOUVELLE CONVERSATION -->
+<div class="custom-modal-overlay" id="newConversationModal" style="display: none;">
+    <div class="custom-modal-card">
+        <div class="custom-modal-header">
+            <h2>NOUVELLE CONVERSATION</h2>
+            <button class="close-modal-x" id="btnCloseModalX">&times;</button>
+        </div>
+        
+        <div class="modal-search-wrapper">
+            <i class="fas fa-search modal-search-icon"></i>
+            <input type="text" id="searchUserField" placeholder="rechercher un éleveur..." class="modal-search-input">
+        </div>
+
+        <div class="modal-results-title">
+            <i class="fas fa-th-list text-muted mr-1"></i> RÉSULTATS :
+        </div>
+
+        <div class="modal-users-list" id="modalUsersContainer">
+            <div class="text-center py-3 text-muted">Chargement des utilisateurs...</div>
+        </div>
+
+        <div class="custom-modal-footer">
+            <button class="btn-close-modal-text" id="btnCloseModalBtn">FERMER</button>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
 <script>
-// ================= DONNÉES =================
-const conversationsData = [
-    {
-        id: 1,
-        name: "AMADOU SY",
-        preview: "Bonjour, as-tu...",
-        lastMessage: "Bonjour, as-tu des nouvelles de la fièvre aphteuse ?",
-        time: "10:30",
-        date: "10:30",
-        isRead: true,
-        isOnline: true,
-        avatar: "https://ui-avatars.com/api/?name=Amadou+Sy&background=198754&color=fff&rounded=true&size=45",
-        messages: [
-            { id: 1, sender: 'me', text: 'Bonjour Amadou, as-tu des nouvelles de la fièvre aphteuse ?', time: '10:30', read: true },
-            { id: 2, sender: 'other', text: 'Oui, 2 nouveaux cas signalés hier à Rufisque', time: '10:32', read: true },
-            { id: 3, sender: 'other', text: 'Je te conseille de vacciner tout le troupeau', time: '10:33', read: true },
-            { id: 4, sender: 'me', text: 'Merci beaucoup pour l\'info ! Je vais prendre rdv avec le vétérinaire dès aujourd\'hui.', time: '10:40', read: true },
-            { id: 5, sender: 'other', text: 'Parfait, tiens-moi au courant si tu as besoin d\'aide 👍', time: '10:42', read: true }
-        ]
-    },
-    {
-        id: 2,
-        name: "FATOU DIOP",
-        preview: "Merci pour les conseils...",
-        lastMessage: "Merci pour les conseils sur l'alimentation des caprins",
-        time: "hier",
-        date: "2026-06-14",
-        isRead: true,
-        isOnline: true,
-        avatar: "https://ui-avatars.com/api/?name=Fatou+Diop&background=198754&color=fff&rounded=true&size=45",
-        messages: [
-            { id: 1, sender: 'other', text: 'Bonjour, j\'ai vu votre publication sur l\'alimentation des caprins', time: '14:20', read: true },
-            { id: 2, sender: 'me', text: 'Bonjour Fatou ! Oui, c\'est une méthode que j\'utilise depuis 2 ans', time: '14:25', read: true },
-            { id: 3, sender: 'other', text: 'Merci pour les conseils sur l\'alimentation des caprins', time: '14:30', read: true },
-            { id: 4, sender: 'me', text: 'Avec plaisir ! N\'hésitez pas si vous avez d\'autres questions', time: '14:35', read: true }
-        ]
-    },
-    {
-        id: 3,
-        name: "MOUSSA DIALLO",
-        preview: "J'ai reçu les vaccins...",
-        lastMessage: "J'ai reçu les vaccins pour la fièvre aphteuse",
-        time: "2 ma",
-        date: "2026-06-12",
-        isRead: false,
-        isOnline: true,
-        avatar: "https://ui-avatars.com/api/?name=Moussa+Diallo&background=198754&color=fff&rounded=true&size=45",
-        messages: [
-            { id: 1, sender: 'other', text: 'J\'ai reçu les vaccins pour la fièvre aphteuse', time: '09:00', read: false },
-            { id: 2, sender: 'other', text: 'Est-ce que je peux commencer la vaccination dès maintenant ?', time: '09:05', read: false }
-        ]
-    },
-    {
-        id: 4,
-        name: "AMINATA BA",
-        preview: "Rendez-vous demain...",
-        lastMessage: "Rendez-vous demain pour la visite du troupeau",
-        time: "1 ja",
-        date: "2026-06-11",
-        isRead: true,
-        isOnline: false,
-        avatar: "https://ui-avatars.com/api/?name=Aminata+Ba&background=198754&color=fff&rounded=true&size=45",
-        messages: [
-            { id: 1, sender: 'me', text: 'Bonjour Aminata, je confirme la visite de demain', time: '16:00', read: true },
-            { id: 2, sender: 'other', text: 'Rendez-vous demain pour la visite du troupeau', time: '16:15', read: true },
-            { id: 3, sender: 'me', text: 'Parfait, à demain 9h', time: '16:20', read: true }
-        ]
-    },
-    {
-        id: 5,
-        name: "IBRAHIMA FALL",
-        preview: "Nouveau fournisseur...",
-        lastMessage: "Je connais un nouveau fournisseur d'aliments",
-        time: "3 ja",
-        date: "2026-06-09",
-        isRead: true,
-        isOnline: false,
-        avatar: "https://ui-avatars.com/api/?name=Ibrahima+Fall&background=198754&color=fff&rounded=true&size=45",
-        messages: [
-            { id: 1, sender: 'other', text: 'Je connais un nouveau fournisseur d\'aliments de qualité', time: '11:00', read: true },
-            { id: 2, sender: 'me', text: 'Intéressant ! Peux-tu me donner son contact ?', time: '11:15', read: true }
-        ]
+$(document).ready(function() {
+    // ================= CONFIGURATION =================
+    const API_URL = window.location.origin + '/api';
+    const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const rawToken = localStorage.getItem('access_token');
+    const token = rawToken ? rawToken.replace(/^"(.*)"$/, '$1').trim() : null;
+
+    let currentUser = null;
+    try {
+        currentUser = JSON.parse(localStorage.getItem('user'));
+    } catch(e) {
+        console.error("❌ Impossible de parser l'utilisateur connecté", e);
     }
-];
+    const currentUserId = currentUser ? parseInt(currentUser.id, 10) : null;
 
-// Variables d'état
-let currentConversationId = 1;
-let toastTimeout = null;
-let typingTimeout = null;
-
-// ================= FONCTIONS TOAST =================
-function showToast(message, type = 'info') {
-    const existingToast = document.querySelector('.custom-toast');
-    if (existingToast) existingToast.remove();
-    if (toastTimeout) clearTimeout(toastTimeout);
-    
-    const toast = document.createElement('div');
-    toast.className = `custom-toast ${type}`;
-    
-    let icon = 'fa-info-circle';
-    if (type === 'success') icon = 'fa-check-circle';
-    else if (type === 'danger') icon = 'fa-exclamation-circle';
-    else if (type === 'warning') icon = 'fa-exclamation-triangle';
-    
-    toast.innerHTML = `<div class="toast-content"><i class="fas ${icon}"></i><span>${message}</span></div>`;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => toast.classList.add('show'), 10);
-    
-    toastTimeout = setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// ================= RENDU DES CONVERSATIONS =================
-function renderConversations() {
-    const container = document.getElementById('conversationsScroll');
-    
-    container.innerHTML = conversationsData.map(conv => `
-        <div class="conversation-item ${conv.id === currentConversationId ? 'active' : ''}" 
-             data-id="${conv.id}" onclick="selectConversation(${conv.id})">
-            <div class="conversation-avatar">
-                <img src="${conv.avatar}" alt="${conv.name}">
-                ${conv.isOnline ? '<span class="online-dot"></span>' : ''}
-            </div>
-            <div class="conversation-info">
-                <div class="conversation-name">${conv.name}</div>
-                <div class="conversation-preview">${conv.preview}</div>
-            </div>
-            <div class="conversation-time">
-                <span>${conv.time}</span>
-                ${!conv.isRead ? '<i class="fas fa-circle" style="color: #198754; font-size: 10px; margin-top: 4px; display: block;"></i>' : ''}
-                ${conv.isRead ? '<i class="fas fa-check-double read-marker"></i>' : ''}
-            </div>
-        </div>
-    `).join('');
-}
-
-// ================= SÉLECTION D'UNE CONVERSATION =================
-function selectConversation(id) {
-    currentConversationId = id;
-    const conversation = conversationsData.find(c => c.id === id);
-    if (!conversation) return;
-    
-    // Mettre à jour l'UI
-    renderConversations();
-    renderMessages(id);
-    updateDiscussionHeader(id);
-    
-    // Marquer comme lu
-    conversation.isRead = true;
-    
-    // Scroll en bas des messages
-    scrollToBottom();
-    
-    // Animation
-    const container = document.getElementById('messagesScroll');
-    container.style.opacity = '0';
-    setTimeout(() => {
-        container.style.opacity = '1';
-    }, 150);
-}
-
-// ================= MISE À JOUR DE L'EN-TÊTE =================
-function updateDiscussionHeader(id) {
-    const conversation = conversationsData.find(c => c.id === id);
-    if (!conversation) return;
-    
-    document.getElementById('discussionName').textContent = `Avec: ${conversation.name}`;
-    document.getElementById('discussionAvatar').src = conversation.avatar;
-    
-    const statusEl = document.getElementById('discussionStatus');
-    if (conversation.isOnline) {
-        statusEl.innerHTML = '<i class="fas fa-circle" style="color: #22c55e;"></i> En ligne';
-        statusEl.style.color = '#22c55e';
-    } else {
-        statusEl.innerHTML = '<i class="fas fa-circle" style="color: #9ca3af;"></i> Hors ligne';
-        statusEl.style.color = '#9ca3af';
-    }
-}
-
-// ================= RENDU DES MESSAGES =================
-function renderMessages(id) {
-    const container = document.getElementById('messagesScroll');
-    const conversation = conversationsData.find(c => c.id === id);
-    if (!conversation) return;
-    
-    if (conversation.messages.length === 0) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 40px 20px; color: #9ca3af;">
-                <i class="fas fa-comment" style="font-size: 32px; display: block; margin-bottom: 10px;"></i>
-                <p>Aucun message pour le moment</p>
-                <p style="font-size: 0.8rem;">Commencez la conversation !</p>
-            </div>
-        `;
+    if (!token) {
+        window.location.href = '/auth/login';
         return;
     }
-    
-    container.innerHTML = conversation.messages.map(msg => `
-        <div class="message ${msg.sender === 'me' ? 'message-sent' : 'message-received'}">
-            <div class="message-bubble">
-                <p>${escapeHtml(msg.text)}</p>
-                <span class="message-time">
-                    ${msg.time}
-                    ${msg.sender === 'me' ? `<i class="fas fa-check-double ${msg.read ? 'read' : ''}"></i>` : ''}
-                </span>
-            </div>
-        </div>
-    `).join('');
-}
 
-// ================= ENVOI DE MESSAGE =================
-function sendMessage() {
-    const input = document.getElementById('messageInput');
-    const text = input.value.trim();
-    
-    if (text === '') {
-        showToast('Veuillez écrire un message', 'warning');
-        return;
-    }
-    
-    const conversation = conversationsData.find(c => c.id === currentConversationId);
-    if (!conversation) {
-        showToast('Veuillez sélectionner une conversation', 'warning');
-        return;
-    }
-    
-    const now = new Date();
-    const time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
-    
-    // Ajouter le message
-    const newMessage = {
-        id: conversation.messages.length + 1,
-        sender: 'me',
-        text: text,
-        time: time,
-        read: true
+    // ================= ÉTAT =================
+    let state = {
+        activeConversationId: null,
+        activeDestinataireId: null,
+        pollingInterval: null,
+        allUsersCache: []
     };
-    
-    conversation.messages.push(newMessage);
-    conversation.preview = text.substring(0, 30) + (text.length > 30 ? '...' : '');
-    conversation.time = time;
-    conversation.isRead = true;
-    conversation.lastMessage = text;
-    
-    // Mettre à jour l'UI
-    renderMessages(currentConversationId);
-    renderConversations();
-    input.value = '';
-    scrollToBottom();
-    showToast('Message envoyé', 'success');
-    
-    // Simuler une réponse (après 1-3 secondes)
-    simulateReply(currentConversationId);
-}
 
-// ================= SIMULATION DE RÉPONSE =================
-function simulateReply(convId) {
-    const replies = [
-        "Merci pour votre message, je vous réponds dès que possible.",
-        "Très intéressant, pouvez-vous m'en dire plus ?",
-        "Je suis d'accord avec vous, c'est une bonne approche.",
-        "Je vais vérifier cela et je vous tiens au courant.",
-        "Merci pour ces informations, très utiles !",
-        "Parfait, je suis disponible pour en discuter.",
-        "Je comprends parfaitement votre situation.",
-        "Je vais contacter le vétérinaire et vous reviens."
-    ];
-    
-    const randomDelay = Math.floor(Math.random() * 2000) + 1000; // 1-3 secondes
-    
-    setTimeout(() => {
-        const conversation = conversationsData.find(c => c.id === convId);
-        if (!conversation) return;
-        
-        const replyText = replies[Math.floor(Math.random() * replies.length)];
-        const now = new Date();
-        const time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
-        
-        const replyMessage = {
-            id: conversation.messages.length + 1,
-            sender: 'other',
-            text: replyText,
-            time: time,
-            read: true
+    // ================= PROTECTION XSS =================
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // ================= REQUÊTES AUTHENTIFIÉES =================
+    async function fetchWithAuth(url, options = {}) {
+        const headers = {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + token,
+            'X-CSRF-TOKEN': CSRF_TOKEN,
+            ...options.headers
         };
         
-        conversation.messages.push(replyMessage);
-        conversation.preview = replyText.substring(0, 30) + (replyText.length > 30 ? '...' : '');
-        conversation.time = time;
-        conversation.isRead = false;
-        conversation.lastMessage = replyText;
+        const response = await fetch(url, { ...options, headers });
+
+        if (response.status === 401) {
+            console.error('❌ Session expirée [401]');
+            localStorage.clear();
+            window.location.href = '/auth/login';
+            throw new Error('Non authentifié');
+        }
+
+        const result = await response.json();
+        if (!response.ok) throw result;
+        return result;
+    }
+
+    // ================= UTILITAIRES =================
+    function scrollToBottom() {
+        const box = document.getElementById('messagesContainer');
+        if (box) {
+            box.scrollTop = box.scrollHeight;
+        }
+    }
+
+    function openDiscussionUI(name, avatar) {
+        document.getElementById('activeChatName').textContent = 'Avec: ' + name;
+        document.getElementById('activeChatAvatar').src = avatar;
+        document.getElementById('emptyDiscussionArea').style.display = 'none';
+        document.getElementById('discussionArea').style.display = 'flex';
+    }
+
+    function startPolling(conversationId) {
+        clearInterval(state.pollingInterval);
+        if (!conversationId) return;
         
-        renderMessages(currentConversationId);
-        renderConversations();
-        scrollToBottom();
+        state.pollingInterval = setInterval(() => {
+            loadMessages(conversationId, false);
+        }, 4000);
+    }
+
+    // ================= CHARGEMENT DES CONVERSATIONS =================
+    async function loadConversations() {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/messaging/conversations?per_page=50`);
+            const conversations = res.data?.conversations || [];
+            const container = document.getElementById('conversationsContainer');
+            container.innerHTML = '';
+
+            document.getElementById('conversationsCount').textContent = conversations.length;
+
+            if (conversations.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-muted">Aucune discussion en cours</div>';
+                return;
+            }
+
+            // Calculer le total des non-lus
+            let totalUnread = 0;
+
+            conversations.forEach(conv => {
+                const partnerObj = conv.other_participant || {};
+                const partnerId = partnerObj.id ? parseInt(partnerObj.id, 10) : null;
+
+                if (!partnerId || isNaN(partnerId)) {
+                    console.error("❌ Impossible d'extraire l'ID du destinataire :", conv);
+                    return;
+                }
+
+                const partnerName = partnerObj.name || `Éleveur #${partnerId}`;
+                const unreadCount = parseInt(conv.unread_count, 10) || 0;
+                totalUnread += unreadCount;
+                const isUnread = unreadCount > 0 ? 'unread' : '';
+                const isActive = conv.id === state.activeConversationId ? 'active' : '';
+                const lastMsg = conv.derniere_message || 'Aucun message';
+                
+                const avatar = partnerObj.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(partnerName)}&background=198754&color=fff&rounded=true&size=45`;
+
+                const itemHtml = `
+                    <div class="conversation-item ${isActive} ${isUnread}" 
+                         data-id="${conv.id}" 
+                         data-user-id="${partnerId}" 
+                         data-name="${escapeHtml(partnerName)}" 
+                         data-avatar="${avatar}">
+                        <div class="conversation-avatar">
+                            <img src="${avatar}" alt="Avatar">
+                            <span class="online-dot"></span>
+                        </div>
+                        <div class="conversation-info">
+                            <div class="conversation-name">${escapeHtml(partnerName.toUpperCase())}</div>
+                            <div class="conversation-preview">${escapeHtml(lastMsg)}</div>
+                        </div>
+                        <div class="conversation-time">
+                            <span>${conv.updated_at ? new Date(conv.updated_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+                            ${unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : '<i class="fas fa-check-double read-marker"></i>'}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += itemHtml;
+            });
+
+            document.getElementById('totalUnread').textContent = totalUnread > 0 ? totalUnread : '';
+
+        } catch (error) {
+            console.error('❌ Erreur chargement conversations:', error);
+        }
+    }
+
+    // ================= CHARGEMENT DES MESSAGES =================
+    async function loadMessages(conversationId, scrollDown = false) {
+        if (!conversationId) return;
+        try {
+            const res = await fetchWithAuth(`${API_URL}/messaging/conversations/${conversationId}/messages?per_page=100`);
+            const messages = res.data?.messages || [];
+            const container = document.getElementById('messagesContainer');
+            
+            if (!scrollDown && container.children.length === messages.length) {
+                return;
+            }
+
+            container.innerHTML = '';
+
+            messages.forEach(msg => {
+                const isMe = parseInt(msg.expediteur_id, 10) === currentUserId;
+                const msgClass = isMe ? 'message-sent' : 'message-received';
+                const time = msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                const readCheck = msg.lu ? '<i class="fas fa-check-double read"></i>' : '<i class="fas fa-check"></i>';
+
+                let contentHtml = `<p>${escapeHtml(msg.contenu)}</p>`;
+                
+                if (msg.type === 'image' && msg.media_url) {
+                    contentHtml = `<img src="${msg.media_url}" class="message-media" alt="Image"><p>${escapeHtml(msg.contenu || '')}</p>`;
+                } else if (msg.type === 'file' && msg.media_url) {
+                    contentHtml = `<a href="${msg.media_url}" target="_blank" class="message-file"><i class="fas fa-paperclip"></i> ${escapeHtml(msg.file_name || 'Fichier joint')}</a>`;
+                }
+
+                const messageHtml = `
+                    <div class="message ${msgClass}">
+                        <div class="message-bubble">
+                            ${contentHtml}
+                            <span class="message-time">${time} ${isMe ? readCheck : ''}</span>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += messageHtml;
+            });
+
+            if (scrollDown) {
+                scrollToBottom();
+            }
+
+        } catch (error) {
+            console.error(`❌ Erreur chargement messages (${conversationId}):`, error);
+        }
+    }
+
+    // ================= SÉLECTION D'UNE DISCUSSION =================
+    document.addEventListener('click', function(e) {
+        const item = e.target.closest('.conversation-item');
+        if (!item) return;
+
+        document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
+        item.classList.add('active');
+        item.classList.remove('unread');
+        const badge = item.querySelector('.unread-badge');
+        if (badge) badge.remove();
+
+        state.activeConversationId = parseInt(item.dataset.id, 10);
+        state.activeDestinataireId = parseInt(item.dataset.userId, 10);
+
+        openDiscussionUI(item.dataset.name, item.dataset.avatar);
+        loadMessages(state.activeConversationId, true);
+
+        fetchWithAuth(`${API_URL}/messaging/conversations/${state.activeConversationId}/read`, { 
+            method: 'POST' 
+        }).catch(e => console.error('Erreur lecture', e));
+
+        startPolling(state.activeConversationId);
+    });
+
+    // ================= ENVOI DE MESSAGE =================
+    document.getElementById('sendMessageForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
         
-        // Notification
-        if (document.hidden) {
-            document.title = `📩 Nouveau message de ${conversation.name}`;
-            setTimeout(() => {
-                document.title = 'Messagerie - Élevage+';
-            }, 5000);
+        const input = document.getElementById('messageContent');
+        const contenu = input.value.trim();
+        const intDestinataireId = parseInt(state.activeDestinataireId, 10);
+        
+        if (!contenu || !intDestinataireId || isNaN(intDestinataireId)) {
+            console.warn("⚠️ Envoi bloqué");
+            return;
         }
         
-        showToast(`📩 Nouveau message de ${conversation.name}`, 'info');
-    }, randomDelay);
-}
+        const payload = {
+            destinataire_id: intDestinataireId,
+            contenu: contenu,
+            type: 'text'
+        };
 
-// ================= SCROLL VERS LE BAS =================
-function scrollToBottom() {
-    const container = document.getElementById('messagesScroll');
-    setTimeout(() => {
-        container.scrollTop = container.scrollHeight;
-    }, 50);
-}
+        const timeNow = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const tempHtml = `
+            <div class="message message-sent parsing-pending" style="opacity: 0.6;">
+                <div class="message-bubble">
+                    <p>${escapeHtml(contenu)}</p>
+                    <span class="message-time">${timeNow} <i class="fas fa-clock"></i></span>
+                </div>
+            </div>
+        `;
+        document.getElementById('messagesContainer').innerHTML += tempHtml;
+        scrollToBottom();
+        input.value = '';
 
-// ================= FONCTION D'ÉCHAPPEMENT HTML =================
-function escapeHtml(text) {
-    return text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
+        try {
+            const res = await fetchWithAuth(`${API_URL}/messaging/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            document.querySelectorAll('.parsing-pending').forEach(el => el.remove());
+            
+            if (!state.activeConversationId && res.data?.conversation_id) {
+                state.activeConversationId = res.data.conversation_id;
+                startPolling(state.activeConversationId);
+            }
+            
+            await loadMessages(state.activeConversationId, true);
+            loadConversations();
 
-// ================= RECHERCHE =================
-function searchConversations(query) {
-    const items = document.querySelectorAll('.conversation-item');
-    const term = query.toLowerCase().trim();
-    
-    let found = false;
-    items.forEach(item => {
-        const name = item.querySelector('.conversation-name').textContent.toLowerCase();
-        const preview = item.querySelector('.conversation-preview').textContent.toLowerCase();
-        
-        if (name.includes(term) || preview.includes(term)) {
-            item.style.display = 'flex';
-            found = true;
-        } else {
-            item.style.display = 'none';
+        } catch (error) {
+            console.error("❌ Échec de l'envoi:", error);
+            document.querySelectorAll('.parsing-pending').forEach(el => el.remove());
+            input.value = contenu;
+            alert("Impossible d'envoyer le message : " + (error.message || "Erreur réseau"));
         }
     });
-    
-    if (!found && term !== '') {
-        // Afficher un message "Aucun résultat"
-        const container = document.getElementById('conversationsScroll');
-        const noResult = container.querySelector('.no-result-message');
-        if (!noResult) {
-            const div = document.createElement('div');
-            div.className = 'no-result-message';
-            div.style.cssText = 'text-align: center; padding: 30px 20px; color: #9ca3af;';
-            div.innerHTML = `
-                <i class="fas fa-search" style="font-size: 24px; display: block; margin-bottom: 10px;"></i>
-                <p>Aucune conversation trouvée pour "${term}"</p>
+
+    // ================= MODALE NOUVELLE CONVERSATION =================
+    document.getElementById('btnNewConv').addEventListener('click', function() {
+        document.getElementById('newConversationModal').style.display = 'flex';
+        document.getElementById('searchUserField').value = '';
+        fetchUsersForModal();
+    });
+
+    function closeModal() {
+        document.getElementById('newConversationModal').style.display = 'none';
+    }
+
+    document.getElementById('btnCloseModalX').addEventListener('click', closeModal);
+    document.getElementById('btnCloseModalBtn').addEventListener('click', closeModal);
+
+    document.getElementById('newConversationModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    async function fetchUsersForModal() {
+        const container = document.getElementById('modalUsersContainer');
+        container.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin mr-2"></i>Chargement...</div>';
+
+        try {
+            const res = await fetchWithAuth(`${API_URL}/messaging/users`);
+            const originalData = res.data || res || [];
+            
+            state.allUsersCache = originalData.filter(u => parseInt(u.id, 10) !== currentUserId);
+            renderModalUsers(state.allUsersCache);
+
+        } catch (error) {
+            console.error('❌ Erreur chargement utilisateurs:', error);
+            container.innerHTML = '<div class="text-center py-3 text-danger">Erreur de récupération des éleveurs.</div>';
+        }
+    }
+
+    function renderModalUsers(usersList) {
+        const container = document.getElementById('modalUsersContainer');
+        container.innerHTML = '';
+
+        if (usersList.length === 0) {
+            container.innerHTML = '<div class="text-center py-3 text-muted">Aucun éleveur trouvé</div>';
+            return;
+        }
+
+        usersList.forEach(user => {
+            const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=198754&color=fff&rounded=true&size=40`;
+            const description = user.elevage_type ? `${user.role || 'Éleveur'} - ${user.elevage_type}` : `${user.role || 'Éleveur'} - ${user.commune || 'Sénégal'}`;
+
+            const rowHtml = `
+                <div class="modal-user-item">
+                    <div class="modal-user-left">
+                        <img src="${avatar}" class="modal-user-avatar" alt="Avatar">
+                        <div>
+                            <div class="modal-user-name">${escapeHtml(user.name)}</div>
+                            <div class="modal-user-role">${escapeHtml(description)}</div>
+                        </div>
+                    </div>
+                    <button class="btn-modal-contact action-start-chat" 
+                            data-id="${user.id}" 
+                            data-name="${escapeHtml(user.name)}" 
+                            data-avatar="${avatar}">
+                        <i class="far fa-envelope text-success"></i> Contacter
+                    </button>
+                </div>
             `;
-            container.appendChild(div);
+            container.innerHTML += rowHtml;
+        });
+    }
+
+    document.getElementById('searchUserField').addEventListener('keyup', function() {
+        const term = this.value.toLowerCase();
+        const filtered = state.allUsersCache.filter(user => {
+            return user.name.toLowerCase().includes(term) || 
+                   (user.elevage_type && user.elevage_type.toLowerCase().includes(term));
+        });
+        renderModalUsers(filtered);
+    });
+
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.action-start-chat');
+        if (!btn) return;
+
+        const userId = parseInt(btn.dataset.id, 10);
+        const name = btn.dataset.name;
+        const avatar = btn.dataset.avatar;
+
+        if (!userId || isNaN(userId)) {
+            console.error("❌ ID utilisateur introuvable");
+            return;
         }
-    } else {
-        const noResult = container.querySelector('.no-result-message');
-        if (noResult) noResult.remove();
-    }
-}
 
-// ================= CRÉER UNE NOUVELLE CONVERSATION =================
-function openNewConversation() {
-    if (!name || name.trim() === '') return;
-    
-    // Vérifier si la conversation existe déjà
-    const existing = conversationsData.find(c => c.name.toLowerCase() === name.trim().toUpperCase());
-    if (existing) {
-        showToast(`Vous avez déjà une conversation avec ${name}`, 'warning');
-        selectConversation(existing.id);
-        return;
-    }
-    
-    const newConversation = {
-        id: Math.max(...conversationsData.map(c => c.id)) + 1,
-        name: name.trim().toUpperCase(),
-        preview: "Démarrer une conversation...",
-        lastMessage: "",
-        time: "maintenant",
-        date: new Date().toLocaleDateString('fr-FR'),
-        isRead: true,
-        isOnline: false,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name.trim())}&background=198754&color=fff&rounded=true&size=45`,
-        messages: []
-    };
-    
-    conversationsData.push(newConversation);
-    renderConversations();
-    selectConversation(newConversation.id);
-    showToast(`Nouvelle conversation avec ${name} créée !`, 'success');
-}
+        closeModal();
 
-// ================= GESTION DES TYPIQUES =================
-function handleTyping() {
-    if (typingTimeout) clearTimeout(typingTimeout);
-    
-    // Afficher le statut "En train d'écrire..."
-    const statusEl = document.getElementById('discussionStatus');
-    statusEl.innerHTML = '<i class="fas fa-pencil-alt" style="color: #198754;"></i> En train d\'écrire...';
-    statusEl.style.color = '#198754';
-    
-    typingTimeout = setTimeout(() => {
-        const conversation = conversationsData.find(c => c.id === currentConversationId);
-        if (conversation) {
-            if (conversation.isOnline) {
-                statusEl.innerHTML = '<i class="fas fa-circle" style="color: #22c55e;"></i> En ligne';
-                statusEl.style.color = '#22c55e';
-            } else {
-                statusEl.innerHTML = '<i class="fas fa-circle" style="color: #9ca3af;"></i> Hors ligne';
-                statusEl.style.color = '#9ca3af';
-            }
-        }
-    }, 2000);
-}
+        const existingConv = document.querySelector(`.conversation-item[data-user-id="${userId}"]`);
 
-// ================= INITIALISATION =================
-document.addEventListener('DOMContentLoaded', function() {
-    // Afficher les conversations
-    renderConversations();
-    
-    // Afficher les messages de la première conversation
-    if (conversationsData.length > 0) {
-        renderMessages(currentConversationId);
-        updateDiscussionHeader(currentConversationId);
-        scrollToBottom();
-    }
-    
-    // Événement d'envoi de message
-    document.getElementById('sendBtn').addEventListener('click', sendMessage);
-    
-    document.getElementById('messageInput').addEventListener('keypress', function(e) {
-        if (e.which === 13 && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
+        if (existingConv) {
+            existingConv.click();
+        } else {
+            state.activeConversationId = null;
+            state.activeDestinataireId = userId;
+
+            openDiscussionUI(name, avatar);
+            document.getElementById('messagesContainer').innerHTML = 
+                '<div class="text-center py-4 text-muted">Envoyez un premier message pour démarrer la discussion.</div>';
+            
+            clearInterval(state.pollingInterval);
         }
     });
-    
-    // Gestion du typing
-    document.getElementById('messageInput').addEventListener('input', handleTyping);
-    
-    // Recherche
-    document.getElementById('searchInput').addEventListener('input', function() {
-        searchConversations(this.value);
+
+    // ================= RECHERCHE =================
+    document.getElementById('searchContact').addEventListener('keyup', function() {
+        const term = this.value.toLowerCase();
+        document.querySelectorAll('.conversation-item').forEach(item => {
+            const name = (item.dataset.name || '').toLowerCase();
+            item.style.display = name.includes(term) ? 'flex' : 'none';
+        });
     });
-    
-    // Nouvelle conversation
-    document.getElementById('newConversationBtn').addEventListener('click', openNewConversation);
-    document.getElementById('newConversationMobileBtn').addEventListener('click', openNewConversation);
-    
-    // Actions de la discussion
+
+    // ================= BOUTONS D'ACTION =================
     document.getElementById('callBtn').addEventListener('click', function() {
-        showToast('🔊 Appel en cours... (fonctionnalité à venir)', 'info');
+        alert('🔊 Appel en cours... (fonctionnalité à venir)');
     });
-    
+
     document.getElementById('videoBtn').addEventListener('click', function() {
-        showToast('📹 Appel vidéo en cours... (fonctionnalité à venir)', 'info');
+        alert('📹 Appel vidéo en cours... (fonctionnalité à venir)');
     });
-    
-    document.getElementById('moreActionsBtn').addEventListener('click', function() {
-        const actions = [
-            '📎 Partager un fichier',
-            '📍 Partager la position',
-            '📅 Planifier un rendez-vous',
-            '🔇 Mettre en sourdine',
-            '🚫 Bloquer l\'utilisateur'
-        ];
-        const action = prompt('Choisissez une action :\n\n' + actions.map((a, i) => `${i+1}. ${a}`).join('\n'));
-        if (action) {
-            const index = parseInt(action) - 1;
+
+    document.getElementById('moreBtn').addEventListener('click', function() {
+        const actions = ['📎 Partager un fichier', '📍 Partager la position', '📅 Planifier un rendez-vous', '🔇 Mettre en sourdine'];
+        const choice = prompt('Choisissez une action :\n\n' + actions.map((a, i) => `${i+1}. ${a}`).join('\n'));
+        if (choice) {
+            const index = parseInt(choice) - 1;
             if (index >= 0 && index < actions.length) {
-                showToast(`Action: ${actions[index]} (fonctionnalité à venir)`, 'info');
+                alert(`Action: ${actions[index]} (fonctionnalité à venir)`);
             }
         }
     });
-    
-    // Actions de l'input
+
     document.getElementById('attachBtn').addEventListener('click', function() {
-        showToast('📎 Joindre un fichier (fonctionnalité à venir)', 'info');
+        alert('📎 Joindre un fichier (fonctionnalité à venir)');
     });
-    
+
     document.getElementById('emojiBtn').addEventListener('click', function() {
         const emojis = ['👍', '❤️', '😊', '😂', '😍', '🤔', '🙏', '💪', '👋', '✨'];
         const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-        document.getElementById('messageInput').value += randomEmoji;
-        document.getElementById('messageInput').focus();
+        document.getElementById('messageContent').value += randomEmoji;
+        document.getElementById('messageContent').focus();
     });
-    
+
     document.getElementById('imageBtn').addEventListener('click', function() {
         const input = document.createElement('input');
         input.type = 'file';
@@ -610,140 +564,30 @@ document.addEventListener('DOMContentLoaded', function() {
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    const conversation = conversationsData.find(c => c.id === currentConversationId);
-                    if (conversation) {
-                        const now = new Date();
-                        const time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
-                        
-                        conversation.messages.push({
-                            id: conversation.messages.length + 1,
-                            sender: 'me',
-                            text: '📷 Image partagée',
-                            time: time,
-                            read: true,
-                            image: event.target.result
-                        });
-                        
-                        renderMessages(currentConversationId);
-                        scrollToBottom();
-                        showToast('📷 Image partagée', 'success');
-                    }
+                    const conversation = document.getElementById('messagesContainer');
+                    const timeNow = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const tempHtml = `
+                        <div class="message message-sent parsing-pending">
+                            <div class="message-bubble">
+                                <img src="${event.target.result}" class="message-media" alt="Image partagée">
+                                <span class="message-time">${timeNow} <i class="fas fa-clock"></i></span>
+                            </div>
+                        </div>
+                    `;
+                    conversation.innerHTML += tempHtml;
+                    scrollToBottom();
+                    alert('📷 Image partagée (fonctionnalité à venir)');
                 };
                 reader.readAsDataURL(file);
             }
         };
         input.click();
     });
-    
-    // Ajouter les styles manquants
-    const style = document.createElement('style');
-    style.textContent = `
-        .custom-toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 10000;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-        }
-        .custom-toast.show { transform: translateX(0); }
-        .custom-toast .toast-content {
-            background: #343a40;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        .custom-toast.success .toast-content { background: #198754; }
-        .custom-toast.danger .toast-content { background: #dc3545; }
-        .custom-toast.warning .toast-content { background: #ffc107; color: #343a40; }
-        .custom-toast.info .toast-content { background: #0dcaf0; color: #343a40; }
-        
-        #messagesScroll {
-            transition: opacity 0.15s ease;
-        }
-        .no-result-message {
-            text-align: center;
-            padding: 30px 20px;
-            color: #9ca3af;
-        }
-        @media (max-width: 768px) {
-            .custom-toast {
-                left: 15px;
-                right: 15px;
-                bottom: 15px;
-                transform: translateY(100px);
-            }
-            .custom-toast.show { transform: translateY(0); }
-        }
-        .app-banner-buttons {
-            padding: 15px;
-            border-top: 1px solid #eef2f6;
-        }
-        .btn-new-conversation {
-            width: 100%;
-            background: #198754;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .btn-new-conversation:hover {
-            background: #146c43;
-            transform: translateY(-2px);
-        }
-        .btn-new-conversation-mobile {
-            display: none;
-            margin: 15px;
-            padding: 12px;
-            background: #198754;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-new-conversation-mobile:hover {
-            background: #146c43;
-        }
-        @media (max-width: 768px) {
-            .btn-new-conversation-mobile {
-                display: block;
-            }
-            .app-banner-buttons {
-                display: none;
-            }
-        }
-        .message-bubble img {
-            max-width: 100%;
-            border-radius: 8px;
-            margin-top: 5px;
-        }
-    `;
-    document.head.appendChild(style);
-});
 
-// ================= GESTION DE L'ONGLET ACTIF =================
-document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) {
-        // L'utilisateur est revenu sur la page
-        const conversation = conversationsData.find(c => c.id === currentConversationId);
-        if (conversation) {
-            conversation.isRead = true;
-            renderConversations();
-        }
-        document.title = 'Messagerie - Élevage+';
-    }
+    // ================= INITIALISATION =================
+    loadConversations();
 });
 </script>
+@endpush
 
 @endsection
