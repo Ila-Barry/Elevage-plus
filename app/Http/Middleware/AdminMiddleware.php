@@ -6,27 +6,39 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Symfony\Component\HttpFoundation\Response;
+use App\Traits\ApiResponseTrait;
 
+/**
+ * Middleware AdminMiddleware
+ * 
+ * Vérifie que l'utilisateur authentifié a le rôle 'admin'
+ */
 class AdminMiddleware
 {
+    use ApiResponseTrait;
+
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param Request $request
+     * @param Closure $next
+     * @return mixed
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
-        // Vérifier si l'utilisateur est authentifié via session
+        // Vérifier si l'utilisateur est authentifié
         if (!Auth::check()) {
-            return redirect('/auth/login')->with('error', 'Veuillez vous connecter pour accéder à cette page.');
+            return $this->unauthorizedResponse('Authentification requise.');
         }
-
+        
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
         // Vérifier si l'utilisateur a le rôle admin
-        if (Auth::user()->role !== 'admin') {
-            abort(403, 'Accès non autorisé. Vous devez être administrateur.');
+        if (!$user->isAdmin()) {
+            return $this->forbiddenResponse('Accès réservé aux administrateurs.');
         }
-
+        
         return $next($request);
     }
 }

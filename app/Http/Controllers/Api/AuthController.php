@@ -4,14 +4,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Log;
 use App\Http\Requests\Api\RegisterRequest;
 use App\Http\Requests\Api\LoginRequest;
 use App\Http\Requests\Api\UpdateProfileRequest;
 use App\Http\Requests\Api\ChangePasswordRequest;
 use App\Http\Requests\Api\TwoFactorRequest;
 use App\Http\Requests\Api\DeleteAccountRequest;
-use App\Notifications\WelcomeNotification;
 use App\Models\User;
 use App\Services\TwoFactorService;
 use App\Traits\ApiResponseTrait;
@@ -23,7 +21,6 @@ use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
-use Illuminate\Support\Facades\Hash;
 
 /**
  * Contrôleur AuthController
@@ -86,12 +83,6 @@ class AuthController extends Controller
             // Créer l'utilisateur
             $user = User::create($userData);
             
-            // Envoyer l'email de vérification
-            $user->sendEmailVerificationNotification();
-            
-            // Envoyer la notification de bienvenue (email + database)
-            $user->notify(new WelcomeNotification($user));
-            
             // Créer un élevage par défaut si type_elevage est fourni
             if ($request->filled('type_elevage')) {
                 $this->createDefaultFarm($user, $request->type_elevage);
@@ -103,28 +94,22 @@ class AuthController extends Controller
             $token = JWTAuth::fromUser($user);
             
             return $this->successResponse([
-            'user' => $user->makeVisible(['email', 'telephone']),
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => config('jwt.ttl') * 60,
-        ], 'Inscription réussie ! Un email de vérification vous a été envoyé.', 201);
+                'user' => $user->makeVisible(['email', 'telephone']),
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => config('jwt.ttl') * 60,
+            ], 'Inscription réussie ! Un email de vérification vous a été envoyé.', 201);
             
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            DB::rollBack();
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Erreur de validation',
-                'errors' => $e->errors()
-            ], 422);
         } catch (\Exception $e) {
             DB::rollBack();
+            
+            // Journaliser l'erreur pour le débogage
             \Log::error('Erreur lors de l\'inscription: ' . $e->getMessage());
             
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Une erreur est survenue lors de l\'inscription.',
-                'error' => $e->getMessage() // En dev seulement
-            ], 500);
+            return $this->errorResponse(
+                'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.',
+                500
+            );
         }
     }
 
@@ -136,79 +121,57 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request): JsonResponse
     {
-        Log::info('Tentative de connexion', ['login' => $request->input('login')]);
-        
         try {
-            $login = $request->input('login');
-            $password = $request->input('password');
+            // Tentative d'authentification
+            $credentials = $request->only('email', 'password');
             
-            $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'telephone';
-            $user = User::where($field, $login)->first();
-            
-            if (!$user) {
-                Log::warning('Utilisateur non trouvé', ['login' => $login]);
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Email ou mot de passe incorrect.'
-                ], 401);
+            if (!$token = JWTAuth::attempt($credentials)) {
+                return $this->unauthorizedResponse('Email ou mot de passe incorrect.');
             }
             
-            if (!Hash::check($password, $user->password)) {
-                Log::warning('Mot de passe incorrect', ['user_id' => $user->id]);
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Identifient ou mot de passe incorrect.'
-                ], 401);
+            /** @var User $user */
+            $user = Auth::user();
+            
+            // Vérifier si l'utilisateur est banni
+            if ($user->isBanned()) {
+                Auth::logout();
+                return $this->forbiddenResponse('Votre compte a été banni. Veuillez contacter l\'administrateur.');
             }
             
-            if ($user->status === 'bannie') {
-                Log::warning('Tentative de connexion sur compte banni', ['user_id' => $user->id]);
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Votre compte a été banni.'
-                ], 403);
+            // Vérifier si l'email est vérifié
+            // if (!$user->email_verified_at) {
+            //     Auth::logout();
+            //     return $this->unauthorizedResponse('Veuillez vérifier votre email avant de vous connecter.');
+            // }
+            
+            // Gérer l'authentification à deux facteurs
+            if ($user->two_factor_enabled) {
+                // Générer et envoyer un code 2FA
+                $code = $this->twoFactorService->generateCode($user);
+                
+                // Stocker le token temporairement pour la validation 2FA
+                // Nous pourrions utiliser une session ou un cache
+                session(['2fa:user_id' => $user->id, '2fa:token' => $token]);
+                
+                return $this->successResponse([
+                    'requires_two_factor' => true,
+                    'user_id' => $user->id,
+                ], 'Code d\'authentification envoyé par email.', 200);
             }
             
-            // Auto-vérification pour les tests
-            if (!$user->email_verified_at) {
-                Log::info('Email non vérifié - auto vérification pour test', ['user_id' => $user->id]);
-                $user->email_verified_at = now();
-                $user->save();
-            }
-            
-            if ($user->status !== 'active' && $user->email_verified_at) {
-                $user->status = 'active';
-                $user->save();
-            }
-            
-            // ✅ AJOUT : Connecter l'utilisateur via session Laravel
-            Auth::guard('web')->login($user, $request->input('remember', false));
-            
-            $token = JWTAuth::fromUser($user);
+            // Mettre à jour la dernière connexion
             $user->update(['last_login_at' => now()]);
-
-            Log::info('Connexion réussie', ['user_id' => $user->id, 'role' => $user->role]);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Connexion réussie.',
-                'data' => [
-                    'user' => $user->makeVisible(['email', 'telephone']),
-                    'access_token' => $token,
-                    'token_type' => 'bearer',
-                    'expires_in' => config('jwt.ttl') * 60,
-                ]
-            ], 200);
+            
+            return $this->successResponse([
+                'user' => $user->makeVisible(['email', 'telephone']),
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => config('jwt.ttl') * 60,
+            ], 'Connexion réussie.');
             
         } catch (\Exception $e) {
-            Log::error('Erreur lors de la connexion', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Erreur lors de la connexion.'
-            ], 500);
+            \Log::error('Erreur lors de la connexion: ' . $e->getMessage());
+            return $this->errorResponse('Erreur lors de la connexion. Veuillez réessayer.', 500);
         }
     }
 
@@ -267,39 +230,10 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         try {
-            // Récupérer l'utilisateur avant déconnexion pour les logs
-            $user = auth()->user();
-            
-            // 1. Déconnecter de la session web
-            Auth::guard('web')->logout();
-            
-            // 2. Invalider le token JWT
-            $token = JWTAuth::getToken();
-            if ($token) {
-                JWTAuth::invalidate($token);
-            }
-            
-            // 3. Nettoyer la session
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-            
-            Log::info('Déconnexion réussie', ['user_id' => $user?->id, 'email' => $user?->email]);
-            
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Déconnexion réussie.'
-            ], 200);
-            
+            Auth::logout();
+            return $this->successResponse(null, 'Déconnexion réussie.');
         } catch (\Exception $e) {
-            Log::error('Erreur lors de la déconnexion', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Erreur lors de la déconnexion.'
-            ], 500);
+            return $this->errorResponse('Erreur lors de la déconnexion.', 500);
         }
     }
 
@@ -343,11 +277,16 @@ class AuthController extends Controller
         
         // Statistiques additionnelles
         $stats = [
-            'publications' => $user->publications()->count(),
-            'likes_received' => $user->publications()->sum('nbr_likes') ?? 0,
-            'commentaires' => $user->commentaires()->count(),
-            'elevages' => $user->elevages()->count(),
-            'animaux' => $user->elevages->sum('animaux_count') ?? 0,
+            'total_animals' => $user->elevages->sum('animaux_count'),
+            'total_publications' => $user->publications()->count(),
+            'total_likes_received' => $user->publications()->sum('nbr_likes'),
+            'pending_tasks' => DB::table('taches')
+                ->join('animals', 'taches.animal_id', '=', 'animals.id')
+                ->join('elevages', 'animals.elevage_id', '=', 'elevages.id')
+                ->where('elevages.user_id', $user->id)
+                ->where('taches.terminee', false)
+                ->where('taches.date_planifiee', '<=', now())
+                ->count(),
         ];
         
         return $this->successResponse([
@@ -411,44 +350,25 @@ class AuthController extends Controller
      * @return JsonResponse
      */
     public function changePassword(ChangePasswordRequest $request): JsonResponse
-{
-    try {
-        /** @var User $user */
-        $user = Auth::user();
-        
-        Log::info('Tentative de changement de mot de passe', [
-            'user_id' => $user->id,
-            'email' => $user->email
-        ]);
-        
-        // ✅ Utiliser update() pour que le mutateur soit appelé
-        $user->update([
-            'password' => $request->new_password
-        ]);
-        
-        Log::info('Mot de passe modifié avec succès', [
-            'user_id' => $user->id,
-            'email' => $user->email
-        ]);
-        
-        // 🔐Déconnecter l'utilisateur après changement de mot de passe
-        // pour qu'il se reconnecte avec le nouveau mot de passe
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        
-        return $this->successResponse(null, 'Mot de passe modifié avec succès. Veuillez vous reconnecter avec votre nouveau mot de passe.');
-        
-    } catch (\Exception $e) {
-        Log::error('Erreur lors du changement de mot de passe', [
-            'user_id' => auth()->id(),
-            'message' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-        return $this->errorResponse('Erreur lors du changement de mot de passe.', 500);
+    {
+        try {
+            /** @var User $user */
+            $user = Auth::user();
+            
+            $user->update([
+                'password' => $request->new_password,
+            ]);
+            
+            // Optionnel: Déconnecter l'utilisateur et demander reconnexion
+            // Auth::logout();
+            
+            return $this->successResponse(null, 'Mot de passe modifié avec succès.');
+            
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors du changement de mot de passe: ' . $e->getMessage());
+            return $this->errorResponse('Erreur lors du changement de mot de passe.', 500);
+        }
     }
-}
-
 
     /**
      * Activation/Désactivation du 2FA
@@ -633,23 +553,6 @@ class AuthController extends Controller
             return $this->errorResponse('Erreur lors de la récupération du profil.', 500);
         }
     }
-
-    /**
- * Récupérer la liste des utilisateurs (pour la messagerie)
- */
-public function getUsers(Request $request): JsonResponse
-{
-    $excludeId = $request->get('exclude', auth()->id());
-    
-    $users = User::where('id', '!=', $excludeId)
-        ->where('status', 'active')
-        ->select('id', 'name', 'email', 'photo_url', 'role', 'type_elevage', 'commune')
-        ->orderBy('name')
-        ->limit(50)
-        ->get();
-    
-    return $this->successResponse($users);
-}
 
     // ========== MÉTHODES PRIVÉES ==========
 
