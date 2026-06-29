@@ -1190,6 +1190,7 @@
     max-height: 90vh;
     overflow-y: auto;
     animation: modalSlide 0.3s ease;
+    padding-bottom: 20px;
 }
 
 @keyframes modalSlide {
@@ -1258,7 +1259,8 @@
 
 .modal-blog-body .form-control {
     width: 100%;
-    padding: 10px 14px;
+    padding: 0 14px;
+    height: 39px;
     border: 1px solid #ced4da;
     border-radius: 10px;
     font-size: 14px;
@@ -1270,6 +1272,10 @@
     outline: none;
     border-color: #198754;
     box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
+}
+
+#postContent {
+    height: 100px;
 }
 
 .image-upload-area {
@@ -1348,6 +1354,7 @@
     display: flex;
     gap: 12px;
     margin-top: 20px;
+    padding: 0 24px;
 }
 
 .btn-cancel-modal {

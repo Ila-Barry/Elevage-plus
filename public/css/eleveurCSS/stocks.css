@@ -440,7 +440,8 @@ body {
 .form-control {
     border-radius: 10px;
     border: 1px solid var(--border);
-    padding: 10px 14px;
+    padding: 0 14px;
+    height: 39px;
     font-size: 14px;
     transition: all 0.3s ease;
 }

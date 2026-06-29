@@ -55,6 +55,7 @@
             <div id="publishError" class="alert alert-danger" style="display: none;"></div>
             <form id="publishForm" enctype="multipart/form-data">
                 @csrf
+
                 <div class="form-group">
                     <label>Titre de l'article *</label>
                     <input type="text" id="postTitle" class="form-control" placeholder="Ex: Ma nouvelle méthode d'alimentation" required>
@@ -70,35 +71,33 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Contenu *</label>
-                    <textarea id="postContent" class="form-control" rows="5" placeholder="Décrivez votre expérience..." required></textarea>
+                    <label>Contenu (optionnel)</label>
+                    <textarea id="postContent" class="form-control" rows="5" placeholder="Décrivez votre expérience..." ></textarea>
                 </div>
 
+                
                 <div class="form-group">
-                <label>Fichiers joints (optionnel)</label>
-                <div class="file-upload-area" id="fileUploadArea">
-    <i class="fas fa-cloud-upload-alt"></i>
+                    <label>Fichiers joints (optionnel)</label>
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>
+                            <strong>Cliquez ou glissez-déposez</strong> vos fichiers
+                        </p>
 
-    <p>
-        <strong>Cliquez ou glissez-déposez</strong> vos fichiers
-    </p>
+                        <p class="file-hint">
+                            <small>Images (5 max), Vidéos (2 max), Documents (3 max)</small>
+                        </p>
+                    </div>
 
-    <p class="file-hint">
-        <small>Images (5 max), Vidéos (2 max), Documents (3 max)</small>
-    </p>
-</div>
-
-<input
-    type="file"
-    id="postFiles"
-    multiple
-    accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar"
-    style="display:none;"
->
+                    <input
+                        type="file"
+                        id="postFiles"
+                        multiple
+                        accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar"
+                        style="display:none;"
+                    >
                 </div>
-                
                 <div class="file-preview-container" id="filePreviewContainer"></div>
-                
                 <div class="file-stats" id="fileStats" style="display: none; margin-top: 10px; font-size: 13px; color: #6c757d;">
                     <span id="fileCount">0</span> fichier(s) sélectionné(s)
                     <span class="badge badge-secondary ml-2" id="fileSize">0 Mo</span>

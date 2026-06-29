@@ -16,10 +16,9 @@ class Publication extends Model
         'titre',
         'categorie',
         'contenu',
-        'images',      // ✅ Nouveau champ JSON
-        'videos',      // ✅ Nouveau champ JSON
-        'documents',   // ✅ Nouveau champ JSON
-        // Garder les anciens pour compatibilité
+        'images',      
+        'videos',      
+        'documents',   
         'image_url',
         'video_url',
         'fichier_url',

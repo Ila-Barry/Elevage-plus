@@ -1,5 +1,5 @@
 /* ============================================================
-   MESSAGERIE - STYLE COMPLET CORRIGÉ
+   MESSAGERIE - STYLE COMPLET
    ============================================================ */
 
 /* Variables */
@@ -10,12 +10,9 @@
     --whatsapp-bg: #efeae2;
     --whatsapp-header: #f0f2f5;
     --whatsapp-input: #ffffff;
-    --whatsapp-sent-bubble: rgba(0, 0, 0, 0.05);
-    --whatsapp-received-bubble: #ffffff;
     --whatsapp-text: #111b21;
     --whatsapp-text-light: #667781;
     --whatsapp-border: #e9edef;
-    --whatsapp-shadow: rgba(0, 0, 0, 0.08);
 }
 
 /* ============================================================
@@ -209,7 +206,6 @@
     color: var(--whatsapp-text);
 }
 
-/* Avatar */
 .conversation-avatar {
     position: relative;
     flex-shrink: 0;
@@ -233,7 +229,6 @@
     border: 2px solid white;
 }
 
-/* Informations */
 .conversation-info {
     flex: 1;
     min-width: 0;
@@ -257,7 +252,6 @@
     text-overflow: ellipsis;
 }
 
-/* Heure et statut */
 .conversation-time {
     text-align: right;
     flex-shrink: 0;
@@ -432,134 +426,6 @@
 .messages-scroll::-webkit-scrollbar-thumb {
     background: #c1c7cd;
     border-radius: 3px;
-}
-
-/* ============================================================
-   MESSAGES - STYLE CORRIGÉ
-   ============================================================ */
-
-.message {
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    max-width: 65%;
-    animation: messageSlide 0.2s ease;
-}
-
-/* MESSAGE ENVOYÉ (PAR MOI) - À GAUCHE, FOND GRIS CLAIR */
-.message-sent {
-    align-self: flex-start;
-    flex-direction: row;
-}
-
-.message-sent .message-bubble {
-    background: rgba(10, 61, 33, 0.05) !important;
-    color: var(--whatsapp-text);
-    border-radius: 0 8px 8px 8px !important;
-    padding: 8px 12px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    position: relative;
-}
-
-.message-sent .message-bubble::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -8px;
-    border: 8px solid transparent;
-    border-top-color: rgba(0, 0, 0, 0.05);
-    border-left: 0;
-}
-
-.message-sent .message-time {
-    color: rgba(17, 27, 33, 0.6);
-}
-
-/* MESSAGE REÇU (DE L'AUTRE) - À DROITE, FOND BLANC */
-.message-received {
-    align-self: flex-end;
-    flex-direction: row-reverse;
-}
-
-.message-received .message-bubble {
-    background: #ffffff !important;
-    color: var(--whatsapp-text);
-    border-radius: 8px 0 8px 8px !important;
-    padding: 8px 12px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-    position: relative;
-}
-
-.message-received .message-bubble::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: -8px;
-    border: 8px solid transparent;
-    border-top-color: #ffffff;
-    border-right: 0;
-}
-
-.message-received .message-time {
-    color: var(--whatsapp-text-light);
-}
-
-/* ============================================================
-   CONTENU DES MESSAGES
-   ============================================================ */
-
-.message-bubble p {
-    margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.4;
-    word-wrap: break-word;
-}
-
-.message-bubble .message-media {
-    max-width: 250px;
-    max-height: 300px;
-    border-radius: 6px;
-    margin-bottom: 4px;
-    cursor: pointer;
-}
-
-.message-bubble .message-file {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 6px;
-    text-decoration: none;
-    color: var(--whatsapp-text);
-    font-size: 0.85rem;
-}
-
-.message-bubble .message-file:hover {
-    background: rgba(0, 0, 0, 0.08);
-}
-
-.message-bubble .message-file i:first-child {
-    font-size: 1.2rem;
-}
-
-.message-time {
-    font-size: 0.6rem;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 4px;
-    float: right;
-    margin-left: 8px;
-}
-
-.message-time .fa-check,
-.message-time .fa-check-double {
-    font-size: 0.5rem;
-}
-
-.message-time .fa-check-double.read {
-    color: #53bdeb;
 }
 
 /* ============================================================
@@ -916,65 +782,6 @@
 }
 
 /* ============================================================
-   TOAST NOTIFICATIONS
-   ============================================================ */
-
-.custom-toast {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    z-index: 10000;
-    transition: all 0.3s ease;
-    opacity: 0;
-}
-
-.custom-toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-}
-
-.custom-toast .toast-content {
-    background: #323232;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.custom-toast.success .toast-content {
-    background: var(--whatsapp-green);
-}
-
-.custom-toast.danger .toast-content {
-    background: #dc3545;
-}
-
-.custom-toast.warning .toast-content {
-    background: #ffc107;
-    color: #323232;
-}
-
-/* ============================================================
-   ANIMATIONS
-   ============================================================ */
-
-@keyframes messageSlide {
-    from {
-        opacity: 0;
-        transform: translateY(8px) scale(0.96);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* ============================================================
    RESPONSIVE
    ============================================================ */
 
@@ -983,10 +790,6 @@
     .conversations-list {
         width: 300px;
         min-width: 250px;
-    }
-    
-    .message {
-        max-width: 75%;
     }
 }
 
@@ -1027,11 +830,7 @@
         min-height: 55vh;
     }
     
-    .message {
-        max-width: 85%;
-    }
-    
-    .message-bubble .message-media {
+    #messagesContainer .msg-bubble .message-media {
         max-width: 200px;
         max-height: 200px;
     }
@@ -1052,12 +851,8 @@
         height: 40px;
     }
     
-    .message {
-        max-width: 92%;
-    }
-    
-    .message-bubble p {
-        font-size: 0.85rem;
+    #messagesContainer .msg-bubble p {
+        font-size: 0.85rem !important;
     }
     
     .messages-scroll {

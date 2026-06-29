@@ -60,7 +60,7 @@ class PublicationController extends Controller
         $validator = Validator::make($request->all(), [
             'titre' => 'required|string|min:5|max:255',
             'categorie' => 'required|string|in:conseil,experience,alerte',
-            'contenu' => 'required|string|min:10',
+            'contenu' => 'nullable|string|min:2',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'videos.*' => 'nullable|file|mimes:mp4,mov,avi,webm|max:51200',
             'documents.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar|max:10240',
@@ -119,7 +119,7 @@ class PublicationController extends Controller
         $validator = Validator::make($request->all(), [
             'titre' => 'sometimes|string|min:5|max:255',
             'categorie' => 'sometimes|string|in:conseil,experience,alerte',
-            'contenu' => 'sometimes|string|min:10',
+            'contenu' => 'nullable|string|min:2',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'videos.*' => 'nullable|file|mimes:mp4,mov,avi,webm|max:51200',
             'documents.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar|max:10240',
@@ -134,9 +134,17 @@ class PublicationController extends Controller
         }
 
         // Récupérer les fichiers existants
-        $images = $publication->getAttributes()['images'] ?? [];
-        $videos = $publication->getAttributes()['videos'] ?? [];
-        $documents = $publication->getAttributes()['documents'] ?? [];
+        $images = is_array($publication->images)
+            ? $publication->images
+            : [];
+
+        $videos = is_array($publication->videos)
+            ? $publication->videos
+            : [];
+
+        $documents = is_array($publication->documents)
+            ? $publication->documents
+            : [];
 
         // Supprimer des fichiers si demandé
         if ($request->has('delete_images') && $request->delete_images) {
