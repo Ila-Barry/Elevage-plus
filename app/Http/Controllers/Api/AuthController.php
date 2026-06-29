@@ -170,11 +170,11 @@ class AuthController extends Controller
             }
             
             // Auto-vérification pour les tests
-            if (!$user->email_verified_at) {
-                Log::info('Email non vérifié - auto vérification pour test', ['user_id' => $user->id]);
-                $user->email_verified_at = now();
-                $user->save();
-            }
+            // if (!$user->email_verified_at) {
+            //     Log::info('Email non vérifié - auto vérification pour test', ['user_id' => $user->id]);
+            //     $user->email_verified_at = now();
+            //     $user->save();
+            // }
             
             if ($user->status !== 'active' && $user->email_verified_at) {
                 $user->status = 'active';
