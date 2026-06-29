@@ -87,10 +87,10 @@ class AuthController extends Controller
             $user = User::create($userData);
             
             // Envoyer l'email de vérification
-            $user->sendEmailVerificationNotification();
+            // $user->sendEmailVerificationNotification();
             
             // Envoyer la notification de bienvenue (email + database)
-            $user->notify(new WelcomeNotification($user));
+            // $user->notify(new WelcomeNotification($user));
             
             // Créer un élevage par défaut si type_elevage est fourni
             if ($request->filled('type_elevage')) {
