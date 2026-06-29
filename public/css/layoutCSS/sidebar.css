@@ -121,6 +121,7 @@ body {
     margin-top: 2px;
 }
 
+/* ================= USER STATUS ================= */
 .user-status {
     display: inline-flex;
     align-items: center;
@@ -132,6 +133,19 @@ body {
 
 .user-status i {
     font-size: 0.5rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.4;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 /* ================= SIDEBAR MENU ================= */
@@ -349,7 +363,7 @@ body {
     height: 36px;
     border-radius: 8px;
     cursor: pointer;
-    display: none;
+    display: none; /* Caché par défaut */
     align-items: center;
     justify-content: center;
     font-size: 18px;
@@ -360,6 +374,29 @@ body {
 .close-sidebar:hover {
     background: rgba(255, 255, 255, 0.25);
     transform: rotate(90deg);
+}
+
+/* ================= RESPONSIVE ================= */
+
+/* Mobiles (≤768px) */
+@media (max-width: 768px) {
+    .close-sidebar {
+        display: flex !important; /* Affiché sur mobile */
+    }
+}
+
+/* Tablettes (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .close-sidebar {
+        display: flex !important; /* Affiché sur tablette aussi */
+    }
+}
+
+/* Grands écrans (>1024px) */
+@media (min-width: 1025px) {
+    .close-sidebar {
+        display: none !important; /* Caché sur grands écrans */
+    }
 }
 
 /* ================= DIVIDER ================= */
