@@ -1,27 +1,37 @@
 <?php
-// app/Models/Like.php
+// database/migrations/2025_01_01_000005_create_likes_table.php
 
-namespace App\Models;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class Like extends Model
+return new class extends Migration
 {
-    use HasFactory;
-
-    protected $fillable = [
-        'publication_id',
-        'user_id',
-    ];
-
-    public function publication()
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
     {
-        return $this->belongsTo(Publication::class);
+        Schema::create('likes', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('publication_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->timestamps();
+            
+            // Empêcher un utilisateur de liker plusieurs fois la même publication
+            $table->unique(['publication_id', 'user_id']);
+            
+            // Index pour les performances
+            $table->index('publication_id');
+            $table->index('user_id');
+        });
     }
 
-    public function user()
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
     {
-        return $this->belongsTo(User::class);
+        Schema::dropIfExists('likes');
     }
-}
+};

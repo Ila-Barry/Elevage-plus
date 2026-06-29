@@ -77,24 +77,55 @@
         <!-- ========== GRAPHIQUE + ALERTES ========== -->
         <div class="row my-4">
             <!-- Évolution mensuelle -->
-            <div class="col-lg-12 mb-4">
-                <div class="card chart-card">
-                    <div class="card-header bg-white">
-                        <h5><i class="fas fa-chart-bar text-success"></i> Évolution mensuelle</h5>
+           <!-- Évolution mensuelle -->
+<div class="col-lg-12 mb-4">
+    <div class="card chart-card">
+        <div class="card-header bg-white">
+            <h5><i class="fas fa-chart-bar text-success"></i> Évolution mensuelle</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <!-- Axe Y (vertical) avec graduations -->
+                <div class="chart-y-axis">
+                    <span>150</span>
+                    <span>100</span>
+                    <span>50</span>
+                    <span>0</span>
+                </div>
+                <!-- Zone du graphique (barres + grille) -->
+                <div class="chart-area">
+                    <!-- Barres -->
+                    <div class="bar-wrapper">
+                        <div class="bar" style="height: 30%;"><span>J</span></div>
+                        <div class="bar" style="height: 50%;"><span>F</span></div>
+                        <div class="bar" style="height: 70%;"><span>M</span></div>
+                        <div class="bar" style="height: 45%;"><span>A</span></div>
+                        <div class="bar" style="height: 85%;"><span>M</span></div>
+                        <div class="bar" style="height: 60%;"><span>I</span></div>
+                        <div class="bar" style="height: 90%;"><span>J</span></div>
                     </div>
-                    <div class="card-body">
-                        <div class="chart-bars">
-                            <div class="bar" style="height:30%;"><span>J</span></div>
-                            <div class="bar" style="height:50%;"><span>F</span></div>
-                            <div class="bar" style="height:70%;"><span>M</span></div>
-                            <div class="bar" style="height:45%;"><span>A</span></div>
-                            <div class="bar" style="height:85%;"><span>M</span></div>
-                            <div class="bar" style="height:60%;"><span>I</span></div>
-                            <div class="bar" style="height:90%;"><span>J</span></div>
-                        </div>
+                    <!-- Lignes de la grille horizontale -->
+                    <div class="grid-lines">
+                        <div class="grid-line" style="bottom: 0%;"></div>
+                        <div class="grid-line" style="bottom: 33.33%;"></div>
+                        <div class="grid-line" style="bottom: 66.66%;"></div>
+                        <div class="grid-line" style="bottom: 100%;"></div>
                     </div>
                 </div>
-            </div> 
+            </div>
+            <!-- Axe X (horizontal) -->
+            <div class="chart-x-axis">
+                <span>j</span>
+                <span>f</span>
+                <span>m</span>
+                <span>a</span>
+                <span>m</span>
+                <span>i</span>
+                <span>j</span>
+            </div>
+        </div>
+    </div>
+</div>
             <!-- Alertes et activités récentes -->
             <div class="col-lg-12 mb-4">
                 <div class="card alert-card">
