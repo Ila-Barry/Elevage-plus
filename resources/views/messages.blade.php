@@ -3,6 +3,125 @@
 @section('title', 'Messagerie')
 
 @push('styles')
+<style>
+    /* ============================================================
+       FORCER LES STYLES DES MESSAGES - OVERRIDE BOOTSTRAP
+       ============================================================ */
+    
+    #messagesContainer {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding: 20px 24px !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+    
+    #messagesContainer .msg-wrapper {
+        display: flex !important;
+        width: 100% !important;
+        max-width: 70% !important;
+        margin-bottom: 6px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    #messagesContainer .msg-wrapper.sent {
+        align-self: flex-start !important;
+        justify-content: flex-start !important;
+        margin-right: auto !important;
+        margin-left: 0 !important;
+    }
+    
+    #messagesContainer .msg-wrapper.received {
+        align-self: flex-end !important;
+        justify-content: flex-end !important;
+        margin-left: auto !important;
+        margin-right: 0 !important;
+    }
+    
+    #messagesContainer .msg-bubble {
+        padding: 8px 12px !important;
+        border-radius: 12px !important;
+        position: relative !important;
+        word-wrap: break-word !important;
+        max-width: 100% !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    #messagesContainer .msg-wrapper.sent .msg-bubble {
+        background: #e9edef !important;
+        border-radius: 12px 12px 12px 4px !important;
+        color: #111b21 !important;
+    }
+    
+    #messagesContainer .msg-wrapper.received .msg-bubble {
+        background: #ffffff !important;
+        border-radius: 12px 12px 4px 12px !important;
+        color: #111b21 !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+    }
+    
+    #messagesContainer .msg-wrapper.sent .msg-bubble::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: -8px !important;
+        border: 8px solid transparent !important;
+        border-top-color: #e9edef !important;
+        border-left: 0 !important;
+    }
+    
+    #messagesContainer .msg-wrapper.received .msg-bubble::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        right: -8px !important;
+        border: 8px solid transparent !important;
+        border-top-color: #ffffff !important;
+        border-right: 0 !important;
+    }
+    
+    #messagesContainer .msg-bubble p {
+        margin: 0 !important;
+        font-size: 0.9rem !important;
+        line-height: 1.4 !important;
+        color: inherit !important;
+    }
+    
+    #messagesContainer .msg-time {
+        font-size: 0.6rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        margin-top: 4px !important;
+        float: right !important;
+        margin-left: 8px !important;
+    }
+    
+    #messagesContainer .msg-wrapper.sent .msg-time {
+        color: rgba(17, 27, 33, 0.6) !important;
+    }
+    
+    #messagesContainer .msg-wrapper.received .msg-time {
+        color: #667781 !important;
+    }
+    
+    @keyframes messageSlide {
+        from {
+            opacity: 0;
+            transform: translateY(8px) scale(0.96);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    #messagesContainer .msg-wrapper {
+        animation: messageSlide 0.2s ease !important;
+    }
+</style>
 <link rel="stylesheet" href="{{ asset('css/eleveurCSS/messages.css') }}">
 @endpush
 
@@ -123,6 +242,102 @@
     </div>
 </div>
 
+<style>
+    /* STYLES CRITIQUES POUR FORCER L'AFFICHAGE */
+    #messagesContainer {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding: 20px 24px !important;
+        gap: 6px !important;
+    }
+    
+    #messagesContainer .msg-wrapper {
+        display: flex !important;
+        width: 100% !important;
+        max-width: 70% !important;
+        margin-bottom: 6px !important;
+    }
+    
+    #messagesContainer .msg-wrapper.sent {
+        align-self: flex-start !important;
+        justify-content: flex-start !important;
+        margin-right: auto !important;
+    }
+    
+    #messagesContainer .msg-wrapper.received {
+        align-self: flex-end !important;
+        justify-content: flex-end !important;
+        margin-left: auto !important;
+    }
+    
+    #messagesContainer .msg-bubble {
+        padding: 8px 12px !important;
+        border-radius: 12px !important;
+        position: relative !important;
+        word-wrap: break-word !important;
+        max-width: 100% !important;
+    }
+    
+    #messagesContainer .msg-wrapper.sent .msg-bubble {
+        background: #e9edef !important;
+        border-radius: 12px 12px 12px 4px !important;
+        color: #111b21 !important;
+    }
+    
+    #messagesContainer .msg-wrapper.received .msg-bubble {
+        background: #ffffff !important;
+        border-radius: 12px 12px 4px 12px !important;
+        color: #111b21 !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.08) !important;
+    }
+    
+    #messagesContainer .msg-bubble p {
+        margin: 0 !important;
+        font-size: 0.9rem !important;
+        line-height: 1.4 !important;
+    }
+    
+    #messagesContainer .msg-time {
+        font-size: 0.6rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        margin-top: 4px !important;
+        float: right !important;
+        margin-left: 8px !important;
+    }
+    
+    #messagesContainer .msg-wrapper.sent .msg-time {
+        color: rgba(17,27,33,0.6) !important;
+    }
+    
+    #messagesContainer .msg-wrapper.received .msg-time {
+        color: #667781 !important;
+    }
+    
+    /* Flèches */
+    #messagesContainer .msg-wrapper.sent .msg-bubble::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: -8px !important;
+        border: 8px solid transparent !important;
+        border-top-color: #e9edef !important;
+        border-left: 0 !important;
+    }
+    
+    #messagesContainer .msg-wrapper.received .msg-bubble::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        right: -8px !important;
+        border: 8px solid transparent !important;
+        border-top-color: #ffffff !important;
+        border-right: 0 !important;
+    }
+</style>
+
 @push('scripts')
 <script>
 $(document).ready(function() {
@@ -226,7 +441,6 @@ $(document).ready(function() {
                 return;
             }
 
-            // Calculer le total des non-lus
             let totalUnread = 0;
 
             conversations.forEach(conv => {
@@ -293,7 +507,6 @@ $(document).ready(function() {
 
             messages.forEach(msg => {
                 const isMe = parseInt(msg.expediteur_id, 10) === currentUserId;
-                const msgClass = isMe ? 'message-sent' : 'message-received';
                 const time = msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
                 const readCheck = msg.lu ? '<i class="fas fa-check-double read"></i>' : '<i class="fas fa-check"></i>';
 
@@ -305,11 +518,16 @@ $(document).ready(function() {
                     contentHtml = `<a href="${msg.media_url}" target="_blank" class="message-file"><i class="fas fa-paperclip"></i> ${escapeHtml(msg.file_name || 'Fichier joint')}</a>`;
                 }
 
+                const wrapperClass = isMe ? 'sent' : 'received';
+                const bgColor = isMe ? '#e9edef' : '#ffffff';
+                const borderRadius = isMe ? '12px 12px 12px 4px' : '12px 12px 4px 12px';
+                const timeColor = isMe ? 'rgba(17,27,33,0.6)' : '#667781';
+                
                 const messageHtml = `
-                    <div class="message ${msgClass}">
-                        <div class="message-bubble">
+                    <div class="msg-wrapper ${wrapperClass}">
+                        <div class="msg-bubble" style="background: ${bgColor}; border-radius: ${borderRadius}; padding: 8px 12px; position: relative; word-wrap: break-word; max-width: 100%; box-shadow: ${isMe ? 'none' : '0 1px 2px rgba(0,0,0,0.08)'};">
                             ${contentHtml}
-                            <span class="message-time">${time} ${isMe ? readCheck : ''}</span>
+                            <span class="msg-time" style="font-size: 0.6rem; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; float: right; margin-left: 8px; color: ${timeColor};">${time} ${isMe ? readCheck : ''}</span>
                         </div>
                     </div>
                 `;
@@ -370,10 +588,10 @@ $(document).ready(function() {
 
         const timeNow = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         const tempHtml = `
-            <div class="message message-sent parsing-pending" style="opacity: 0.6;">
-                <div class="message-bubble">
-                    <p>${escapeHtml(contenu)}</p>
-                    <span class="message-time">${timeNow} <i class="fas fa-clock"></i></span>
+            <div class="msg-wrapper sent parsing-pending" style="opacity: 0.6;">
+                <div class="msg-bubble" style="background: #e9edef; border-radius: 12px 12px 12px 4px; padding: 8px 12px; position: relative;">
+                    <p style="margin: 0; font-size: 0.9rem; line-height: 1.4;">${escapeHtml(contenu)}</p>
+                    <span class="msg-time" style="font-size: 0.6rem; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; float: right; margin-left: 8px; color: rgba(17,27,33,0.6);">${timeNow} <i class="fas fa-clock"></i></span>
                 </div>
             </div>
         `;
@@ -567,10 +785,10 @@ $(document).ready(function() {
                     const conversation = document.getElementById('messagesContainer');
                     const timeNow = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     const tempHtml = `
-                        <div class="message message-sent parsing-pending">
-                            <div class="message-bubble">
-                                <img src="${event.target.result}" class="message-media" alt="Image partagée">
-                                <span class="message-time">${timeNow} <i class="fas fa-clock"></i></span>
+                        <div class="msg-wrapper sent parsing-pending">
+                            <div class="msg-bubble" style="background: #e9edef; border-radius: 12px 12px 12px 4px; padding: 8px 12px; position: relative;">
+                                <img src="${event.target.result}" class="message-media" alt="Image partagée" style="max-width: 250px; max-height: 300px; border-radius: 6px; margin-bottom: 4px;">
+                                <span class="msg-time" style="font-size: 0.6rem; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; float: right; margin-left: 8px; color: rgba(17,27,33,0.6);">${timeNow} <i class="fas fa-clock"></i></span>
                             </div>
                         </div>
                     `;

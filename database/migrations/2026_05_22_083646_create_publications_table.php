@@ -14,12 +14,15 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('titre', 200);
             $table->enum('categorie', ['experience', 'conseil', 'alerte'])->default('experience');
-            $table->text('contenu');
+            
+            // ✅ Rendre contenu nullable directement
+            $table->text('contenu')->nullable();
             
             // ✅ Stockage JSON pour les médias multiples
-            $table->json('images')->nullable();
-            $table->json('videos')->nullable();
-            $table->json('documents')->nullable();
+            
+            // $table->json('images')->nullable();
+            // $table->json('videos')->nullable();
+            // $table->json('documents')->nullable();
             
             $table->integer('nbr_likes')->default(0);
             $table->integer('nbr_commentaires')->default(0);

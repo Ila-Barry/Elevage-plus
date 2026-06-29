@@ -186,7 +186,13 @@
                     </div>
 
                     <div class="d-flex justify-content-center gap-3">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">❌ Annuler</button>
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                            onclick="window.location.reload();">
+                            ❌ Annuler
+                        </button>
                         <button type="submit" class="btn btn-success" id="addSubmitBtn">✅ Ajouter</button>
                     </div>
                 </form>
@@ -270,7 +276,13 @@
                     </div>
 
                     <div class="d-flex justify-content-center gap-3">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                            onclick="window.location.reload();">
+                            Annuler
+                        </button>
                         <button type="submit" class="btn btn-success" id="editSubmitBtn">Enregistrer</button>
                     </div>
                 </form>
@@ -825,19 +837,25 @@ async function toggleTask(taskId) {
 // ================= MODALE AJOUTER =================
 function openAddModal() {
     document.getElementById('addTaskForm').reset();
-    
-    const addAnimalSelect = document.getElementById('addAnimal');
-    if (addAnimalSelect) {
-        addAnimalSelect.value = ""; 
-    }
+
+    document.getElementById('addAnimal').value = "";
 
     const now = new Date();
     const localDatetime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
         .toISOString()
         .slice(0, 16);
+
     document.getElementById('addDate').value = localDatetime;
     document.getElementById('addError').style.display = 'none';
-    $('#addTaskModal').modal('show');
+
+    const modalEl = document.getElementById('addTaskModal');
+    let modal = bootstrap.Modal.getInstance(modalEl);
+
+    if (!modal) {
+        modal = new bootstrap.Modal(modalEl);
+    }
+
+    modal.show();
 }
 
 // ================= MODALE AJOUTER =================
@@ -881,22 +899,25 @@ document.getElementById('addTaskForm').addEventListener('submit', async function
     
     try {
         const result = await createTask(data);
-        if (result.status === 'success') {
-            // ✅ Fermer le modal
-            $('#addTaskModal').modal('hide');
-            
-            // ✅ Afficher un toast de succès
-            showToast('Tâche ajoutée avec succès !', 'success');
-            
-            // ✅ Recharger les données (rafraîchir la page)
-            await loadData();
-            
-            // ✅ Optionnel : recharger la page après un court délai
-            // setTimeout(() => location.reload(), 500);
-        } else {
-            errorDiv.textContent = result.message || 'Erreur lors de la création';
-            errorDiv.style.display = 'block';
-        }
+
+if (result.status === 'success' || result.success === true) {
+
+    const modal = bootstrap.Modal.getInstance(document.getElementById('addTaskModal'));
+
+    if (modal) {
+        modal.hide();
+    }
+
+    sessionStorage.setItem('toastSuccess', 'Tâche ajoutée avec succès !');
+
+    setTimeout(() => {
+        window.location.reload();
+    }, 300);
+
+} else {
+    errorDiv.textContent = result.message || 'Erreur lors de la création';
+    errorDiv.style.display = 'block';
+}
     } catch (error) {
         errorDiv.textContent = error.message || 'Erreur lors de la création';
         errorDiv.style.display = 'block';
@@ -1022,8 +1043,10 @@ document.getElementById('editTaskForm').addEventListener('submit', async functio
         const result = await updateTask(taskId, data);
         if (result.status === 'success' || result.success === true) {
             $('#editTaskModal').modal('hide');
-            showToast('Tâche modifiée avec succès !', 'success');
-            await loadData();
+            sessionStorage.setItem('toastSuccess', 'Tâche modifiée avec succès !');
+            setTimeout(() => {
+                window.location.reload();
+            }, 300);
         } else {
             errorDiv.textContent = result.message || 'Erreur lors de la modification';
             errorDiv.style.display = 'block';
