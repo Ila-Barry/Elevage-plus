@@ -14,7 +14,9 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('titre', 200);
             $table->enum('categorie', ['experience', 'conseil', 'alerte'])->default('experience');
-            $table->text('contenu');
+            
+            // ✅ Rendre contenu nullable directement
+            $table->text('contenu')->nullable();
             
             // ✅ Stockage JSON pour les médias multiples
             

@@ -1,19 +1,29 @@
 <!-- ================= SIDEBAR ================= -->
 <aside class="main-sidebar mt-5" id="sidebar">
 
-    <!-- CLOSE MOBILE -->
-    <button class="close-sidebar d-md-none" id="closeSidebar">
+    <!-- CLOSE SIDEBAR -->
+    <button class="close-sidebar" id="closeSidebar">
         <i class="fas fa-times"></i>
     </button>
 
     <!-- PROFIL UTILISATEUR DANS SIDEBAR -->
     <div class="sidebar-user d-none d-md-block">
+        @php
+            $user = auth()->user();
+            $avatar = $user?->photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($user?->name ?? 'User') . '&background=2e7d32&color=fff';
+        @endphp
         <div class="user-avatar">
-            <img src="https://i.pravatar.cc/100?u=jean_diagne" alt="Jean Diagne">
+            <img src="{{ $avatar }}" alt="{{ $user?->name ?? 'Utilisateur' }}">
         </div>
         <div class="user-info">
-            <h6>Jean Diagne</h6>
-            <span>Éleveur bovin</span>
+            <h6>{{ $user?->name ?? 'Utilisateur' }}</h6>
+            <span>{{ $user?->role ?? 'Éleveur' }}</span>
+            @if($user)
+                <div class="user-status">
+                    <i class="fas fa-circle"></i>
+                    <span>En ligne</span>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -103,34 +113,55 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        // OPEN SIDEBAR (déjà géré par le bouton dans la navbar)
-        // Mais on garde la compatibilité avec l'ancien bouton si présent
-        $('#menuToggle, #menuToggleBtn').on('click', function(e) {
-            e.stopPropagation();
-            $('#sidebar').toggleClass('open');
-        });
-
-        // CLOSE
+        // ================= GESTION DE LA SIDEBAR =================
+        // L'ouverture est gérée par le bouton dans la navbar
+        
+        // ================= FERMETURE =================
         $('#closeSidebar').on('click', function() {
             $('#sidebar').removeClass('open');
             $('#menuToggleBtn').find('i').removeClass('fa-times').addClass('fa-bars');
+            $('#sidebar-overlay').fadeOut(200);
         });
 
-        // ACTIVE LINK - Géré par les classes PHP, mais on garde le fallback
+        // ================= FERMETURE AVEC OVERLAY =================
+        $(document).on('click', '#sidebar-overlay', function() {
+            $('#sidebar').removeClass('open');
+            $('#menuToggleBtn').find('i').removeClass('fa-times').addClass('fa-bars');
+            $(this).fadeOut(200);
+        });
+
+        // ================= ACTIVE LINK =================
         $('.sidebar-item').on('click', function() {
             $('.sidebar-item').removeClass('active');
             $(this).addClass('active');
         });
 
-        // Fermer la sidebar en cliquant à l'extérieur (mobile)
+        // ================= FERMER EN CLIQUANT À L'EXTÉRIEUR (MOBILE) =================
         $(document).on('click', function(event) {
             if ($(window).width() <= 768) {
+                var sidebar = $('#sidebar');
+                var toggleBtn = $('#menuToggleBtn');
+                var overlay = $('#sidebar-overlay');
+                
                 if (!$(event.target).closest('#sidebar').length && 
                     !$(event.target).closest('#menuToggleBtn').length &&
-                    !$(event.target).closest('#menuToggle').length) {
-                    $('#sidebar').removeClass('open');
-                    $('#menuToggleBtn').find('i').removeClass('fa-times').addClass('fa-bars');
+                    sidebar.hasClass('open')) {
+                    
+                    sidebar.removeClass('open');
+                    toggleBtn.find('i').removeClass('fa-times').addClass('fa-bars');
+                    if (overlay.length) {
+                        overlay.fadeOut(200);
+                    }
                 }
+            }
+        });
+
+        // ================= REDIMENSIONNEMENT =================
+        $(window).on('resize', function() {
+            if ($(window).width() > 768) {
+                $('#sidebar').removeClass('open');
+                $('#menuToggleBtn').find('i').removeClass('fa-times').addClass('fa-bars');
+                $('#sidebar-overlay').remove();
             }
         });
     });

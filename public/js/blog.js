@@ -1026,8 +1026,13 @@ function handlePublishSubmit(event) {
         return;
     }
     
-    if (!content || content === '' || content.length < 10) {
-        showToast('⚠️ Le contenu doit contenir au moins 10 caractères', 'warning');
+    var totalFiles =
+    state.uploadedFiles.images.length +
+    state.uploadedFiles.videos.length +
+    state.uploadedFiles.documents.length;
+
+    if (content === '' && totalFiles === 0) {
+        showToast('Veuillez saisir un contenu ou ajouter au moins un fichier.', 'warning');
         contentTextarea.focus();
         return;
     }
