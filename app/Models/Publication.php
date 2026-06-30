@@ -5,7 +5,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Storage;
 
 class Publication extends Model
@@ -17,6 +16,9 @@ class Publication extends Model
         'titre',
         'categorie',
         'contenu',
+        'images',      
+        'videos',      
+        'documents',   
         'image_url',
         'video_url',
         'fichier_url',
@@ -32,14 +34,15 @@ class Publication extends Model
     ];
 
     protected $casts = [
+        'images' => 'array',
+        'videos' => 'array',
+        'documents' => 'array',
         'nbr_likes' => 'integer',
         'nbr_commentaires' => 'integer',
         'nbr_partages' => 'integer',
         'nbr_vues' => 'integer',
         'nbr_signalements' => 'integer',
         'published_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
 
     protected $attributes = [
@@ -47,124 +50,89 @@ class Publication extends Model
     ];
 
     // ============================================================
-    // ACCESSORS CORRIGÉS - Version finale
+    // ACCESSORS - Version avec fallback sur les anciennes colonnes
     // ============================================================
 
-    /**
-     * Accesseur pour la première image
-     * Retourne l'URL complète de la première image
-     */
-    public function getImageUrlAttribute($value)
+    public function getImagesAttribute($value)
     {
-        if (!$value) {
-            return null;
-        }
-        $first = explode(',', $value)[0];
-        $first = trim($first);
-        
-        // Si l'URL est déjà complète, la retourner
-        if (filter_var($first, FILTER_VALIDATE_URL)) {
-            return $first;
+        // ✅ Si la nouvelle colonne JSON a des données, les utiliser
+        if (!empty($value)) {
+            $images = is_array($value) ? $value : json_decode($value, true);
+            if (is_array($images) && count($images) > 0) {
+                return array_map([$this, 'formatUrl'], $images);
+            }
         }
         
-        // ✅ CORRECTION: Supprimer le préfixe 'storage/' s'il existe déjà
-        $path = $first;
-        if (str_starts_with($path, 'storage/')) {
-            $path = substr($path, 8); // Enlever 'storage/'
+        // ✅ Fallback sur l'ancienne colonne image_url
+        if (!empty($this->image_url)) {
+            $oldImages = explode(',', $this->image_url);
+            return array_map([$this, 'formatUrl'], array_map('trim', $oldImages));
         }
         
+        return [];
+    }
+
+    public function getVideosAttribute($value)
+    {
+        if (!empty($value)) {
+            $videos = is_array($value) ? $value : json_decode($value, true);
+            if (is_array($videos) && count($videos) > 0) {
+                return array_map([$this, 'formatUrl'], $videos);
+            }
+        }
+        
+        if (!empty($this->video_url)) {
+            $oldVideos = explode(',', $this->video_url);
+            return array_map([$this, 'formatUrl'], array_map('trim', $oldVideos));
+        }
+        
+        return [];
+    }
+
+    public function getDocumentsAttribute($value)
+    {
+        if (!empty($value)) {
+            $documents = is_array($value) ? $value : json_decode($value, true);
+            if (is_array($documents) && count($documents) > 0) {
+                return array_map(function($doc) {
+                    return [
+                        'url' => $this->formatUrl($doc['url'] ?? $doc),
+                        'nom' => $doc['nom'] ?? 'Fichier'
+                    ];
+                }, $documents);
+            }
+        }
+        
+        if (!empty($this->fichier_url)) {
+            $urls = explode(',', $this->fichier_url);
+            $names = !empty($this->fichier_nom) ? explode(',', $this->fichier_nom) : [];
+            return array_map(function($index, $url) use ($names) {
+                return [
+                    'url' => $this->formatUrl(trim($url)),
+                    'nom' => isset($names[$index]) ? trim($names[$index]) : 'Fichier ' . ($index + 1)
+                ];
+            }, array_keys($urls), $urls);
+        }
+        
+        return [];
+    }
+
+    private function formatUrl($path)
+    {
+        if (empty($path)) {
+            return '';
+        }
+        
+        $path = trim($path);
+        
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+        
+        $path = preg_replace('#^/?storage/#', '', $path);
         return asset('storage/' . $path);
     }
 
-    /**
-     * Accesseur pour toutes les images (tableau)
-     */
-    public function getImagesAttribute()
-    {
-        if (!$this->image_url) {
-            return [];
-        }
-        
-        $urls = explode(',', $this->image_url);
-        return array_map(function ($url) {
-            $url = trim($url);
-            
-            // Si l'URL est déjà complète
-            if (filter_var($url, FILTER_VALIDATE_URL)) {
-                return $url;
-            }
-            
-            // ✅ CORRECTION: Supprimer le préfixe 'storage/' s'il existe déjà
-            $path = $url;
-            if (str_starts_with($path, 'storage/')) {
-                $path = substr($path, 8);
-            }
-            
-            return asset('storage/' . $path);
-        }, $urls);
-    }
-
-    /**
-     * Accesseur pour les URLs des vidéos (tableau)
-     */
-    public function getVideosAttribute()
-    {
-        if (!$this->video_url) {
-            return [];
-        }
-        
-        $urls = explode(',', $this->video_url);
-        return array_map(function ($url) {
-            $url = trim($url);
-            
-            if (filter_var($url, FILTER_VALIDATE_URL)) {
-                return $url;
-            }
-            
-            $path = $url;
-            if (str_starts_with($path, 'storage/')) {
-                $path = substr($path, 8);
-            }
-            
-            return asset('storage/' . $path);
-        }, $urls);
-    }
-
-    /**
-     * Accesseur pour les fichiers (tableau avec nom et url)
-     */
-    public function getFichiersAttribute()
-    {
-        if (!$this->fichier_url) {
-            return [];
-        }
-        
-        $urls = explode(',', $this->fichier_url);
-        $names = $this->fichier_nom ? explode(',', $this->fichier_nom) : [];
-        
-        return array_map(function ($index, $url) use ($names) {
-            $url = trim($url);
-            
-            if (filter_var($url, FILTER_VALIDATE_URL)) {
-                $fullUrl = $url;
-            } else {
-                $path = $url;
-                if (str_starts_with($path, 'storage/')) {
-                    $path = substr($path, 8);
-                }
-                $fullUrl = asset('storage/' . $path);
-            }
-            
-            return [
-                'url' => $fullUrl,
-                'nom' => isset($names[$index]) ? trim($names[$index]) : 'Fichier ' . ($index + 1)
-            ];
-        }, array_keys($urls), $urls);
-    }
-
-    /**
-     * Accesseur pour le résumé du contenu
-     */
     public function getResumeAttribute()
     {
         $text = strip_tags($this->contenu);
@@ -190,28 +158,6 @@ class Publication extends Model
         return $this->hasMany(Like::class);
     }
 
-    public function reports()
-    {
-        return $this->hasMany(Report::class);
-    }
-
-    public function shares()
-    {
-        return $this->hasMany(Share::class);
-    }
-
-    public function isLikedByUser(?User $user): bool
-    {
-        if (!$user) return false;
-        return $this->likes()->where('user_id', $user->id)->exists();
-    }
-
-    public function isReportedByUser(?User $user): bool
-    {
-        if (!$user) return false;
-        return $this->reports()->where('user_id', $user->id)->exists();
-    }
-
     // ============================================================
     // SCOPES
     // ============================================================
@@ -221,34 +167,9 @@ class Publication extends Model
         return $query->where('statut', 'publiee');
     }
 
-    public function scopeReported($query)
-    {
-        return $query->where('statut', 'signalee');
-    }
-
-    public function scopeBlocked($query)
-    {
-        return $query->where('statut', 'bloquee');
-    }
-
     public function scopeByCategory($query, string $categorie)
     {
         return $query->where('categorie', $categorie);
-    }
-
-    public function scopeMostLiked($query, int $limit = 10)
-    {
-        return $query->orderBy('nbr_likes', 'desc')->limit($limit);
-    }
-
-    public function scopeMostViewed($query, int $limit = 10)
-    {
-        return $query->orderBy('nbr_vues', 'desc')->limit($limit);
-    }
-
-    public function scopeRecent($query, int $limit = 10)
-    {
-        return $query->orderBy('published_at', 'desc')->limit($limit);
     }
 
     // ============================================================
@@ -260,52 +181,14 @@ class Publication extends Model
         $this->increment('nbr_vues');
     }
 
-    public function incrementLikes(): void
+    public function isLikedByUser(?User $user): bool
     {
-        $this->increment('nbr_likes');
+        if (!$user) return false;
+        return $this->likes()->where('user_id', $user->id)->exists();
     }
 
-    public function decrementLikes(): void
+    public function canManage(User $user): bool
     {
-        $this->decrement('nbr_likes');
-    }
-
-    public function incrementCommentaires(): void
-    {
-        $this->increment('nbr_commentaires');
-    }
-
-    public function decrementCommentaires(): void
-    {
-        $this->decrement('nbr_commentaires');
-    }
-
-    public function incrementPartages(): void
-    {
-        $this->increment('nbr_partages');
-    }
-
-    public function incrementSignalements(): void
-    {
-        $this->increment('nbr_signalements');
-        if ($this->nbr_signalements >= 5 && $this->statut === 'publiee') {
-            $this->update(['statut' => 'signalee']);
-        }
-    }
-
-    public function block(string $raison): void
-    {
-        $this->update([
-            'statut' => 'bloquee',
-            'raison_blocage' => $raison,
-        ]);
-    }
-
-    public function unblock(): void
-    {
-        $this->update([
-            'statut' => 'publiee',
-            'raison_blocage' => null,
-        ]);
+        return $this->user_id === $user->id || $user->role === 'admin';
     }
 }

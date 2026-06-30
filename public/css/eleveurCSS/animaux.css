@@ -469,7 +469,8 @@
 
 .form-control {
     width: 100%;
-    padding: 10px 12px;
+    padding: 0 12px;
+    height: 39px;
     border: 1px solid #ddd;
     border-radius: 10px;
     font-size: 14px;

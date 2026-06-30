@@ -30,9 +30,9 @@ class CreatePublicationRequest extends ApiRequest
                 'in:experience,conseil,alerte',
             ],
             'contenu' => [
-                'required',
+                'nullable',
                 'string',
-                'min:10',
+                'min:2',
                 'max:1000000',
             ],
             // ✅ Images multiples
@@ -84,8 +84,8 @@ class CreatePublicationRequest extends ApiRequest
             'categorie.required' => 'La catégorie est obligatoire.',
             'categorie.in' => 'La catégorie sélectionnée n\'est pas valide.',
             
-            'contenu.required' => 'Le contenu est obligatoire.',
-            'contenu.min' => 'Le contenu doit contenir au moins 10 caractères.',
+            // 'contenu.required' => 'Le contenu est obligatoire.',
+            'contenu.min' => 'Le contenu doit contenir au moins 2 caractères.',
             'contenu.max' => 'Le contenu ne peut pas dépasser 1 million de caractères.',
             
             'images.max' => 'Vous ne pouvez pas ajouter plus de 5 images.',
