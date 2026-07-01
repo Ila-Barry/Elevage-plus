@@ -1,4 +1,3 @@
-
 /* ====================================================
    publication.css – Gestion des publications
    Styles spécifiques à la page admin/publication
@@ -330,6 +329,38 @@
     padding: 1rem 1.5rem;
 }
 
+/* ---------- CLASSES UTILITAIRES SPÉCIFIQUES ---------- */
+/* Ces classes sont directement utilisées dans le Blade */
+.bg-success-soft { background-color: #e8f5e9 !important; }
+.bg-warning-soft { background-color: #fff3e0 !important; }
+.bg-danger-soft  { background-color: #ffebee !important; }
+.text-success { color: #2e7d32 !important; }
+.text-warning { color: #ef6c00 !important; }
+.text-danger  { color: #c62828 !important; }
+.extra-small { font-size: 0.75rem; }
+
+/* Pour les boutons d'action du tableau (carrés avec icônes) */
+.btn-circle-sm {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #dee2e6;
+    background: #f8f9fa;
+    color: #495057;
+    transition: all 0.15s;
+}
+.btn-circle-sm:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+.btn-circle-sm.view:hover { color: #0d6efd; background: #e7f0ff; }
+.btn-circle-sm.edit:hover { color: #fd7e14; background: #fff3e6; }
+.btn-circle-sm.delete:hover { color: #dc3545; background: #ffe9e9; }
+
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 991.98px) {
     .page-title {
@@ -395,5 +426,4 @@
         height: 30px;
         font-size: 0.8rem;
     }
-
 }
