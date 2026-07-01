@@ -384,50 +384,61 @@ async function loadPosts(page, category) {
 }
 
 // ============================================================
-// CHARGEMENT DES STATISTIQUES
+// CHARGEMENT DES STATISTIQUES 
 // ============================================================
 
 async function loadStats() {
     try {
         var result = await apiCall('/home/stats');
         
-        if (result.success === true && result.data) {
-            var stats = result.data;
+        console.log('📊 Réponse stats brute:', result);
+        
+        if (result && result.success === true && result.data) {
+            var stats = result.data; // C'est ici que ApiResponseTrait stocke l'objet
             
-            var users = stats.total_users || stats.users || 0;
-            var posts = stats.total_posts || stats.posts || 0;
-            var likes = stats.total_likes || stats.likes || 0;
-            var comments = stats.total_comments || stats.comments || 0;
+            // Extraction stricte et typée des données renvoyées par le contrôleur
+            var users = stats.total_users ?? 0;
+            var posts = stats.total_posts ?? 0;
+            var likes = stats.total_likes ?? 0;
+            var comments = stats.total_comments ?? 0;
             
-            document.getElementById('statUsers').textContent = users;
-            document.getElementById('statPosts').textContent = posts;
-            document.getElementById('statLikes').textContent = likes > 1000 ? (likes / 1000).toFixed(1) + 'k' : likes;
-            document.getElementById('statComments').textContent = comments > 1000 ? (comments / 1000).toFixed(1) + 'k' : comments;
+            console.log('📊 Données extraites:', { users, posts, likes, comments });
             
-            log('✅ Statistiques chargées', stats);
+            // Mise à jour sécurisée du DOM
+            var usersEl = document.getElementById('statUsers');
+            var postsEl = document.getElementById('statPosts');
+            var likesEl = document.getElementById('statLikes');
+            var commentsEl = document.getElementById('statComments');
+            
+            if (usersEl) usersEl.textContent = users;
+            if (postsEl) postsEl.textContent = posts;
+            if (likesEl) likesEl.textContent = likes > 1000 ? (likes / 1000).toFixed(1) + 'k' : likes;
+            if (commentsEl) commentsEl.textContent = comments > 1000 ? (comments / 1000).toFixed(1) + 'k' : comments;
+            
+            log('✅ Statistiques chargées avec succès depuis l\'API');
         } else {
-            // Fallback avec les données du serveur
-            var serverStats = {!! json_encode($stats ?? []) !!};
-            if (serverStats) {
-                document.getElementById('statUsers').textContent = serverStats.total_users || 0;
-                document.getElementById('statPosts').textContent = serverStats.total_posts || 0;
-                var likes = serverStats.total_likes || 0;
-                document.getElementById('statLikes').textContent = likes > 1000 ? (likes / 1000).toFixed(1) + 'k' : likes;
-                var comments = serverStats.total_comments || 0;
-                document.getElementById('statComments').textContent = comments > 1000 ? (comments / 1000).toFixed(1) + 'k' : comments;
-            }
+            useServerFallbackStats();
         }
     } catch (error) {
-        logError('Erreur chargement statistiques', error);
-        var serverStats = {!! json_encode($stats ?? []) !!};
-        if (serverStats) {
-            document.getElementById('statUsers').textContent = serverStats.total_users || 0;
-            document.getElementById('statPosts').textContent = serverStats.total_posts || 0;
-            var likes = serverStats.total_likes || 0;
-            document.getElementById('statLikes').textContent = likes > 1000 ? (likes / 1000).toFixed(1) + 'k' : likes;
-            var comments = serverStats.total_comments || 0;
-            document.getElementById('statComments').textContent = comments > 1000 ? (comments / 1000).toFixed(1) + 'k' : comments;
-        }
+        logError('Erreur lors du chargement des statistiques via API', error);
+        useServerFallbackStats();
+    }
+}
+
+// Fonction de secours utilisant les variables injectées par Blade au premier chargement
+function useServerFallbackStats() {
+    log('⚠️ Mode secours : Chargement des statistiques serveur (Blade)');
+    var serverStats = {!! json_encode($stats ?? []) !!};
+    if (serverStats) {
+        var users = serverStats.total_users ?? 0;
+        var posts = serverStats.total_posts ?? 0;
+        var likes = serverStats.total_likes ?? 0;
+        var comments = serverStats.total_comments ?? 0;
+
+        if (document.getElementById('statUsers')) document.getElementById('statUsers').textContent = users;
+        if (document.getElementById('statPosts')) document.getElementById('statPosts').textContent = posts;
+        if (document.getElementById('statLikes')) document.getElementById('statLikes').textContent = likes > 1000 ? (likes / 1000).toFixed(1) + 'k' : likes;
+        if (document.getElementById('statComments')) document.getElementById('statComments').textContent = comments > 1000 ? (comments / 1000).toFixed(1) + 'k' : comments;
     }
 }
 
