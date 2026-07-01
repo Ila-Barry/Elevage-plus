@@ -47,13 +47,15 @@
         <!-- CALENDRIER -->
         <div class="calendar-card">
             <div class="calendar-top">
-                <button class="calendar-nav" onclick="changeMonth(-1)">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <h3 id="currentMonthYear">MAI 2026</h3>
-                <button class="calendar-nav" onclick="changeMonth(1)">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+                <button class="calendar-nav" onclick="changeWeek(-1)">
+    <i class="fas fa-chevron-left"></i>
+</button>
+
+<h3 id="currentMonthYear"></h3>
+
+<button class="calendar-nav" onclick="changeWeek(1)">
+    <i class="fas fa-chevron-right"></i>
+</button>
             </div>
 
             <table class="calendar-table">
@@ -186,7 +188,13 @@
                     </div>
 
                     <div class="d-flex justify-content-center gap-3">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">❌ Annuler</button>
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                            onclick="window.location.reload();">
+                            ❌ Annuler
+                        </button>
                         <button type="submit" class="btn btn-success" id="addSubmitBtn">✅ Ajouter</button>
                     </div>
                 </form>
@@ -270,7 +278,13 @@
                     </div>
 
                     <div class="d-flex justify-content-center gap-3">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                            onclick="window.location.reload();">
+                            Annuler
+                        </button>
                         <button type="submit" class="btn btn-success" id="editSubmitBtn">Enregistrer</button>
                     </div>
                 </form>
@@ -308,52 +322,85 @@
 </div>
 
 <script>
-// ================= CONFIGURATION & FIX AUTHENTIFICATION =================
+// =====================================================
+// CONFIGURATION API & AUTH
+// =====================================================
+
 const API_URL = window.location.origin + '/api';
+
+// CSRF (utile si routes web, sinon API token suffit)
 const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+// Token API (JWT / Sanctum)
 const rawToken = localStorage.getItem('access_token');
 const token = rawToken ? rawToken.replace(/^"(.*)"$/, '$1') : null;
 
-console.log('🔍 Configuration Taches:', { API_URL, token: token ? '✅ Présent' : '❌ Absent' });
+console.log('🔍 Taches init:', {
+    API_URL,
+    token: token ? 'OK' : 'MISSING'
+});
 
-// ================= VARIABLES =================
-let tasks = [];
-let animals = [];
+
+// =====================================================
+// VARIABLES GLOBALES
+// =====================================================
+
+let tasks = [];              // liste des tâches
+let animals = [];            // liste des animaux
+
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
-let currentView = 'month';
+
+let currentView = 'month';   // month | week | day
+let weekOffset = 0;          // navigation semaine
+
 let toastTimeout = null;
 
-// ================= FONCTIONS TOAST =================
+
+// =====================================================
+// TOAST NOTIFICATIONS
+// =====================================================
+
 function showToast(message, type = 'info') {
-    const existingToast = document.querySelector('.custom-toast');
-    if (existingToast) existingToast.remove();
+
+    // supprimer ancien toast
+    document.querySelector('.custom-toast')?.remove();
     if (toastTimeout) clearTimeout(toastTimeout);
-    
+
     const toast = document.createElement('div');
     toast.className = `custom-toast ${type}`;
-    
-    let icon = 'fa-info-circle';
-    if (type === 'success') icon = 'fa-check-circle';
-    else if (type === 'danger') icon = 'fa-exclamation-circle';
-    else if (type === 'warning') icon = 'fa-exclamation-triangle';
-    
-    toast.innerHTML = `<div class="toast-content"><i class="fas ${icon}"></i><span>${message}</span></div>`;
+
+    const icons = {
+        success: 'fa-check-circle',
+        danger: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="fas ${icons[type] || icons.info}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => toast.classList.add('show'), 10);
-    
+
     toastTimeout = setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
 
-// ================= API CALLS =================
+
+// =====================================================
+// APIS - FETCH TASKS
+// =====================================================
+
 async function fetchTasks() {
     try {
-        console.log('📤 Récupération des tâches...');
-        
         const response = await fetch(`${API_URL}/taches`, {
             method: 'GET',
             headers: {
@@ -364,29 +411,27 @@ async function fetchTasks() {
         });
 
         const result = await response.json();
-        console.log('📥 Réponse brute tâches:', result);
 
-        if (!response.ok) {
-            throw result;
-        }
+        if (!response.ok) throw result;
 
-        if (result.status === 'success' || result.success === true) {
-            const data = result.data?.data || result.data || [];
-            console.log('✅ Tâches extraites:', data.length);
-            return { status: 'success', data: data };
-        }
+        // compat backend (data ou data.data)
+        const data = result.data?.data || result.data || [];
 
-        return { status: 'error', data: [] };
+        return { status: 'success', data };
+
     } catch (error) {
-        console.error('❌ Erreur fetch taches:', error);
-        throw error;
+        console.error('❌ fetchTasks error:', error);
+        return { status: 'error', data: [] };
     }
 }
 
+
+// =====================================================
+// APIS - FETCH ANIMALS
+// =====================================================
+
 async function fetchAnimals() {
     try {
-        console.log('📤 Récupération des animaux...');
-        
         const response = await fetch(`${API_URL}/animaux?per_page=50`, {
             method: 'GET',
             headers: {
@@ -397,90 +442,79 @@ async function fetchAnimals() {
         });
 
         const result = await response.json();
-        console.log('📥 Réponse animaux:', result);
 
-        if (!response.ok) {
-            throw result;
-        }
+        if (!response.ok) throw result;
 
-        if (result.success === true) {
-            const animalsData = result.data?.data || result.data || [];
-            console.log('✅ Animaux extraits:', animalsData.length);
-            return { success: true, data: animalsData };
-        }
+        const data = result.data?.data || result.data || [];
 
-        return { success: false, data: [] };
+        return { success: true, data };
+
     } catch (error) {
-        console.error('❌ Erreur fetch animaux:', error);
-        throw error;
+        console.error('❌ fetchAnimals error:', error);
+        return { success: false, data: [] };
     }
 }
 
-async function createTask(data) {
-    try {
-        const response = await fetch(`${API_URL}/taches`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + token,
-                'X-CSRF-TOKEN': CSRF_TOKEN
-            },
-            body: JSON.stringify(data)
-        });
 
-        const result = await response.json();
-        if (!response.ok) throw result;
-        return result;
-    } catch (error) {
-        console.error('❌ Erreur création tache:', error);
-        throw error;
-    }
+// =====================================================
+// CREATE / UPDATE / DELETE TASK
+// =====================================================
+
+async function createTask(data) {
+    const response = await fetch(`${API_URL}/taches`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + token,
+            'X-CSRF-TOKEN': CSRF_TOKEN
+        },
+        body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw result;
+    return result;
 }
 
 async function updateTask(id, data) {
-    try {
-        const response = await fetch(`${API_URL}/taches/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + token,
-                'X-CSRF-TOKEN': CSRF_TOKEN
-            },
-            body: JSON.stringify(data)
-        });
+    const response = await fetch(`${API_URL}/taches/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + token,
+            'X-CSRF-TOKEN': CSRF_TOKEN
+        },
+        body: JSON.stringify(data)
+    });
 
-        const result = await response.json();
-        if (!response.ok) throw result;
-        return result;
-    } catch (error) {
-        console.error('❌ Erreur mise à jour tache:', error);
-        throw error;
-    }
+    const result = await response.json();
+    if (!response.ok) throw result;
+    return result;
 }
 
 async function deleteTask(id) {
-    try {
-        const response = await fetch(`${API_URL}/taches/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + token,
-                'X-CSRF-TOKEN': CSRF_TOKEN
-            }
-        });
+    const response = await fetch(`${API_URL}/taches/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + token,
+            'X-CSRF-TOKEN': CSRF_TOKEN
+        }
+    });
 
-        const result = await response.json();
-        if (!response.ok) throw result;
-        return result;
-    } catch (error) {
-        console.error('❌ Erreur suppression tache:', error);
-        throw error;
-    }
+    const result = await response.json();
+    if (!response.ok) throw result;
+    return result;
 }
 
+// =====================================================
+// MARQUER UNE TÂCHE COMME TERMINÉE / NON TERMINÉE
+// =====================================================
+
 async function toggleTaskComplete(id) {
+
     try {
         const response = await fetch(`${API_URL}/taches/${id}/complete`, {
             method: 'PATCH',
@@ -492,305 +526,162 @@ async function toggleTaskComplete(id) {
         });
 
         const result = await response.json();
+
         if (!response.ok) throw result;
+
+        // 🔄 recharge l'interface après changement
+        await loadData();
+
+        showToast('Statut mis à jour', 'success');
+
         return result;
+
     } catch (error) {
-        console.error('❌ Erreur toggle tache:', error);
-        throw error;
+        console.error('toggleTaskComplete error:', error);
+        showToast('Erreur lors de la mise à jour du statut', 'danger');
     }
 }
 
-// ================= CHARGEMENT DES DONNÉES =================
+// =====================================================
+// DÉPLACER UNE TÂCHE (DRAG & DROP CALENDRIER)
+// =====================================================
+
+async function moveTask(id, date) {
+
+    try {
+        await updateTask(id, {
+            date_planifiee: date
+        });
+
+        showToast('Tâche déplacée avec succès', 'success');
+
+        // 🔄 met à jour calendrier + listes
+        await loadData();
+
+    } catch (error) {
+        console.error('moveTask error:', error);
+        showToast('Erreur déplacement tâche', 'danger');
+    }
+}
+
+// =====================================================
+// CHARGEMENT GLOBAL
+// =====================================================
+
 async function loadData() {
     try {
-        console.log('🔄 Début chargement des données...');
-        
         const tasksResult = await fetchTasks();
-        if (tasksResult.status === 'success') {
-            tasks = tasksResult.data || [];
-        } else {
-            tasks = [];
-        }
+        tasks = tasksResult.data || [];
 
         const animalsResult = await fetchAnimals();
-        if (animalsResult.success === true) {
-            animals = animalsResult.data || [];
-            populateAnimalSelects();
-        } else {
-            animals = [];
-        }
+        animals = animalsResult.data || [];
 
+        populateAnimalSelects();
         renderAll();
-        console.log('✅ Chargement terminé');
+
     } catch (error) {
-        console.error('❌ Erreur chargement données:', error);
-        showToast('Erreur lors du chargement des données', 'danger');
+        console.error(error);
+        showToast('Erreur chargement données', 'danger');
     }
 }
 
-// ================= POPULER LES SELECTS D'ANIMAUX =================
+
+// =====================================================
+// SELECT ANIMALS
+// =====================================================
+
 function populateAnimalSelects() {
-    const selects = ['addAnimal', 'editAnimal'];
-    
-    selects.forEach(selectId => {
-        const select = document.getElementById(selectId);
+    ['addAnimal', 'editAnimal'].forEach(id => {
+
+        const select = document.getElementById(id);
         if (!select) return;
-        
-        select.innerHTML = '';
-        
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.textContent = 'Sélectionner un animal';
-        defaultOption.selected = true;
-        defaultOption.disabled = true;
-        select.appendChild(defaultOption);
-        
-        if (!Array.isArray(animals) || animals.length === 0) {
-            const noOption = document.createElement('option');
-            noOption.value = '';
-            noOption.textContent = '❌ Aucun animal disponible';
-            noOption.disabled = true;
-            select.appendChild(noOption);
-            return;
-        }
-        
-        animals.forEach(animal => {
+
+        select.innerHTML = `<option value="">Sélectionner un animal</option>`;
+
+        animals.forEach(a => {
             const option = document.createElement('option');
-            option.value = animal.id;
-            const nom = animal.nom || `Animal #${animal.id}`;
-            const espece = animal.espece_label || animal.espece || '';
-            option.textContent = espece ? `${nom} (${espece})` : nom;
+            option.value = a.id;
+            option.textContent = `${a.nom || 'Animal'} (${a.espece || ''})`;
             select.appendChild(option);
         });
     });
 }
 
-// ================= CALENDRIER =================
-function renderCalendar() {
-    const firstDay = new Date(currentYear, currentMonth, 1);
-    const lastDay = new Date(currentYear, currentMonth + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startDayOfWeek = firstDay.getDay();
-    const startOffset = (startDayOfWeek === 0) ? 6 : startDayOfWeek - 1;
-    
-    const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
-                        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-    document.getElementById('currentMonthYear').textContent = 
-        monthNames[currentMonth] + ' ' + currentYear;
-    
-    let html = '';
-    let day = 1;
-    let row = 0;
-    let started = false;
-    
-    while (day <= daysInMonth || !started) {
-        html += '<tr>';
-        for (let col = 0; col < 7; col++) {
-            if (row === 0 && col < startOffset) {
-                const prevMonthDays = new Date(currentYear, currentMonth, 0).getDate();
-                const prevDay = prevMonthDays - startOffset + col + 1;
-                html += `<td class="other-month">${prevDay}</td>`;
-            } else if (day <= daysInMonth) {
-                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const hasTask = tasks.some(t => t.date_planifiee && t.date_planifiee.startsWith(dateStr) && !t.terminee);
-                const isToday = dateStr === new Date().toISOString().split('T')[0];
-                const classes = [];
-                if (hasTask) classes.push('task-day');
-                if (isToday) classes.push('today');
-                html += `<td class="${classes.join(' ')}" onclick="selectDate('${dateStr}')">${day}</td>`;
-                day++;
-                started = true;
-            } else {
-                const nextDay = day - daysInMonth;
-                html += `<td class="other-month">${nextDay}</td>`;
-                day++;
-            }
+
+// =====================================================
+// CHANGER LA SEMAINE DU CALENDRIER
+// =====================================================
+// Permet de naviguer avec les flèches gauche / droite
+
+function changeWeek(delta) {
+
+    // Si on est en affichage mois
+    if (currentView === 'month') {
+
+        // changer le mois
+        currentMonth += delta;
+
+
+        // gérer changement année
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
         }
-        html += '</tr>';
-        row++;
+
+
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+
     }
-    
-    document.getElementById('calendarBody').innerHTML = html;
+
+    // Si on est en semaine
+    else if (currentView === 'week') {
+
+        weekOffset += delta;
+
+    }
+
+
+    renderCalendar();
+
 }
 
-function changeMonth(delta) {
-    currentMonth += delta;
-    if (currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
-    } else if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-    }
-    renderCalendar();
-    renderUpcomingTasks();
-    renderTodayTasks();
-    updateStats();
-}
+
+// =====================================================
+// SWITCH VIEW
+// =====================================================
 
 function switchView(view) {
     currentView = view;
+
+    // reset semaine si month
+    if (view === 'month') weekOffset = 0;
+
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.view === view);
     });
+
     renderCalendar();
-    showToast(`Vue: ${view.charAt(0).toUpperCase() + view.slice(1)}`, 'info');
+    showToast(`Vue ${view}`, 'info');
 }
 
-function selectDate(dateStr) {
-    const date = new Date(dateStr + 'T00:00:00');
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    showToast(`📅 ${date.toLocaleDateString('fr-FR', options)}`, 'info');
-    document.querySelector('.today-card').scrollIntoView({ behavior: 'smooth' });
-}
 
-// ================= TÂCHES À VENIR =================
-function renderUpcomingTasks() {
-    const container = document.getElementById('upcomingTasks');
-    const today = new Date().toISOString().split('T')[0];
-    
-    const upcoming = tasks
-        .filter(t => {
-            if (t.terminee) return false;
-            if (!t.date_planifiee) return false;
-            return t.date_planifiee >= today;
-        })
-        .sort((a, b) => a.date_planifiee.localeCompare(b.date_planifiee))
-        .slice(0, 10);
-    
-    if (upcoming.length === 0) {
-        container.innerHTML = `
-            <li style="padding: 12px 14px; color: #6c757d; text-align: center;">
-                <i class="fas fa-check-circle" style="color: #28a745;"></i> Aucune tâche à venir
-            </li>
-        `;
-        return;
-    }
-    
-    container.innerHTML = upcoming.map(t => {
-        const date = new Date(t.date_planifiee);
-        const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-        const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        const animalNom = t.animal?.nom || 'N/A';
-        const typeLabel = t.type_label || t.type || 'Tâche';
-        
-        return `
-            <li style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #f0f0f0;">
-                <div style="flex: 1; cursor: pointer;" onclick="selectTask(${t.id})">
-                    <div style="font-size: 13px; font-weight: 600; color: #198754;">
-                        ${dateStr} ${timeStr} - ${typeLabel}
-                    </div>
-                    <div style="font-size: 12px; color: #6c757d;">${t.titre || t.description || animalNom}</div>
-                </div>
-                <div style="display: flex; gap: 6px;">
-                    <button onclick="event.stopPropagation(); openEditModal(${t.id})" 
-                            style="background: #fff3cd; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; color: #856404;">
-                        <i class="fas fa-pen" style="font-size: 11px;"></i>
-                    </button>
-                    <button onclick="event.stopPropagation(); openDeleteModal(${t.id})" 
-                            style="background: #f8d7da; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; color: #dc3545;">
-                        <i class="fas fa-trash" style="font-size: 11px;"></i>
-                    </button>
-                </div>
-            </li>
-        `;
-    }).join('');
-}
+// =====================================================
+// CALENDAR RENDER
+// =====================================================
 
-// ================= TÂCHES DU JOUR =================
-function renderTodayTasks() {
-    const container = document.getElementById('todayTasks');
-    const today = new Date().toISOString().split('T')[0];
-    
-    const todayTasks = tasks.filter(t => {
-        if (!t.date_planifiee) return false;
-        return t.date_planifiee.startsWith(today);
-    });
-    
-    const dateObj = new Date(today + 'T00:00:00');
-    document.getElementById('todayDate').textContent = 
-        dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
-    
-    if (todayTasks.length === 0) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 20px; color: #6c757d;">
-                <i class="fas fa-calendar-check" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
-                Aucune tâche prévue aujourd'hui
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = todayTasks.map(t => {
-        const typeIcone = t.type_icone || '📋';
-        const typeLabel = t.type_label || t.type || 'Tâche';
-        const titre = t.titre || t.description || t.animal?.nom || '';
-        const isCompleted = t.terminee || false;
-        
-        return `
-            <div class="task-item ${isCompleted ? 'completed' : ''}" data-id="${t.id}" style="border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        ${typeIcone} ${typeLabel}
-                        ${isCompleted ? '<span class="badge-completed">✓ Terminée</span>' : ''}
-                    </div>
-                    <div style="display: flex; gap: 6px;">
-                        <button onclick="event.stopPropagation(); openEditModal(${t.id})" 
-                                style="background: #fff3cd; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; color: #856404;">
-                            <i class="fas fa-pen" style="font-size: 11px;"></i>
-                        </button>
-                        <button onclick="event.stopPropagation(); openDeleteModal(${t.id})" 
-                                style="background: #f8d7da; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; color: #dc3545;">
-                            <i class="fas fa-trash" style="font-size: 11px;"></i>
-                        </button>
-                    </div>
-                </div>
-                <div style="font-size: 13px; color: #495057; margin: 6px 0;">${titre}</div>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
-                    <button onclick="toggleTask(${t.id})" 
-                            style="flex: 1; padding: 6px 12px; border: 1px solid #28a745; background: #d4edda; color: #28a745; border-radius: 6px; cursor: pointer; font-size: 12px;">
-                        <i class="fas ${isCompleted ? 'fa-undo' : 'fa-check-square'}"></i>
-                        ${isCompleted ? 'Rouvrir' : 'Marquer fait'}
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
+function renderCalendar() {
+    const tbody = document.getElementById('calendarBody');
+    const today = new Date();
+const title = document.getElementById('currentMonthYear');
 
-// ================= STATISTIQUES  =================
-function updateStats() {
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Total des tâches
-    const total = tasks.length;
-    
-    // ✅ Nombre de tâches du jour (aujourd'hui)
-    const todayTasksCount = tasks.filter(t => {
-        if (!t.date_planifiee) return false;
-        return t.date_planifiee.startsWith(today);
-    }).length;
-    
-    // ✅ Nombre de tâches à venir (futures et non terminées)
-    const upcomingTasksCount = tasks.filter(t => {
-        if (t.terminee) return false;
-        if (!t.date_planifiee) return false;
-        return t.date_planifiee > today;
-    }).length;
-    
-    document.getElementById('totalTasks').textContent = total;
-    document.getElementById('todayTasksCount').textContent = todayTasksCount;
-    document.getElementById('upcomingTasksCount').textContent = upcomingTasksCount;
-}
+if(title){
 
-// ================= RENDU GLOBAL =================
-function renderAll() {
-    renderCalendar();
-    renderUpcomingTasks();
-    renderTodayTasks();
-    updateStats();
-}
+    if(currentView === 'month'){
 
+<<<<<<< Updated upstream
 // ================= SELECTION TÂCHE =================
 function selectTask(taskId) {
     const task = tasks.find(t => t.id === taskId);
@@ -825,19 +716,25 @@ async function toggleTask(taskId) {
 // ================= MODALE AJOUTER =================
 function openAddModal() {
     document.getElementById('addTaskForm').reset();
-    
-    const addAnimalSelect = document.getElementById('addAnimal');
-    if (addAnimalSelect) {
-        addAnimalSelect.value = ""; 
-    }
+
+    document.getElementById('addAnimal').value = "";
 
     const now = new Date();
     const localDatetime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
         .toISOString()
         .slice(0, 16);
+
     document.getElementById('addDate').value = localDatetime;
     document.getElementById('addError').style.display = 'none';
-    $('#addTaskModal').modal('show');
+
+    const modalEl = document.getElementById('addTaskModal');
+    let modal = bootstrap.Modal.getInstance(modalEl);
+
+    if (!modal) {
+        modal = new bootstrap.Modal(modalEl);
+    }
+
+    modal.show();
 }
 
 // ================= MODALE AJOUTER =================
@@ -881,22 +778,25 @@ document.getElementById('addTaskForm').addEventListener('submit', async function
     
     try {
         const result = await createTask(data);
-        if (result.status === 'success') {
-            // ✅ Fermer le modal
-            $('#addTaskModal').modal('hide');
-            
-            // ✅ Afficher un toast de succès
-            showToast('Tâche ajoutée avec succès !', 'success');
-            
-            // ✅ Recharger les données (rafraîchir la page)
-            await loadData();
-            
-            // ✅ Optionnel : recharger la page après un court délai
-            // setTimeout(() => location.reload(), 500);
-        } else {
-            errorDiv.textContent = result.message || 'Erreur lors de la création';
-            errorDiv.style.display = 'block';
-        }
+
+if (result.status === 'success' || result.success === true) {
+
+    const modal = bootstrap.Modal.getInstance(document.getElementById('addTaskModal'));
+
+    if (modal) {
+        modal.hide();
+    }
+
+    sessionStorage.setItem('toastSuccess', 'Tâche ajoutée avec succès !');
+
+    setTimeout(() => {
+        window.location.reload();
+    }, 300);
+
+} else {
+    errorDiv.textContent = result.message || 'Erreur lors de la création';
+    errorDiv.style.display = 'block';
+}
     } catch (error) {
         errorDiv.textContent = error.message || 'Erreur lors de la création';
         errorDiv.style.display = 'block';
@@ -917,92 +817,368 @@ async function openEditModal(taskId) {
                 'Accept': 'application/json',
                 'Authorization': 'Bearer ' + token
             }
+
+        title.textContent = new Date(
+            currentYear,
+            currentMonth
+        ).toLocaleDateString('fr-FR', {
+            month: 'long',
+            year: 'numeric'
+
         });
 
-        const result = await response.json();
-        console.log('📥 Résultat brut de l\'API pour la tâche:', result);
-
-        const taskData = result.data || result;
-        
-        if (taskData && taskData.id) {
-            document.getElementById('editTaskId').value = taskData.id;
-            document.getElementById('editType').value = taskData.type || '';
-            document.getElementById('editTitre').value = taskData.titre || '';
-            document.getElementById('editPriorite').value = taskData.priorite || 'moyenne';
-            document.getElementById('editDescription').value = taskData.description || '';
-            document.getElementById('editStatut').value = taskData.terminee ? '1' : '0';
-            
-            const targetAnimalId = taskData.animal_id || (taskData.animal ? taskData.animal.id : null);
-            console.log('🐖 ID de l\'animal détecté dans la tâche:', targetAnimalId);
-
-            const editAnimalSelect = document.getElementById('editAnimal');
-            if (editAnimalSelect) {
-                if (targetAnimalId !== null && targetAnimalId !== undefined) {
-                    editAnimalSelect.value = targetAnimalId.toString();
-                    
-                    if (editAnimalSelect.value === "") {
-                        console.warn(`⚠️ L'ID animal ${targetAnimalId} n'a pas été trouvé dans les options existantes du select.`);
-                        for (let option of editAnimalSelect.options) {
-                            if (option.value == targetAnimalId) {
-                                option.selected = true;
-                                break;
-                            }
-                        }
-                    }
-                } else {
-                    editAnimalSelect.value = '';
-                }
-            }
-            
-            if (taskData.date_planifiee) {
-                const date = new Date(taskData.date_planifiee);
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                document.getElementById('editDate').value = `${year}-${month}-${day}T${hours}:${minutes}`;
-            }
-            
-            document.getElementById('editError').style.display = 'none';
-            
-            const editModalEl = document.getElementById('editTaskModal');
-            if (window.bootstrap && bootstrap.Modal) {
-                let modalInstance = bootstrap.Modal.getInstance(editModalEl);
-                if (!modalInstance) modalInstance = new bootstrap.Modal(editModalEl);
-                modalInstance.show();
-            } else {
-                $(editModalEl).modal('show');
-            }
-        } else {
-            showToast(result.message || 'Erreur lors du chargement', 'danger');
-        }
-    } catch (error) {
-        console.error('❌ Erreur openEditModal:', error);
-        showToast('Erreur lors du chargement de la tâche', 'danger');
     }
+
+
+    else if(currentView === 'week'){
+
+
+    const start = new Date();
+
+    start.setDate(
+        start.getDate()
+        - start.getDay()
+        + 1
+        + (weekOffset * 7)
+    );
+
+
+    const end = new Date(start);
+
+    end.setDate(start.getDate() + 6);
+
+
+
+    const startText = start.toLocaleDateString(
+        'fr-FR',
+        {
+            day: 'numeric',
+            month: 'long'
+        }
+    );
+
+
+    const endText = end.toLocaleDateString(
+        'fr-FR',
+        {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        }
+    );
+
+
+    title.textContent = 
+    `${startText} - ${endText}`;
+
 }
 
-document.getElementById('editTaskForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const submitBtn = document.getElementById('editSubmitBtn');
-    const errorDiv = document.getElementById('editError');
-    errorDiv.style.display = 'none';
-    
-    const taskId = parseInt(document.getElementById('editTaskId').value);
-    const animalId = document.getElementById('editAnimal').value;
-    const type = document.getElementById('editType').value;
-    const titre = document.getElementById('editTitre').value.trim();
-    const date = document.getElementById('editDate').value;
-    const priorite = document.getElementById('editPriorite').value;
-    const description = document.getElementById('editDescription').value.trim();
-    const terminee = document.getElementById('editStatut').value === '1';
-    
-    if (!titre || !date) {
-        showToast('Veuillez remplir les champs requis', 'warning');
+
+    else {
+
+        title.textContent = today.toLocaleDateString(
+            'fr-FR',
+            {
+                weekday:'long',
+                day:'numeric',
+                month:'long'
+            }
+        );
+
+    }
+
+}
+    let html = '';
+
+    // ================= MONTH VIEW =================
+if (currentView === 'month') {
+
+
+    const firstDay = new Date(currentYear, currentMonth, 1);
+
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+
+
+    const daysInMonth = lastDay.getDate();
+
+
+    // nombre de cases avant le 1er jour
+    const startOffset = (firstDay.getDay() === 0)
+        ? 6
+        : firstDay.getDay() - 1;
+
+
+    let day = 1;
+
+    let nextMonthDay = 1;
+
+    let row = 0;
+
+
+
+    while (day <= daysInMonth || nextMonthDay <= 4) {
+
+
+        html += '<tr>';
+
+
+
+        for (let i = 0; i < 7; i++) {
+
+
+
+            // Cases avant le début du mois
+            if (row === 0 && i < startOffset) {
+
+
+                const prevDate =
+                    new Date(currentYear, currentMonth, 0);
+
+
+                const prevDay =
+                    prevDate.getDate()
+                    - startOffset
+                    + i
+                    + 1;
+
+
+                html += `
+                    <td class="other-month">
+                        ${prevDay}
+                    </td>
+                `;
+
+            }
+
+
+
+            // Jours du mois actuel
+            else if (day <= daysInMonth) {
+
+
+
+                const dateStr =
+                `${currentYear}-${String(currentMonth + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+
+
+
+                const hasTask = tasks.some(t => {
+
+                    const d =
+                    new Date(t.date_planifiee)
+                    .toISOString()
+                    .split('T')[0];
+
+
+                    return d === dateStr && !t.terminee;
+
+                });
+
+
+
+                const isToday =
+                dateStr === today.toISOString().split('T')[0];
+
+
+
+                html += `
+                <td
+                    class="${hasTask ? 'task-day' : ''} ${isToday ? 'today' : ''}"
+                    data-date="${dateStr}"
+                    onclick="selectDate('${dateStr}')"
+                    ondrop="dropTask(event)"
+                    ondragover="allowDrop(event)"
+                >
+                    ${day}
+                </td>
+                `;
+
+
+
+                day++;
+
+
+
+            }
+
+
+
+            // Début du mois suivant
+            else {
+
+
+
+                html += `
+                    <td class="other-month">
+                        ${nextMonthDay}
+                    </td>
+                `;
+
+
+                nextMonthDay++;
+
+
+            }
+
+
+        }
+
+
+
+        html += '</tr>';
+
+
+        row++;
+
+
+        // sécurité pour éviter boucle infinie
+        if(row > 6) break;
+
+    }
+
+}
+
+    // ================= WEEK VIEW =================
+    else if (currentView === 'week') {
+
+        const start = new Date();
+        start.setDate(start.getDate() - start.getDay() + 1 + (weekOffset * 7));
+
+        html += '<tr>';
+
+        for (let i = 0; i < 7; i++) {
+
+            const d = new Date(start);
+            d.setDate(start.getDate() + i);
+
+            const dateStr = d.toISOString().split('T')[0];
+
+            const hasTask = tasks.some(t => {
+                const tDate = new Date(t.date_planifiee).toISOString().split('T')[0];
+                return tDate === dateStr && !t.terminee;
+            });
+
+            html += `
+                <td 
+    class="${hasTask ? 'task-day' : ''}"
+    data-date="${dateStr}"
+    onclick="selectDate('${dateStr}')"
+    ondrop="dropTask(event)"
+    ondragover="allowDrop(event)"
+>
+                    ${d.getDate()}<br>
+                    <small>${d.toLocaleDateString('fr-FR', { weekday: 'short' })}</small>
+                </td>
+            `;
+        }
+
+        html += '</tr>';
+    }
+
+    // ================= DAY VIEW =================
+    else {
+
+        const dateStr = today.toISOString().split('T')[0];
+
+        const dayTasks = tasks.filter(t => {
+            const d = new Date(t.date_planifiee).toISOString().split('T')[0];
+            return d === dateStr;
+        });
+
+              html = `
+        <tr>
+            <td colspan="7">
+
+                <strong>Tâches du jour</strong>
+
+                ${
+                    dayTasks.length
+                    ? dayTasks.map(t => `
+                        <div 
+                            class="task-item task-draggable"
+                            data-id="${t.id}"
+                        >
+                            ${t.titre || t.type}
+                        </div>
+                    `).join('')
+                    : '<p>Aucune tâche</p>'
+                }
+
+            </td>
+        </tr>
+       `;
+
+    }
+
+
+    // Injection dans le calendrier
+    tbody.innerHTML = html;
+
+
+    // Active le drag après génération
+    enableDrag();
+
+}
+
+// =====================================================
+// RENDER ALL
+// =====================================================
+
+function renderAll() {
+    renderCalendar();
+}
+
+// =====================================================
+// ACTIVE LE DRAG & DROP SUR LES TÂCHES
+// =====================================================
+// Cette fonction rend chaque tâche "déplaçable" (drag & drop)
+// Elle est rappelée après chaque rendu du calendrier
+
+function enableDrag() {
+
+    // On sélectionne toutes les tâches qui doivent être draggable
+    document.querySelectorAll('.task-draggable').forEach(el => {
+
+        // On autorise le drag HTML5
+        el.setAttribute('draggable', true);
+
+        // =================================================
+        // DÉBUT DU DRAG
+        // =================================================
+        el.ondragstart = (e) => {
+
+            // On stocke l'ID de la tâche dans l'événement drag
+            // pour pouvoir la récupérer lors du drop
+            e.dataTransfer.setData('taskId', el.dataset.id);
+
+            // Effet visuel : la tâche devient semi-transparente
+            el.classList.add('dragging');
+        };
+
+        // =================================================
+        // FIN DU DRAG
+        // =================================================
+        el.ondragend = () => {
+
+            // On retire l'effet visuel après le drag
+            el.classList.remove('dragging');
+        };
+    });
+}
+
+// =====================================================
+// OUVRIR MODALE AJOUTER TÂCHE
+// =====================================================
+
+function openAddModal() {
+
+    const modalElement = document.getElementById('addTaskModal');
+
+    if (!modalElement) {
+        console.error("❌ Modale ajout introuvable");
         return;
     }
+<<<<<<< Updated upstream
     
     const data = {
         titre: titre,
@@ -1022,8 +1198,10 @@ document.getElementById('editTaskForm').addEventListener('submit', async functio
         const result = await updateTask(taskId, data);
         if (result.status === 'success' || result.success === true) {
             $('#editTaskModal').modal('hide');
-            showToast('Tâche modifiée avec succès !', 'success');
-            await loadData();
+            sessionStorage.setItem('toastSuccess', 'Tâche modifiée avec succès !');
+            setTimeout(() => {
+                window.location.reload();
+            }, 300);
         } else {
             errorDiv.textContent = result.message || 'Erreur lors de la modification';
             errorDiv.style.display = 'block';
@@ -1037,51 +1215,48 @@ document.getElementById('editTaskForm').addEventListener('submit', async functio
     }
 });
 
-// ================= MODALE SUPPRESSION =================
-function openDeleteModal(taskId) {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
-    
-    document.getElementById('deleteTaskId').value = taskId;
-    document.getElementById('deleteTaskName').textContent = 
-        `Êtes-vous sûr de vouloir supprimer la tâche "${task.titre || task.type}" ?`;
-    $('#deleteTaskModal').modal('show');
+
+
+
+    const modal = new bootstrap.Modal(modalElement);
+
+    modal.show();
+
 }
+// =====================================================
+// INIT
+// =====================================================
 
-document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
-    const taskId = parseInt(document.getElementById('deleteTaskId').value);
-    const btn = this;
-    
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Suppression...';
-    
-    try {
-        const result = await deleteTask(taskId);
-        if (result.status === 'success' || result.success === true) {
-            $('#deleteTaskModal').modal('hide');
-            showToast('Tâche supprimée avec succès', 'success');
-            await loadData();
-        } else {
-            showToast(result.message || 'Erreur lors de la suppression', 'danger');
-        }
-    } catch (error) {
-        showToast(error.message || 'Erreur lors de la suppression', 'danger');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-trash-alt"></i> Supprimer';
-    }
-});
+document.addEventListener('DOMContentLoaded', () => {
 
-// ================= INITIALISATION =================
-document.addEventListener('DOMContentLoaded', function() {
     if (!token) {
-        showToast('Non connecté. Redirection...', 'danger');
-        window.location.href = '/auth/login';
+        showToast('Non connecté', 'danger');
+        window.location.href = '/login';
         return;
     }
-    
+
     loadData();
 });
-</script>
 
+// =====================================================
+// DRAG & DROP HANDLERS
+// =====================================================
+
+function allowDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('drag-over');
+}
+
+function dropTask(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+
+    const newDate = e.currentTarget.dataset.date;
+    const taskId = e.dataTransfer.getData('taskId');
+
+    if (!taskId || !newDate) return;
+
+    moveTask(taskId, newDate);
+}
+</script>
 @endsection

@@ -231,6 +231,20 @@ CALENDRIER
   transition: all 0.2s ease;
 }
 
+/* ===============================
+   DRAG & DROP
+================================= */
+
+.calendar-table td.drag-over {
+  background: #dcfce7 !important;
+  border: 2px dashed #16a34a !important;
+  transform: scale(1.02);
+}
+
+.calendar-table td.dragging {
+  opacity: 0.5;
+}
+
 .task-day.today::after {
   background: white;
 }
@@ -763,12 +777,7 @@ SCROLLBAR
     .stat-badge.done { background: #d4edda; border-color: #28a745; }
     .stat-badge.pending { background: #fff3cd; border-color: #ffc107; }
     
-    .calendar-table td.today {
-        background: #198754;
-        color: white !important;
-        border-radius: 50%;
-        font-weight: 700;
-    }
+    
     .calendar-table td.other-month {
         color: #adb5bd;
         cursor: default;
