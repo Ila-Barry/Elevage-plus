@@ -507,28 +507,10 @@ function renderPosts() {
                     </span>
                     
                     <!-- ✅ PARTAGES -->
-                    <span class="counter-item" style="cursor: default;">
+                    <span class="counter-item" onclick="copyLink(` + post.id + `)" style="cursor: pointer;">
                         <i class="fas fa-share-alt"></i> 
                         <span class="shares-count" id="shares-count-` + post.id + `">` + (post.statistiques?.partages || 0) + `</span>
                     </span>
-                </div>
-                
-                <div class="post-action-triggers">
-                    <!-- ✅ BOUTON LIKE -->
-                    <button class="trigger-btn like-btn ` + (post.interactions?.liked_by_user ? 'liked' : '') + `" onclick="toggleLike(` + post.id + `)">
-                        <i class="` + (post.interactions?.liked_by_user ? 'fas' : 'far') + ` fa-heart"></i> 
-                        ` + (post.interactions?.liked_by_user ? 'Aimé' : 'Liker') + `
-                    </button>
-                    
-                    <!-- ✅ BOUTON COMMENTAIRE -->
-                    <button class="trigger-btn" onclick="toggleComments(` + post.id + `)">
-                        <i class="far fa-comment"></i> Commenter
-                    </button>
-                    
-                    <!-- ✅ BOUTON PARTAGER -->
-                    <button class="trigger-btn" onclick="handleShare(` + post.id + `)">
-                        <i class="fas fa-share-alt"></i> Partager
-                    </button>
                 </div>
             </div>
 
@@ -1514,17 +1496,49 @@ async function copyLink(postId) {
     }
     
     try {
+        // ✅ 1. Envoyer la requête de partage à l'API
+        var result = await apiCall('/publications/' + postId + '/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plateforme: 'copie_lien' })
+        });
+        
+        // ✅ 2. Copier le lien
         var url = window.location.origin + '/blog/' + postId;
         await navigator.clipboard.writeText(url);
-        showToast('📋 Lien copié !', 'success');
-    } catch {
-        var copyInput = document.createElement('input');
-        copyInput.value = window.location.origin + '/blog/' + postId;
-        document.body.appendChild(copyInput);
-        copyInput.select();
-        document.execCommand('copy');
-        copyInput.remove();
-        showToast('📋 Lien copié !', 'success');
+        
+        // ✅ 3. Mettre à jour le compteur
+        if (result.status === 'success' && result.data) {
+            var countSpan = document.getElementById('shares-count-' + postId);
+            if (countSpan) {
+                countSpan.textContent = result.data.total_shares || 0;
+            }
+            showToast('📋 Lien copié ! (' + result.data.total_shares + ' partages)', 'success');
+        } else {
+            showToast('📋 Lien copié !', 'success');
+        }
+        
+        // ✅ 4. Recharger les publications pour mettre à jour les statistiques
+        setTimeout(function() {
+            loadPosts(state.currentPage, state.currentCategory, state.currentScope);
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Erreur copie lien:', error);
+        // Fallback : copier sans enregistrer
+        try {
+            var url = window.location.origin + '/blog/' + postId;
+            await navigator.clipboard.writeText(url);
+            showToast('📋 Lien copié !', 'success');
+        } catch {
+            var copyInput = document.createElement('input');
+            copyInput.value = window.location.origin + '/blog/' + postId;
+            document.body.appendChild(copyInput);
+            copyInput.select();
+            document.execCommand('copy');
+            copyInput.remove();
+            showToast('📋 Lien copié !', 'success');
+        }
     }
 }
 

@@ -11,7 +11,6 @@ use App\Http\Requests\Api\UpdateProfileRequest;
 use App\Http\Requests\Api\ChangePasswordRequest;
 use App\Http\Requests\Api\TwoFactorRequest;
 use App\Http\Requests\Api\DeleteAccountRequest;
-use App\Notifications\WelcomeNotification;
 use App\Models\User;
 use App\Services\TwoFactorService;
 use App\Traits\ApiResponseTrait;
@@ -27,32 +26,18 @@ use Illuminate\Support\Facades\Hash;
 
 /**
  * Contrôleur AuthController
- * 
- * Gère toutes les opérations d'authentification et de gestion de profil
- * 
- * @package App\Http\Controllers\Api
+ * * Gère toutes les opérations d'authentification et de gestion de profil
  */
 class AuthController extends Controller
 {
     use ApiResponseTrait;
 
-    /**
-     * Service pour l'authentification à deux facteurs
-     *
-     * @var TwoFactorService
-     */
     protected TwoFactorService $twoFactorService;
 
-    /**
-     * Constructeur avec injection de dépendances
-     *
-     * @param TwoFactorService $twoFactorService
-     */
     public function __construct(TwoFactorService $twoFactorService)
     {
         $this->twoFactorService = $twoFactorService;
         
-        // Les méthodes protégées nécessitent une authentification
         $this->middleware('auth:api')->except([
             'register',
             'login',
@@ -62,77 +47,55 @@ class AuthController extends Controller
 
     /**
      * Inscription d'un nouvel utilisateur
-     *
-     * @param RegisterRequest $request
-     * @return JsonResponse
      */
     public function register(RegisterRequest $request): JsonResponse
     {
         DB::beginTransaction();
         
         try {
-            // Préparation des données
             $userData = $request->validated();
             
-            // Gérer l'upload de la photo de profil
             if ($request->hasFile('photo')) {
                 $photoPath = $this->uploadProfilePhoto($request->file('photo'));
                 $userData['photo_url'] = $photoPath;
             }
             
-            // Supprimer 'photo' du tableau car ce n'est pas une colonne
             unset($userData['photo']);
             
-            // Créer l'utilisateur
+            // ✅ Forcer le statut à 'active' lors de l'inscription
+            $userData['status'] = 'active';
+
             $user = User::create($userData);
             
-            // Envoyer l'email de vérification
-            // $user->sendEmailVerificationNotification();
-            
-            // Envoyer la notification de bienvenue (email + database)
-            // $user->notify(new WelcomeNotification($user));
-            
-            // Créer un élevage par défaut si type_elevage est fourni
             if ($request->filled('type_elevage')) {
                 $this->createDefaultFarm($user, $request->type_elevage);
             }
             
             DB::commit();
             
-            // Générer le token JWT
             $token = JWTAuth::fromUser($user);
             
+            // ✅ Utilisation du ApiResponseTrait standardisé
             return $this->successResponse([
-            'user' => $user->makeVisible(['email', 'telephone']),
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => config('jwt.ttl') * 60,
-        ], 'Inscription réussie ! Un email de vérification vous a été envoyé.', 201);
+                'user' => $user->makeVisible(['email', 'telephone']),
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => config('jwt.ttl') * 60,
+            ], 'Inscription réussie ! ', 201);
             
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Erreur de validation',
-                'errors' => $e->errors()
-            ], 422);
+            return $this->validationErrorResponse($e->errors(), 'Erreur de validation');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur lors de l\'inscription: ' . $e->getMessage());
+            Log::error('Erreur lors de l\'inscription: ' . $e->getMessage());
             
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Une erreur est survenue lors de l\'inscription.',
-                'error' => $e->getMessage() // En dev seulement
-            ], 500);
+            return $this->errorResponse('Une erreur est survenue lors de l\'inscription.', 500, ['error' => $e->getMessage()]);
         }
     }
 
     /**
      * Connexion d'un utilisateur
-     *
-     * @param LoginRequest $request
-     * @return JsonResponse
      */
     public function login(LoginRequest $request): JsonResponse
     {
@@ -145,43 +108,21 @@ class AuthController extends Controller
             $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'telephone';
             $user = User::where($field, $login)->first();
             
-            if (!$user) {
-                Log::warning('Utilisateur non trouvé', ['login' => $login]);
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Email ou mot de passe incorrect.'
-                ], 401);
-            }
-            
-            if (!Hash::check($password, $user->password)) {
-                Log::warning('Mot de passe incorrect', ['user_id' => $user->id]);
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Identifient ou mot de passe incorrect.'
-                ], 401);
+            if (!$user || !Hash::check($password, $user->password)) {
+                Log::warning('Identifiants incorrects', ['login' => $login]);
+                return $this->errorResponse('Identifiant ou mot de passe incorrect.', 401);
             }
             
             if ($user->status === 'bannie') {
                 Log::warning('Tentative de connexion sur compte banni', ['user_id' => $user->id]);
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Votre compte a été banni.'
-                ], 403);
+                return $this->forbiddenResponse('Votre compte a été banni.');
             }
-            
-            // Auto-vérification pour les tests
-            // if (!$user->email_verified_at) {
-            //     Log::info('Email non vérifié - auto vérification pour test', ['user_id' => $user->id]);
-            //     $user->email_verified_at = now();
-            //     $user->save();
-            // }
             
             if ($user->status !== 'active' && $user->email_verified_at) {
                 $user->status = 'active';
                 $user->save();
             }
             
-            // ✅ AJOUT : Connecter l'utilisateur via session Laravel
             Auth::guard('web')->login($user, $request->input('remember', false));
             
             $token = JWTAuth::fromUser($user);
@@ -189,34 +130,25 @@ class AuthController extends Controller
 
             Log::info('Connexion réussie', ['user_id' => $user->id, 'role' => $user->role]);
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Connexion réussie.',
-                'data' => [
-                    'user' => $user->makeVisible(['email', 'telephone']),
-                    'access_token' => $token,
-                    'token_type' => 'bearer',
-                    'expires_in' => config('jwt.ttl') * 60,
-                ]
-            ], 200);
+            // ✅ Utilisation du ApiResponseTrait standardisé
+            return $this->successResponse([
+                'user' => $user->makeVisible(['email', 'telephone']),
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => config('jwt.ttl') * 60,
+            ], 'Connexion réussie.');
             
         } catch (\Exception $e) {
             Log::error('Erreur lors de la connexion', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Erreur lors de la connexion.'
-            ], 500);
+            return $this->errorResponse('Erreur lors de la connexion.', 500);
         }
     }
 
     /**
      * Vérification du code d'authentification à deux facteurs
-     *
-     * @param TwoFactorRequest $request
-     * @return JsonResponse
      */
     public function verifyTwoFactor(TwoFactorRequest $request): JsonResponse
     {
@@ -234,15 +166,11 @@ class AuthController extends Controller
                 return $this->unauthorizedResponse('Utilisateur introuvable.');
             }
             
-            // Vérifier le code
             if (!$this->twoFactorService->verifyCode($user, $request->two_factor_code)) {
                 return $this->errorResponse('Code d\'authentification invalide ou expiré.', 422);
             }
             
-            // Nettoyer la session
             session()->forget(['2fa:user_id', '2fa:token']);
-            
-            // Mettre à jour la dernière connexion
             $user->update(['last_login_at' => now()]);
             
             return $this->successResponse([
@@ -253,42 +181,32 @@ class AuthController extends Controller
             ], 'Authentification réussie.');
             
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de la vérification 2FA: ' . $e->getMessage());
+            Log::error('Erreur lors de la vérification 2FA: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la vérification.', 500);
         }
     }
 
     /**
      * Déconnexion de l'utilisateur
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function logout(Request $request): JsonResponse
     {
         try {
-            // Récupérer l'utilisateur avant déconnexion pour les logs
             $user = auth()->user();
             
-            // 1. Déconnecter de la session web
             Auth::guard('web')->logout();
             
-            // 2. Invalider le token JWT
             $token = JWTAuth::getToken();
             if ($token) {
                 JWTAuth::invalidate($token);
             }
             
-            // 3. Nettoyer la session
             $request->session()->invalidate();
             $request->session()->regenerateToken();
             
             Log::info('Déconnexion réussie', ['user_id' => $user?->id, 'email' => $user?->email]);
             
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Déconnexion réussie.'
-            ], 200);
+            return $this->successResponse(null, 'Déconnexion réussie.');
             
         } catch (\Exception $e) {
             Log::error('Erreur lors de la déconnexion', [
@@ -296,18 +214,12 @@ class AuthController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Erreur lors de la déconnexion.'
-            ], 500);
+            return $this->errorResponse('Erreur lors de la déconnexion.', 500);
         }
     }
 
     /**
      * Rafraîchir le token JWT
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function refresh(Request $request): JsonResponse
     {
@@ -326,22 +238,16 @@ class AuthController extends Controller
     }
 
     /**
-     * Récupérer le profil de l'utilisateur connecté
-     *
-     * @param Request $request
-     * @return JsonResponse
+     * Profil de l'utilisateur connecté
      */
     public function me(Request $request): JsonResponse
     {
-        /** @var User $user */
         $user = Auth::user();
         
-        // Charger les relations
         $user->load(['elevages' => function($query) {
             $query->withCount(['animaux']);
         }]);
         
-        // Statistiques additionnelles
         $stats = [
             'publications' => $user->publications()->count(),
             'likes_received' => $user->publications()->sum('nbr_likes') ?? 0,
@@ -358,23 +264,16 @@ class AuthController extends Controller
 
     /**
      * Mise à jour du profil utilisateur
-     *
-     * @param UpdateProfileRequest $request
-     * @return JsonResponse
      */
     public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
         DB::beginTransaction();
         
         try {
-            /** @var User $user */
             $user = Auth::user();
-            
             $updateData = $request->validated();
             
-            // Gérer l'upload de la nouvelle photo
             if ($request->hasFile('photo')) {
-                // Supprimer l'ancienne photo si elle existe et n'est pas l'avatar par défaut
                 if ($user->photo_url && !str_contains($user->photo_url, 'ui-avatars.com')) {
                     $oldPath = str_replace('/storage/', '', $user->photo_url);
                     Storage::disk('public')->delete($oldPath);
@@ -384,10 +283,7 @@ class AuthController extends Controller
                 $updateData['photo_url'] = $photoPath;
             }
             
-            // Supprimer 'photo' du tableau car ce n'est pas une colonne
             unset($updateData['photo']);
-            
-            // Mettre à jour l'utilisateur
             $user->update($updateData);
             
             DB::commit();
@@ -399,75 +295,60 @@ class AuthController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur lors de la mise à jour du profil: ' . $e->getMessage());
+            Log::error('Erreur lors de la mise à jour du profil: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la mise à jour du profil.', 500);
         }
     }
 
     /**
      * Changement du mot de passe
-     *
-     * @param ChangePasswordRequest $request
-     * @return JsonResponse
      */
     public function changePassword(ChangePasswordRequest $request): JsonResponse
-{
-    try {
-        /** @var User $user */
-        $user = Auth::user();
-        
-        Log::info('Tentative de changement de mot de passe', [
-            'user_id' => $user->id,
-            'email' => $user->email
-        ]);
-        
-        // ✅ Utiliser update() pour que le mutateur soit appelé
-        $user->update([
-            'password' => $request->new_password
-        ]);
-        
-        Log::info('Mot de passe modifié avec succès', [
-            'user_id' => $user->id,
-            'email' => $user->email
-        ]);
-        
-        // 🔐Déconnecter l'utilisateur après changement de mot de passe
-        // pour qu'il se reconnecte avec le nouveau mot de passe
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        
-        return $this->successResponse(null, 'Mot de passe modifié avec succès. Veuillez vous reconnecter avec votre nouveau mot de passe.');
-        
-    } catch (\Exception $e) {
-        Log::error('Erreur lors du changement de mot de passe', [
-            'user_id' => auth()->id(),
-            'message' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-        return $this->errorResponse('Erreur lors du changement de mot de passe.', 500);
+    {
+        try {
+            $user = Auth::user();
+            
+            Log::info('Tentative de changement de mot de passe', [
+                'user_id' => $user->id,
+                'email' => $user->email
+            ]);
+            
+            $user->update([
+                'password' => $request->new_password
+            ]);
+            
+            Log::info('Mot de passe modifié avec succès', [
+                'user_id' => $user->id,
+                'email' => $user->email
+            ]);
+            
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            
+            return $this->successResponse(null, 'Mot de passe modifié avec succès. Veuillez vous reconnecter.');
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur lors du changement de mot de passe', [
+                'user_id' => auth()->id(),
+                'message' => $e->getMessage(),
+            ]);
+            return $this->errorResponse('Erreur lors du changement de mot de passe.', 500);
+        }
     }
-}
-
 
     /**
      * Activation/Désactivation du 2FA
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function toggleTwoFactor(Request $request): JsonResponse
     {
         try {
-            /** @var User $user */
             $user = Auth::user();
             
             if ($user->two_factor_enabled) {
                 $this->twoFactorService->disableTwoFactor($user);
                 $message = 'Authentification à deux facteurs désactivée.';
             } else {
-                // Générer un secret pour l'application d'authentification
-                // Pour simplifier, on active directement avec validation par email
                 $this->twoFactorService->enableTwoFactor($user, 'email_based');
                 $message = 'Authentification à deux facteurs activée.';
             }
@@ -477,16 +358,13 @@ class AuthController extends Controller
             ], $message);
             
         } catch (\Exception $e) {
-            \Log::error('Erreur lors du basculement 2FA: ' . $e->getMessage());
+            Log::error('Erreur lors du basculement 2FA: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la modification du 2FA.', 500);
         }
     }
 
     /**
-     * Mise à jour des préférences de notification
-     *
-     * @param Request $request
-     * @return JsonResponse
+     * Preference notifications
      */
     public function updateNotificationPreferences(Request $request): JsonResponse
     {
@@ -498,7 +376,6 @@ class AuthController extends Controller
         ]);
         
         try {
-            /** @var User $user */
             $user = Auth::user();
             $user->update($validated);
             
@@ -515,10 +392,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Mise à jour de la visibilité du profil
-     *
-     * @param Request $request
-     * @return JsonResponse
+     * Visibilité profil
      */
     public function updateProfileVisibility(Request $request): JsonResponse
     {
@@ -527,7 +401,6 @@ class AuthController extends Controller
         ]);
         
         try {
-            /** @var User $user */
             $user = Auth::user();
             $user->update($validated);
             
@@ -541,47 +414,35 @@ class AuthController extends Controller
     }
 
     /**
-     * Suppression du compte utilisateur
-     *
-     * @param DeleteAccountRequest $request
-     * @return JsonResponse
+     * Suppression du compte
      */
     public function deleteAccount(DeleteAccountRequest $request): JsonResponse
     {
         DB::beginTransaction();
         
         try {
-            /** @var User $user */
             $user = Auth::user();
             
-            // Supprimer la photo de profil si elle n'est pas l'avatar par défaut
             if ($user->photo_url && !str_contains($user->photo_url, 'ui-avatars.com')) {
                 $photoPath = str_replace('/storage/', '', $user->photo_url);
                 Storage::disk('public')->delete($photoPath);
             }
             
-            // Supprimer l'utilisateur (les relations seront supprimées via CASCADE)
             $user->delete();
-            
             DB::commit();
-            
-            // Déconnecter l'utilisateur
             Auth::logout();
             
             return $this->successResponse(null, 'Votre compte a été supprimé avec succès. Au revoir !');
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur lors de la suppression du compte: ' . $e->getMessage());
+            Log::error('Erreur lors de la suppression du compte: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la suppression du compte.', 500);
         }
     }
 
     /**
-     * Profil public d'un utilisateur (sans authentification)
-     *
-     * @param int $id
-     * @return JsonResponse
+     * Profil public
      */
     public function publicProfile(int $id): JsonResponse
     {
@@ -592,19 +453,16 @@ class AuthController extends Controller
                 }])
                 ->findOrFail($id);
             
-            // Vérifier la visibilité du profil
             if (!$user->isProfilePublic() && !Auth::check()) {
-                return $this->errorResponse('Ce profil est privé.', 403);
+                return $this->forbiddenResponse('Ce profil est privé.');
             }
             
-            // Récupérer les dernières publications
             $recentPosts = $user->publications()
-                ->where('etat', 'publiee')
+                ->where('statut', 'publiee') // Corrigé de 'etat' à 'statut' pour correspondre au HomeController
                 ->latest()
                 ->limit(10)
                 ->get();
             
-            // Récupérer les élevages
             $farms = $user->elevages()->withCount('animaux')->get();
             
             return $this->successResponse([
@@ -619,7 +477,7 @@ class AuthController extends Controller
                 'statistics' => [
                     'total_publications' => $user->publications_count,
                     'total_likes_received' => $user->likes_received ?? 0,
-                    'total_farms' => $user->elevages->count(),
+                    'total_farms' => $farms->count(),
                     'total_animals' => $farms->sum('animaux_count'),
                 ],
                 'recent_publications' => $recentPosts,
@@ -629,62 +487,44 @@ class AuthController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFoundResponse('Utilisateur non trouvé.');
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération du profil public: ' . $e->getMessage());
+            Log::error('Erreur lors de la récupération du profil public: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la récupération du profil.', 500);
         }
     }
 
     /**
- * Récupérer la liste des utilisateurs (pour la messagerie)
- */
-public function getUsers(Request $request): JsonResponse
-{
-    $excludeId = $request->get('exclude', auth()->id());
-    
-    $users = User::where('id', '!=', $excludeId)
-        ->where('status', 'active')
-        ->select('id', 'name', 'email', 'photo_url', 'role', 'type_elevage', 'commune')
-        ->orderBy('name')
-        ->limit(50)
-        ->get();
-    
-    return $this->successResponse($users);
-}
+     * Liste des utilisateurs pour la messagerie
+     */
+    public function getUsers(Request $request): JsonResponse
+    {
+        $excludeId = $request->get('exclude', auth()->id());
+        
+        $users = User::where('id', '!=', $excludeId)
+            ->where('status', 'active')
+            ->select('id', 'name', 'email', 'photo_url', 'role', 'type_elevage', 'commune')
+            ->orderBy('name')
+            ->limit(50)
+            ->get();
+        
+        return $this->successResponse($users);
+    }
 
     // ========== MÉTHODES PRIVÉES ==========
 
-    /**
-     * Upload et traitement de la photo de profil
-     *
-     * @param \Illuminate\Http\UploadedFile $photo
-     * @return string Chemin relatif de la photo stockée
-     */
     private function uploadProfilePhoto($photo): string
     {
-        // Générer un nom unique
         $filename = time() . '_' . uniqid() . '.' . $photo->getClientOriginalExtension();
         $path = 'avatars/' . $filename;
         
-        // Traiter et redimensionner l'image avec Intervention Image
         $manager = new ImageManager(new Driver());
         $image = $manager->read($photo->getPathname());
-        
-        // Redimensionner à 300x300 (carré)
         $image->cover(300, 300);
         
-        // Sauvegarder
         Storage::disk('public')->put($path, (string) $image->encode());
         
         return $path;
     }
 
-    /**
-     * Crée un élevage par défaut pour le nouvel utilisateur
-     *
-     * @param User $user
-     * @param string $typeElevage
-     * @return void
-     */
     private function createDefaultFarm(User $user, string $typeElevage): void
     {
         $user->elevages()->create([
