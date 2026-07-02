@@ -574,63 +574,6 @@ async function moveTask(id, date) {
 }
 
 // =====================================================
-// 📥 CHARGEMENT GLOBAL DES DONNÉES
-// =====================================================
-
-/**
- * Charge toutes les données nécessaires à la page (tâches + animaux)
- * et met à jour l'interface
- */
-async function loadData() {
-    try {
-        // Récupération des tâches
-        const tasksResult = await fetchTasks();
-        tasks = tasksResult.data || [];
-        
-        // Récupération des animaux
-        const animalsResult = await fetchAnimals();
-        animals = animalsResult.data || [];
-        
-        // Remplit les listes déroulantes (select) avec les animaux
-        populateAnimalSelects();
-        
-        // Rend tout l'affichage (calendrier + listes)
-        renderAll();
-        
-    } catch (error) {
-        console.error(error);
-        showToast('Erreur chargement données', 'danger');
-    }
-}
-
-// =====================================================
-// 📋 REMPLISSAGE DES SÉLECTEURS D'ANIMAUX
-// =====================================================
-
-/**
- * Remplit les <select> des modales avec la liste des animaux
- * Utilise les IDs 'addAnimal' et 'editAnimal'
- */
-function populateAnimalSelects() {
-    // Pour chaque select à remplir
-    ['addAnimal', 'editAnimal'].forEach(id => {
-        const select = document.getElementById(id);
-        if (!select) return; // Si le select n'existe pas, on passe
-        
-        // On réinitialise avec une option vide
-        select.innerHTML = `<option value="">Sélectionner un animal</option>`;
-        
-        // On ajoute chaque animal comme option
-        animals.forEach(a => {
-            const option = document.createElement('option');
-            option.value = a.id; // La valeur est l'ID de l'animal
-            option.textContent = `${a.nom || 'Animal'} (${a.espece || ''})`;
-            select.appendChild(option);
-        });
-    });
-}
-
-// =====================================================
 // 🧭 NAVIGATION DU CALENDRIER
 // =====================================================
 
@@ -864,13 +807,6 @@ function renderCalendar() {
     enableDrag();
 }
 
-/**
- * Rafraîchit tout l'affichage
- */
-function renderAll() {
-    renderCalendar();
-}
-
 // =====================================================
 // 🖱️ DRAG & DROP (DÉPLACEMENT DES TÂCHES)
 // =====================================================
@@ -927,6 +863,343 @@ function dropTask(e) {
     
     // Déplace la tâche vers la nouvelle date
     moveTask(taskId, newDate);
+}
+
+// =====================================================
+// 📋 RENDU DES LISTES DE TÂCHES
+// =====================================================
+
+function renderTaskLists() {
+    console.log('🔄 Rendu des listes de tâches...');
+    
+    // ====== TÂCHES À VENIR ======
+    const upcomingList = document.getElementById('upcomingTasks');
+    if (upcomingList) {
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Filtre les tâches à venir (date > aujourd'hui) et non terminées
+        const upcomingTasks = tasks
+            .filter(t => {
+                const taskDate = (t.date_planifiee ?? '').substring(0, 10);
+                return taskDate > today && !(t.terminee == 1);
+            })
+            .sort((a, b) => new Date(a.date_planifiee) - new Date(b.date_planifiee))
+            .slice(0, 10); // Limite à 10 tâches
+        
+        console.log('📋 Tâches à venir:', upcomingTasks.length);
+        
+        if (upcomingTasks.length === 0) {
+            upcomingList.innerHTML = `
+                <li style="padding: 15px; text-align: center; color: #6c757d;">
+                    <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                    Aucune tâche à venir
+                </li>
+            `;
+        } else {
+            upcomingList.innerHTML = upcomingTasks.map(t => `
+                <li>
+                    <a href="#" class="upcoming-link" onclick="selectTask(${t.id})">
+                        <i class="fas fa-tasks" style="color: #198754;"></i>
+                        <div style="flex: 1;">
+                            <strong>${t.titre || t.type}</strong>
+                            <br>
+                            <small style="color: #6c757d;">
+                                📅 ${new Date(t.date_planifiee).toLocaleDateString('fr-FR')}
+                                ${t.animal ? `• 🐄 ${t.animal.nom}` : ''}
+                            </small>
+                        </div>
+                        <span class="badge" style="background: ${getPriorityColor(t.priorite)}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
+                            ${t.priorite || 'moyenne'}
+                        </span>
+                    </a>
+                </li>
+            `).join('');
+        }
+    }
+    
+    // ====== TÂCHES DU JOUR ======
+    const todayContainer = document.getElementById('todayTasks');
+    const todayDateSpan = document.getElementById('todayDate');
+    
+    if (todayContainer) {
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        
+        // Met à jour la date
+        if (todayDateSpan) {
+            todayDateSpan.textContent = today.toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long'
+            });
+        }
+        
+        // Filtre les tâches du jour
+        const todayTasks = tasks.filter(t => {
+            const taskDate = (t.date_planifiee ?? '').substring(0, 10);
+            return taskDate === todayStr;
+        });
+        
+        console.log('📋 Tâches du jour:', todayTasks.length);
+        
+        if (todayTasks.length === 0) {
+            todayContainer.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: #6c757d;">
+                    <i class="fas fa-calendar-check" style="font-size: 24px; color: #198754;"></i>
+                    <p style="margin-top: 10px;">Aucune tâche pour aujourd'hui</p>
+                </div>
+            `;
+        } else {
+            todayContainer.innerHTML = todayTasks.map(t => `
+                <div class="task-item ${t.terminee == 1 ? 'completed' : ''}">
+                    <div class="task-time">
+                        ${t.titre || t.type}
+                        ${t.terminee == 1 ? '<span class="badge-completed">✅ Terminée</span>' : ''}
+                        <small style="color: #6c757d; font-size: 12px; font-weight: normal;">
+                            ${t.date_planifiee ? new Date(t.date_planifiee).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </small>
+                    </div>
+                    
+                    ${t.description ? `<div class="task-desc">${t.description}</div>` : ''}
+                    
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+                        <span class="badge" style="background: ${getPriorityColor(t.priorite)}; color: white; padding: 2px 10px; border-radius: 12px; font-size: 11px;">
+                            ${t.priorite || 'moyenne'}
+                        </span>
+                        ${t.animal ? `<span style="font-size: 12px; color: #6c757d;">🐄 ${t.animal.nom}</span>` : ''}
+                    </div>
+                    
+                    <div class="task-actions">
+                        ${t.terminee == 1 ? 
+                            `<button class="btn-success-task" onclick="toggleTask(${t.id})">
+                                <i class="fas fa-undo"></i> Réouvrir
+                            </button>` :
+                            `<button class="btn-success-task" onclick="toggleTask(${t.id})">
+                                <i class="fas fa-check"></i> Terminer
+                            </button>`
+                        }
+                        <button class="btn-edit-task" onclick="openEditModal(${t.id})">
+                            <i class="fas fa-edit"></i> Modifier
+                        </button>
+                        <button class="btn-delete-task" onclick="openDeleteModal(${t.id}, '${t.titre || t.type}')">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+}
+
+// =====================================================
+// 📊 STATISTIQUES - COMPTEURS EN HAUT DE PAGE
+// =====================================================
+
+/**
+ * Met à jour les compteurs de statistiques dans le header
+ * Cette fonction calcule et affiche :
+ * - Le nombre total de toutes les tâches
+ * - Le nombre de tâches prévues pour aujourd'hui
+ * - Le nombre de tâches à venir (futures)
+ * 
+ * Elle est appelée à chaque fois que les données changent :
+ * - Après chargement de la page
+ * - Après création d'une tâche
+ * - Après modification d'une tâche
+ * - Après suppression d'une tâche
+ * - Après changement de statut (terminée/réouverte)
+ */
+function updateStats() {
+    // ====== 1. CALCUL DU TOTAL ======
+    // Récupère le nombre total de tâches (toutes confondues)
+    const total = tasks.length;
+    
+    // ====== 2. DATE D'AUJOURD'HUI ======
+    // Récupère la date du jour au format YYYY-MM-DD
+    // Exemple : "2026-07-02"
+    const today = new Date().toISOString().split('T')[0];
+    
+    // ====== 3. COMPTE DES TÂCHES D'AUJOURD'HUI ======
+    // Parcourt toutes les tâches et ne garde que celles :
+    // - Dont la date correspond à aujourd'hui
+    // - ET qui ne sont pas terminées (terminee == 0 ou false)
+    // .length donne le nombre de tâches correspondantes
+    const todayCount = tasks.filter(t => {
+        // Extrait uniquement la date (YYYY-MM-DD) de la date_planifiee
+        const taskDate = (t.date_planifiee ?? '').substring(0, 10);
+        // Compare avec aujourd'hui et vérifie que la tâche n'est pas terminée
+        return taskDate === today && !(t.terminee == 1);
+    }).length;
+    
+    // ====== 4. COMPTE DES TÂCHES À VENIR ======
+    // Parcourt toutes les tâches et ne garde que celles :
+    // - Dont la date est POSTÉRIEURE à aujourd'hui (futures)
+    // - ET qui ne sont pas terminées (terminee == 0 ou false)
+    // .length donne le nombre de tâches correspondantes
+    const upcomingCount = tasks.filter(t => {
+        // Extrait uniquement la date (YYYY-MM-DD) de la date_planifiee
+        const taskDate = (t.date_planifiee ?? '').substring(0, 10);
+        // Compare avec aujourd'hui (taskDate > today = dans le futur)
+        // ET vérifie que la tâche n'est pas terminée
+        return taskDate > today && !(t.terminee == 1);
+    }).length;
+    
+    // ====== 5. MISE À JOUR DE L'AFFICHAGE ======
+    // Insère les valeurs calculées dans les éléments HTML correspondants
+    // Ces éléments sont dans le header de la page (stat-badge)
+    document.getElementById('totalTasks').textContent = total;          // Total des tâches
+    document.getElementById('todayTasksCount').textContent = todayCount; // Tâches d'aujourd'hui
+    document.getElementById('upcomingTasksCount').textContent = upcomingCount; // Tâches à venir
+}
+
+// =====================================================
+// 🎨 COULEUR DE PRIORITÉ
+// =====================================================
+
+function getPriorityColor(priority) {
+    const colors = {
+        'urgente': '#dc3545',   // Rouge
+        'haute': '#fd7e14',      // Orange
+        'moyenne': '#ffc107',    // Jaune
+        'basse': '#28a745'       // Vert
+    };
+    return colors[priority] || '#6c757d';
+}
+
+/**
+ * Rafraîchit tout l'affichage
+ */
+function renderAll() {
+    renderCalendar();      // Calendrier
+    renderTaskLists();     // Listes de tâches
+    updateStats();         // Statistiques
+}
+
+// =====================================================
+// 📋 REMPLISSAGE DES SÉLECTEURS D'ANIMAUX
+// =====================================================
+
+/**
+ * Remplit les <select> des modales avec la liste des animaux
+ * Utilise les IDs 'addAnimal' et 'editAnimal'
+ */
+function populateAnimalSelects() {
+    // Pour chaque select à remplir
+    ['addAnimal', 'editAnimal'].forEach(id => {
+        const select = document.getElementById(id);
+        if (!select) return; // Si le select n'existe pas, on passe
+        
+        // On réinitialise avec une option vide
+        select.innerHTML = `<option value="">Sélectionner un animal</option>`;
+        
+        // On ajoute chaque animal comme option
+        animals.forEach(a => {
+            const option = document.createElement('option');
+            option.value = a.id; // La valeur est l'ID de l'animal
+            option.textContent = `${a.nom || 'Animal'} (${a.espece || ''})`;
+            select.appendChild(option);
+        });
+    });
+}
+
+// =====================================================
+// 🚀 CHARGEMENT GLOBAL DES DONNÉES
+// =====================================================
+
+/**
+ * Fonction principale qui charge toutes les données nécessaires à la page
+ * 
+ * Cette fonction est le point d'entrée pour l'initialisation et les mises à jour
+ * Elle est appelée :
+ * - Au chargement de la page (DOMContentLoaded)
+ * - Après la création d'une tâche
+ * - Après la modification d'une tâche  
+ * - Après la suppression d'une tâche
+ * - Après le changement de statut d'une tâche
+ * - Après le déplacement d'une tâche (Drag & Drop)
+ * 
+ * Elle garantit que toutes les données et l'interface sont synchronisées
+ */
+async function loadData() {
+    // ====== 1. DÉBUT DU CHARGEMENT ======
+    // Affiche un message dans la console pour suivre l'exécution
+    console.log('🔄 Chargement des données...');
+    
+    try {
+        // ==========================================
+        // 2. CHARGEMENT DES TÂCHES
+        // ==========================================
+        // Appelle l'API pour récupérer toutes les tâches
+        // La fonction fetchTasks() retourne un objet avec { status, data }
+        const tasksResult = await fetchTasks();
+        
+        // Extrait les données (si data n'existe pas, on met un tableau vide)
+        // Compatibilité avec différents formats d'API :
+        // - { data: [...] } ou { data: { data: [...] } }
+        tasks = tasksResult.data || [];
+        
+        // Affiche le nombre de tâches chargées dans la console
+        console.log('✅ Tâches chargées:', tasks.length, 'tâches');
+        
+        // ==========================================
+        // 3. CHARGEMENT DES ANIMAUX
+        // ==========================================
+        // Appelle l'API pour récupérer tous les animaux
+        // La fonction fetchAnimals() retourne un objet avec { success, data }
+        const animalsResult = await fetchAnimals();
+        
+        // Extrait les données (si data n'existe pas, on met un tableau vide)
+        animals = animalsResult.data || [];
+        
+        // Affiche le nombre d'animaux chargés dans la console
+        console.log('✅ Animaux chargés:', animals.length, 'animaux');
+        
+        // ==========================================
+        // 4. REMPLISSAGE DES SÉLECTEURS
+        // ==========================================
+        // Remplit les listes déroulantes (select) dans les modales
+        // avec la liste des animaux récupérés
+        // Cela permet de choisir un animal dans les formulaires d'ajout/modification
+        populateAnimalSelects();
+        
+        // ==========================================
+        // 5. MISE À JOUR DE L'INTERFACE
+        // ==========================================
+        // Appelle la fonction qui coordonne tous les rendus :
+        // - Le calendrier (avec les points verts)
+        // - Les listes de tâches (À venir et Aujourd'hui)
+        renderAll();
+        
+        // ==========================================
+        // 6. MISE À JOUR DES STATISTIQUES
+        // ==========================================
+        // Met à jour les compteurs en haut de page :
+        // - Total des tâches
+        // - Tâches d'aujourd'hui
+        // - Tâches à venir
+        // Cette fonction utilise le tableau 'tasks' qui vient d'être chargé
+        updateStats();
+        
+        // ==========================================
+        // 7. FIN DU CHARGEMENT
+        // ==========================================
+        // Confirme que tout s'est bien passé dans la console
+        console.log('✅ Affichage mis à jour');
+        
+    } catch (error) {
+        // ==========================================
+        // 8. GESTION DES ERREURS
+        // ==========================================
+        // Si une erreur survient à n'importe quelle étape :
+        // - Affiche l'erreur dans la console pour le débogage
+        console.error('❌ loadData error:', error);
+        
+        // - Affiche une notification à l'utilisateur (toast rouge)
+        showToast('Erreur chargement données', 'danger');
+        
+        // La page reste fonctionnelle mais avec des données potentiellement incomplètes
+        // L'utilisateur peut réessayer en rechargeant la page
+    }
 }
 
 // =====================================================
@@ -1017,6 +1290,39 @@ async function openEditModal(taskId) {
         showToast('Erreur lors du chargement de la tâche', 'danger');
     }
 }
+
+// =====================================================
+// 🗑️ SUPPRESSION D'UNE TÂCHE
+// =====================================================
+
+/**
+ * Ouvre la modale de confirmation de suppression
+ * @param {number} taskId - ID de la tâche à supprimer
+ * @param {string} taskName - Nom de la tâche pour le message
+ */
+function openDeleteModal(taskId, taskName) {
+    document.getElementById('deleteTaskId').value = taskId;
+    document.getElementById('deleteTaskName').textContent = 
+        `Êtes-vous sûr de vouloir supprimer "${taskName || 'cette tâche'}" ?`;
+    const modal = new bootstrap.Modal(document.getElementById('deleteTaskModal'));
+    modal.show();
+}
+
+// Gestionnaire du bouton "Confirmer la suppression"
+document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+    const taskId = document.getElementById('deleteTaskId').value;
+    
+    try {
+        await deleteTask(taskId);
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteTaskModal'));
+        if (modal) modal.hide();
+        
+        sessionStorage.setItem('toastSuccess', 'Tâche supprimée avec succès !');
+        setTimeout(() => window.location.reload(), 300);
+    } catch (error) {
+        showToast('Erreur lors de la suppression', 'danger');
+    }
+});
 
 // =====================================================
 // 📝 GESTION DES FORMULAIRES
@@ -1136,39 +1442,6 @@ document.getElementById('editTaskForm').addEventListener('submit', async functio
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Enregistrer';
-    }
-});
-
-// =====================================================
-// 🗑️ SUPPRESSION D'UNE TÂCHE
-// =====================================================
-
-/**
- * Ouvre la modale de confirmation de suppression
- * @param {number} taskId - ID de la tâche à supprimer
- * @param {string} taskName - Nom de la tâche pour le message
- */
-function openDeleteModal(taskId, taskName) {
-    document.getElementById('deleteTaskId').value = taskId;
-    document.getElementById('deleteTaskName').textContent = 
-        `Êtes-vous sûr de vouloir supprimer "${taskName || 'cette tâche'}" ?`;
-    const modal = new bootstrap.Modal(document.getElementById('deleteTaskModal'));
-    modal.show();
-}
-
-// Gestionnaire du bouton "Confirmer la suppression"
-document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
-    const taskId = document.getElementById('deleteTaskId').value;
-    
-    try {
-        await deleteTask(taskId);
-        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteTaskModal'));
-        if (modal) modal.hide();
-        
-        sessionStorage.setItem('toastSuccess', 'Tâche supprimée avec succès !');
-        setTimeout(() => window.location.reload(), 300);
-    } catch (error) {
-        showToast('Erreur lors de la suppression', 'danger');
     }
 });
 
