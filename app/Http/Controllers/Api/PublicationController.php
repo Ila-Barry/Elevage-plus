@@ -53,45 +53,80 @@ class PublicationController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'titre' => 'required|string|min:5|max:255',
-            'categorie' => 'required|string|in:conseil,experience,alerte',
-            'contenu' => 'nullable|string|min:2',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'videos.*' => 'nullable|file|mimes:mp4,mov,avi,webm|max:51200',
-            'documents.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar|max:10240',
-        ]);
+        try {
+            \Log::info('📝 Tentative de création de publication', [
+                'user_id' => Auth::id(),
+                'titre' => $request->titre,
+                'files' => [
+                    'images' => $request->hasFile('images') ? count($request->file('images')) : 0,
+                    'videos' => $request->hasFile('videos') ? count($request->file('videos')) : 0,
+                    'documents' => $request->hasFile('documents') ? count($request->file('documents')) : 0,
+                ]
+            ]);
 
-        if ($validator->fails()) {
+            $validator = Validator::make($request->all(), [
+                'titre' => 'required|string|min:5|max:255',
+                'categorie' => 'required|string|in:conseil,experience,alerte',
+                'contenu' => 'nullable|string|min:2',
+                'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+                'videos.*' => 'nullable|file|mimes:mp4,mov,avi,webm|max:51200',
+                'documents.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar|max:10240',
+            ]);
+
+            if ($validator->fails()) {
+                \Log::warning('⚠️ Erreur de validation publication', $validator->errors()->toArray());
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Erreur de validation',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            \Log::info('📤 Upload des fichiers...');
+            
+            $images = $this->uploadMultipleFiles($request->file('images'), 'uploads/publications/images');
+            $videos = $this->uploadMultipleFiles($request->file('videos'), 'uploads/publications/videos');
+            $documents = $this->uploadMultipleDocuments($request->file('documents'), 'uploads/publications/documents');
+
+            \Log::info('✅ Fichiers uploadés', [
+                'images' => count($images),
+                'videos' => count($videos),
+                'documents' => count($documents)
+            ]);
+
+            \Log::info('💾 Création de la publication...');
+            
+            $publication = Publication::create([
+                'titre' => $request->titre,
+                'categorie' => $request->categorie,
+                'contenu' => $request->contenu,
+                'user_id' => Auth::id(),
+                'images' => $images,
+                'videos' => $videos,
+                'documents' => $documents,
+                'published_at' => now(),
+            ]);
+
+            $publication->load('user');
+
+            \Log::info('✅ Publication créée avec succès', ['id' => $publication->id]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Article publié avec succès !',
+                'data' => $this->formatPublication($publication)
+            ], 201);
+            
+        } catch (\Exception $e) {
+            \Log::error('❌ ERREUR CRÉATION PUBLICATION: ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            
             return response()->json([
                 'status' => 'error',
-                'message' => 'Erreur de validation',
-                'errors' => $validator->errors()
-            ], 422);
+                'message' => 'Erreur lors de la création: ' . $e->getMessage(),
+                'trace' => config('app.debug') ? $e->getTraceAsString() : null
+            ], 500);
         }
-
-        $images = $this->uploadMultipleFiles($request->file('images'), 'uploads/publications/images');
-        $videos = $this->uploadMultipleFiles($request->file('videos'), 'uploads/publications/videos');
-        $documents = $this->uploadMultipleDocuments($request->file('documents'), 'uploads/publications/documents');
-
-        $publication = Publication::create([
-            'titre' => $request->titre,
-            'categorie' => $request->categorie,
-            'contenu' => $request->contenu,
-            'user_id' => Auth::id(),
-            'images' => $images,
-            'videos' => $videos,
-            'documents' => $documents,
-            'published_at' => now(),
-        ]);
-
-        $publication->load('user');
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Article publié avec succès !',
-            'data' => $this->formatPublication($publication)
-        ], 201);
     }
 
     /**
