@@ -61,11 +61,12 @@ chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 # 8. Attendre la base de données
 echo "⏳ Attente de la base de données Aiven..."
 for i in {1..20}; do
-    if check_database; then
+    # Tente de se connecter à la DB en demandant le statut des migrations
+    if php artisan db:show > /dev/null 2>&1; then
         echo "✅ Base de données accessible !"
         break
     fi
-    echo "   Tentative $i/20..."
+    echo "   Tentative $i/20... (La DB ne répond pas encore)"
     sleep 3
 done
 
