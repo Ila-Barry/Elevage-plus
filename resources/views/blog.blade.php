@@ -9,7 +9,7 @@
 @endpush
 
 @section('content')
-<div class="blog-main-container p-4">
+<div class="blog-main-container">
     
     <div class="blog-top-header">
         <h2 class="blog-main-title">COMMUNAUTÉ ÉLEVEURS</h2>

@@ -4,7 +4,7 @@
 echo "🚀 Démarrage de l'application Élevage+ sur Render"
 echo "=================================================="
 
-# 1. Créer tous les dossiers requis
+# 1. Créer tous les dossiers nécessaires
 echo "📂 Vérification et création des dossiers de stockage..."
 mkdir -p /var/www/html/storage/framework/cache/data
 mkdir -p /var/www/html/storage/framework/views
@@ -16,60 +16,47 @@ mkdir -p /var/www/html/storage/app/public/animaux
 mkdir -p /var/www/html/storage/app/public/avatars
 mkdir -p /var/www/html/storage/app/public/uploads/publications/images
 
-# 2. 🔗 SUPPRIMER ET RECRÉER LE LIEN SYMBOLIQUE STORAGE
-echo "🔗 Suppression et recréation du lien symbolique storage..."
+# 2. 🔗 FORCER la création du lien symbolique (méthode fiable)
+echo "🔗 Création du lien symbolique storage..."
+# Supprimer l'ancien lien s'il existe (fichier ou dossier)
 rm -rf /var/www/html/public/storage
-php artisan storage:link
+# Créer le lien symbolique
+ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage
 
-# 3. Vérifier le lien symbolique
+# 3. ✅ Vérifier que le lien est créé
 if [ -L "/var/www/html/public/storage" ]; then
-    echo "✅ Lien symbolique storage présent"
-    ls -la /var/www/html/public/storage
+    echo "✅ Lien symbolique storage créé avec succès !"
 else
-    echo "⚠️ Lien symbolique storage manquant, création forcée..."
-    ln -sf /var/www/html/storage/app/public /var/www/html/public/storage
+    echo "❌ Échec de la création du lien symbolique"
+    # Tentative de secours avec php artisan
+    php artisan storage:link
 fi
 
-# 4. ✅ VÉRIFICATION CRITIQUE : Tester l'accès aux fichiers
-echo "🔍 Test d'accès aux fichiers..."
-if [ -f "/var/www/html/storage/app/public/elevages/elevage_1782899798_71avruX3w0.png" ]; then
-    echo "✅ Fichier elevage trouvé dans storage/app/public/elevages/"
-else
-    echo "⚠️ Fichier elevage non trouvé dans storage/app/public/elevages/"
-    echo "   Recherche dans d'autres emplacements..."
-    find /var/www/html/storage -name "elevage_1782899798_71avruX3w0.png" 2>/dev/null
-fi
-
-# 5. Nettoyer les caches
+# 4. Nettoyer les caches
 php artisan config:clear
 php artisan cache:clear
 php artisan route:clear
 php artisan view:clear
 
-# 6. Configuration injectée
-echo "📋 Configuration lue depuis Render :"
+# 5. Configuration
+echo "📋 Configuration :"
 echo "  APP_ENV: $APP_ENV"
 echo "  APP_URL: $APP_URL"
-echo "  DB_HOST: $DB_HOST"
-echo "  DB_PORT: $DB_PORT"
-echo "  DB_DATABASE: $DB_DATABASE"
-echo "  DB_USERNAME: $DB_USERNAME"
 
-# 7. Fonction de test de la base de données
-check_database() {
-    php -r "
-    try {
-        \$db = new PDO('mysql:host=' . getenv('DB_HOST') . ';port=' . getenv('DB_PORT') . ';dbname=' . getenv('DB_DATABASE'), getenv('DB_USERNAME'), getenv('DB_PASSWORD'), [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::MYSQL_ATTR_SSL_CA => getenv('MYSQL_ATTR_SSL_CA') ?: '/var/www/html/aiven-ca.pem'
-        ]);
-        exit(0);
-    } catch (Exception \$e) {
-        fwrite(STDERR, \$e->getMessage() . \"\n\");
-        exit(1);
-    }
-    "
-}
+# 6. ⭐ AJOUT : Créer un fichier de test pour vérifier le lien
+echo "🔍 Création d'un fichier de test..."
+echo "Le dossier storage est accessible !" > /var/www/html/storage/app/public/test.txt
+# Vérifier si le fichier est accessible via le lien
+if [ -f "/var/www/html/public/storage/test.txt" ]; then
+    echo "✅ Le lien fonctionne correctement !"
+else
+    echo "⚠️ Le lien semble ne pas fonctionner correctement"
+fi
+
+# 7. Permissions
+echo "🔐 Application des permissions..."
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # 8. Attendre la base de données
 echo "⏳ Attente de la base de données Aiven..."
