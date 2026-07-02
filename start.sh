@@ -90,10 +90,12 @@ ls -la /var/www/html/public/ | grep storage
 
 # 13. Lancer les services
 echo "🔄 Démarrage du worker de queue..."
-php artisan queue:work --daemon --quiet &
+# Redirection vers /dev/null pour éviter de saturer ou bloquer le conteneur
+php artisan queue:work --daemon --quiet > /dev/null 2>&1 &
 
 echo "⏰ Démarrage du scheduler..."
-nohup php artisan schedule:work > /var/log/scheduler.log 2>&1 &
+# Utilisation de /tmp au lieu de /var/log pour contourner les restrictions de droits de Render
+nohup php artisan schedule:work > /tmp/scheduler.log 2>&1 &
 
 # 14. Démarrer Apache
 echo "🌐 Démarrage du serveur Apache..."
