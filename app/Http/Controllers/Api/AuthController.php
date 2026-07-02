@@ -123,7 +123,14 @@ class AuthController extends Controller
                 $user->save();
             }
             
-            Auth::guard('web')->login($user, $request->input('remember', false));
+            // Auth::guard('web')->login($user, $request->input('remember', false));
+            if (config('session.driver') !== 'array') { 
+                try {
+                    Auth::login($user, $request->input('remember', false));
+                } catch (\Exception $e) {
+                    Log::warning('Impossible de créer la session web, utilisation exclusive du JWT.');
+                }
+            }
             
             $token = JWTAuth::fromUser($user);
             $user->update(['last_login_at' => now()]);
