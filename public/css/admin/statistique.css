@@ -409,24 +409,6 @@
     background: #4e73df;
     color: #fff;
 }
-.table .btn-outline-success {
-    color: #1cc88a;
-    border-color: #1cc88a;
-    background: transparent;
-}
-.table .btn-outline-success:hover {
-    background: #1cc88a;
-    color: #fff;
-}
-.table .btn-outline-info {
-    color: #36b9cc;
-    border-color: #36b9cc;
-    background: transparent;
-}
-.table .btn-outline-info:hover {
-    background: #36b9cc;
-    color: #fff;
-}
 
 /* ====== RAPPORT MENSUEL ====== */
 .report-grid {

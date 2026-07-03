@@ -37,9 +37,9 @@
             <div class="header-actions">
                 {{-- Dropdown personnalisé "Ce mois" avec les 12 mois --}}
                 <div class="custom-dropdown">
-                <button class="btn btn-outline dropdown-toggle" id="monthDropdownBtn" onclick="toggleMonthDropdown()">
-    <i class="fas fa-calendar-alt"></i> Ce mois <i class="fas fa-chevron-down"></i>
-</button>
+                    <button class="btn btn-outline dropdown-toggle" id="monthDropdownBtn" onclick="toggleMonthDropdown()">
+                        <i class="fas fa-calendar-alt"></i> Ce mois <i class="fas fa-chevron-down"></i>
+                    </button>
                     <ul class="custom-dropdown-menu" id="monthDropdownMenu">
                         <li><a href="#">Janvier</a></li>
                         <li><a href="#">Février</a></li>
@@ -145,9 +145,9 @@
                     <div class="stat-card blue">
                         <div class="stat-number">127</div>
                         <div class="stat-label">Total utilisateurs</div>
-                        <!-- <div class="stat-detail">Nouveaux ce mois : 12</div>
+                        <div class="stat-detail">Nouveaux ce mois : 12</div>
                         <div class="stat-detail">Utilisateurs actifs : 118</div>
-                        <div class="stat-detail">Taux de rétention : 92%</div> -->
+                        <div class="stat-detail">Taux de rétention : 92%</div>
                     </div>
                 </div>
                 <div class="col-md-3 col-sm-6">
@@ -344,22 +344,21 @@
                             <th>LIKES</th>
                             <th>COMMENTAIRES</th>
                             <th>CONVERSATION</th>
-                            <th>CONTACT</th>
                         </tr>
                     </thead>
                     <tbody>
                         @php
                             $eleveurs = [
-                                ['rang' => 1, 'nom' => 'Jean Dupont', 'posts' => 48, 'likes' => '2,345', 'commentaires' => 127, 'conversation' => 34],
-                                ['rang' => 2, 'nom' => 'Marie Diop', 'posts' => 42, 'likes' => '1,890', 'commentaires' => 98, 'conversation' => 28],
-                                ['rang' => 3, 'nom' => 'Amadou Sy', 'posts' => 38, 'likes' => '1,567', 'commentaires' => 87, 'conversation' => 25],
-                                ['rang' => 4, 'nom' => 'Ibrahima Fall', 'posts' => 31, 'likes' => '1,234', 'commentaires' => 65, 'conversation' => 19],
-                                ['rang' => 5, 'nom' => 'Fatou Sow', 'posts' => 28, 'likes' => '987', 'commentaires' => 54, 'conversation' => 15],
-                                ['rang' => 6, 'nom' => 'Aliou Ndiaye', 'posts' => 27, 'likes' => '986', 'commentaires' => 50, 'conversation' => 14],
-                                ['rang' => 7, 'nom' => 'Moussa Diallo', 'posts' => 24, 'likes' => '984', 'commentaires' => 46, 'conversation' => 12],
-                                ['rang' => 8, 'nom' => 'Oumou Kâ', 'posts' => 23, 'likes' => '982', 'commentaires' => 42, 'conversation' => 11],
-                                ['rang' => 9, 'nom' => 'Cheikh Diop', 'posts' => 20, 'likes' => '983', 'commentaires' => 40, 'conversation' => 9],
-                                ['rang' => 10, 'nom' => 'Aminata Seck', 'posts' => 15, 'likes' => '977', 'commentaires' => 50, 'conversation' => 8],
+                                ['id' => 1, 'rang' => 1, 'nom' => 'Jean Dupont', 'posts' => 48, 'likes' => '2,345', 'commentaires' => 127, 'conversation' => 34],
+                                ['id' => 2, 'rang' => 2, 'nom' => 'Marie Diop', 'posts' => 42, 'likes' => '1,890', 'commentaires' => 98, 'conversation' => 28],
+                                ['id' => 3, 'rang' => 3, 'nom' => 'Amadou Sy', 'posts' => 38, 'likes' => '1,567', 'commentaires' => 87, 'conversation' => 25],
+                                ['id' => 4, 'rang' => 4, 'nom' => 'Ibrahima Fall', 'posts' => 31, 'likes' => '1,234', 'commentaires' => 65, 'conversation' => 19],
+                                ['id' => 5, 'rang' => 5, 'nom' => 'Fatou Sow', 'posts' => 28, 'likes' => '987', 'commentaires' => 54, 'conversation' => 15],
+                                ['id' => 6, 'rang' => 6, 'nom' => 'Aliou Ndiaye', 'posts' => 27, 'likes' => '986', 'commentaires' => 50, 'conversation' => 14],
+                                ['id' => 7, 'rang' => 7, 'nom' => 'Moussa Diallo', 'posts' => 24, 'likes' => '984', 'commentaires' => 46, 'conversation' => 12],
+                                ['id' => 8, 'rang' => 8, 'nom' => 'Oumou Kâ', 'posts' => 23, 'likes' => '982', 'commentaires' => 42, 'conversation' => 11],
+                                ['id' => 9, 'rang' => 9, 'nom' => 'Cheikh Diop', 'posts' => 20, 'likes' => '983', 'commentaires' => 40, 'conversation' => 9],
+                                ['id' => 10, 'rang' => 10, 'nom' => 'Aminata Seck', 'posts' => 15, 'likes' => '977', 'commentaires' => 50, 'conversation' => 8],
                             ];
                         @endphp
 
@@ -371,18 +370,8 @@
                                 <td>{{ $eleveur['likes'] }}</td>
                                 <td>{{ $eleveur['commentaires'] }}</td>
                                 <td>
-                                    <i class="fas fa-comment-dots text-primary me-1"></i>
-                                    {{ $eleveur['conversation'] }}
-                                </td>
-                                <td>
-                                    <a href="#" class="btn btn-sm btn-outline-primary me-1" title="Envoyer un message">
-                                        <i class="fas fa-envelope"></i>
-                                    </a>
-                                    <a href="#" class="btn btn-sm btn-outline-success me-1" title="Appeler">
-                                        <i class="fas fa-phone"></i>
-                                    </a>
-                                    <a href="#" class="btn btn-sm btn-outline-info" title="Voir le profil">
-                                        <i class="fas fa-user"></i>
+                                    <a href="{{ route('admin.messages', ['id' => $eleveur['id']]) }}" class="btn btn-sm btn-outline-primary" title="Voir la conversation">
+                                        <i class="fas fa-comment-dots"></i> {{ $eleveur['conversation'] }}
                                     </a>
                                 </td>
                             </tr>

@@ -146,23 +146,3 @@ Route::middleware(['auth'])->group(function () {
         return view('admin/statistique');
     });
 // });
-
-// ========== VÉRIFICATION D'EMAIL ==========
-Route::get('/verify-email', function (Request $request) {
-    $verifyUrl = $request->query('verify_url');
-    
-    if (!$verifyUrl) {
-        return view('verify-email', [
-            'error' => 'Lien de vérification manquant.',
-            'success' => false
-        ]);
-    }
-
-    $verifyUrl = urldecode($verifyUrl);
-    
-    return view('verify-email', [
-        'verify_url' => $verifyUrl,
-        'error' => null,
-        'success' => true
-    ]);
-})->name('verify.email');
