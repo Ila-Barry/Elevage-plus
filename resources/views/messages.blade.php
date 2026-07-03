@@ -201,14 +201,15 @@
             document.getElementById('emptyDiscussionArea').style.display = 'none';
             document.getElementById('discussionArea').style.display = 'flex';
         }
-
         function startPolling(conversationId) {
             clearInterval(state.pollingInterval);
+
             if (!conversationId) return;
-            
+
             state.pollingInterval = setInterval(() => {
                 loadMessages(conversationId, false);
-            }, 4000);
+                loadConversations(); // 👈 important pour badge + preview
+            }, 3000); // toutes les 3 secondes
         }
 
         // ================= CHARGEMENT DES CONVERSATIONS =================
@@ -283,6 +284,7 @@
             try {
                 const res = await fetchWithAuth(`${API_URL}/messaging/conversations/${conversationId}/messages?per_page=100`);
                 const messages = res.data?.messages || [];
+                messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
                 const container = document.getElementById('messagesContainer');
                 
                 if (!scrollDown && container.children.length === messages.length) {
@@ -348,6 +350,7 @@
 
             startPolling(state.activeConversationId);
         });
+        
 
         // ================= ENVOI DE MESSAGE =================
         document.getElementById('sendMessageForm').addEventListener('submit', async function(e) {

@@ -63,13 +63,13 @@
         <a href="{{ url('/messages') }}" class="sidebar-item {{ request()->is('messages*') ? 'active' : '' }}">
             <i class="fas fa-comment"></i>
             <span>Messages</span>
-            <span class="badge badge-light ml-auto">3</span>
+            <span id="sidebarMessageBadge" class="badge badge-light ml-auto"></span>
         </a>
 
         <a href="{{ url('/notification') }}" class="sidebar-item {{ request()->is('notification*') ? 'active' : '' }}">
             <i class="fas fa-bell"></i>
             <span>Notifications</span>
-            <span class="badge badge-light ml-auto">12</span>
+            <span id="sidebarNotificationBadge" class="badge badge-light ml-auto"></span>
         </a>
 
     </div>
