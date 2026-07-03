@@ -312,7 +312,7 @@ class DashboardController extends Controller
         $evolutionNaissances = DB::table('animaux')
             ->join('elevages', 'animaux.elevage_id', '=', 'elevages.id')
             ->where('elevages.user_id', $user->id)
-            ->where('elevages.created_at', '>=', now()->subMonths(12))
+            ->where('animaux.created_at', '>=', now()->subMonths(12))
             ->select([
                 DB::raw('DATE_FORMAT(animaux.created_at, "%Y-%m") as mois'),
                 DB::raw('COUNT(*) as nombre'),
@@ -663,7 +663,7 @@ class DashboardController extends Controller
         
         // Nouveaux utilisateurs par mois
         $nouveauxParMois = DB::table('users')
-            ->where('elevages.created_at', '>=', now()->subMonths(12))
+            ->where('users.created_at', '>=', now()->subMonths(12))
             ->select([
                 DB::raw('DATE_FORMAT(created_at, "%Y-%m") as mois'),
                 DB::raw('COUNT(*) as nombre'),
@@ -741,7 +741,7 @@ class DashboardController extends Controller
         $totalVues = DB::table('publications')->sum('nbr_vues');
         
         $publicationsParMois = DB::table('publications')
-            ->where('elevages.created_at', '>=', now()->subMonths(12))
+            ->where('publications.created_at', '>=', now()->subMonths(12))
             ->select([
                 DB::raw('DATE_FORMAT(created_at, "%Y-%m") as mois'),
                 DB::raw('COUNT(*) as nombre'),
