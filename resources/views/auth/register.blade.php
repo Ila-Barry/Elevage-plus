@@ -151,22 +151,7 @@
                 <div class="field-error" id="passwordConfirmError" style="display: none;"></div>
             </div>
 
-            <!-- 6. TYPE(S) ÉLEVAGE -->
-            <div class="form-group mb-4">
-                <label class="form-label fw-semibold">Type(s) d'élevage</label>
-                <div class="input-group custom-input-group" id="farmingTypeGroup">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-tractor text-muted"></i></span>
-                    </div>
-                    <input type="text" class="form-control border-start-0 ps-0" id="farmingType" name="type_elevage" placeholder="Bovin, ovin, caprin..." required>
-                    <div class="input-validation" style="display: none;">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                </div>
-                <div class="field-error" id="farmingTypeError" style="display: none;"></div>
-            </div>
-
-            <!-- 7. BIOGRAPHIE (optionnel) -->
+            <!-- 6. BIOGRAPHIE (optionnel) -->
             <div class="form-group mb-4">
                 <label class="form-label fw-semibold">Biographie (optionnel)</label>
                 <div class="input-group custom-input-group" id="bioGroup">
@@ -181,7 +166,7 @@
                 <div class="field-error" id="bioError" style="display: none;"></div>
             </div>
 
-            <!-- 8. Case à cocher conditions générales -->
+            <!-- 7. Case à cocher conditions générales -->
             <div class="form-group form-check mb-4 d-flex align-items-center">
                 <input class="form-check-input me-2" type="checkbox" id="acceptTerms" style="width: 18px; height: 18px;" required>
                 <label class="form-check-label text-dark" for="acceptTerms">
@@ -319,10 +304,6 @@ function validatePassword(password) {
 
 function validatePasswordMatch(password, confirm) {
     return password === confirm;
-}
-
-function validateFarmingType(type) {
-    return type.trim().length >= 2;
 }
 
 function getPasswordStrength(password) {
@@ -519,36 +500,6 @@ function validatePasswordMatchInput() {
     }
 }
 
-function validateFarmingTypeInput() {
-    const input = document.getElementById('farmingType');
-    const value = input.value;
-    const group = document.getElementById('farmingTypeGroup');
-    const errorDiv = document.getElementById('farmingTypeError');
-    const validationIcon = group.querySelector('.input-validation');
-    
-    if (value === '') {
-        group.classList.remove('valid', 'invalid');
-        validationIcon.style.display = 'none';
-        errorDiv.style.display = 'none';
-        return false;
-    }
-    
-    if (validateFarmingType(value)) {
-        group.classList.add('valid');
-        group.classList.remove('invalid');
-        validationIcon.style.display = 'flex';
-        errorDiv.style.display = 'none';
-        return true;
-    } else {
-        group.classList.add('invalid');
-        group.classList.remove('valid');
-        validationIcon.style.display = 'none';
-        errorDiv.textContent = 'Veuillez indiquer le type d\'élevage';
-        errorDiv.style.display = 'block';
-        return false;
-    }
-}
-
 // ================= AFFICHAGE DES ERREURS =================
 function showError(message) {
     const errorDiv = document.getElementById('errorMessage');
@@ -643,7 +594,6 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     const isPhoneValid = validatePhoneInput();
     const isPasswordValid = validatePasswordInput();
     const isPasswordMatchValid = validatePasswordMatchInput();
-    const isFarmingTypeValid = validateFarmingTypeInput();
     const termsAccepted = document.getElementById('acceptTerms').checked;
     
     if (!isNameValid) {
@@ -676,24 +626,20 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         return;
     }
     
-    if (!isFarmingTypeValid) {
-        showError('Veuillez indiquer votre type d\'élevage.');
-        document.getElementById('farmingType').focus();
-        return;
-    }
-    
     if (!termsAccepted) {
         showError('Vous devez accepter les conditions d\'utilisation.');
         return;
     }
     
+    // Nettoyer le numéro de téléphone (supprimer les espaces et tirets)
+    const phoneValue = document.getElementById('phone').value.replace(/[\s\-]/g, '');
+    
     const formData = {
         name: document.getElementById('fullName').value.trim(),
         email: document.getElementById('email').value.trim(),
-        telephone: document.getElementById('phone').value.trim(),
+        telephone: phoneValue,
         password: document.getElementById('password').value,
         password_confirmation: document.getElementById('password_confirmation').value,
-        type_elevage: document.getElementById('farmingType').value.trim(),
         bio: document.getElementById('bio').value.trim()
     };
     
@@ -703,7 +649,6 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     try {
         const result = await registerUser(formData);
         
-        // ✅ CORRECTION : Vérifier 'success' (pas 'status')
         if (result.success === true) {
             // Stocker les tokens
             if (result.data?.access_token) {
@@ -724,15 +669,42 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         } else {
             // Gérer les erreurs de validation du backend
             if (result.errors) {
-                const errorMessages = Object.values(result.errors).flat().join('\n');
-                showError(errorMessages || result.message || 'Une erreur est survenue.');
+                let errorMsg = '';
+                for (const [field, messages] of Object.entries(result.errors)) {
+                    const fieldNames = {
+                        'name': 'Nom',
+                        'email': 'Email',
+                        'telephone': 'Téléphone',
+                        'password': 'Mot de passe',
+                        'bio': 'Biographie'
+                    };
+                    const fieldName = fieldNames[field] || field;
+                    errorMsg += `${fieldName}: ${messages.join(', ')}\n`;
+                }
+                showError(errorMsg || result.message || 'Une erreur est survenue.');
             } else {
                 showError(result.message || 'Une erreur est survenue lors de l\'inscription.');
             }
         }
     } catch (error) {
         console.error('Erreur:', error);
-        showError(error.message || 'Une erreur est survenue. Veuillez réessayer.');
+        if (error.errors) {
+            let errorMsg = '';
+            for (const [field, messages] of Object.entries(error.errors)) {
+                const fieldNames = {
+                    'name': 'Nom',
+                    'email': 'Email',
+                    'telephone': 'Téléphone',
+                    'password': 'Mot de passe',
+                    'bio': 'Biographie'
+                };
+                const fieldName = fieldNames[field] || field;
+                errorMsg += `${fieldName}: ${messages.join(', ')}\n`;
+            }
+            showError(errorMsg);
+        } else {
+            showError(error.message || 'Une erreur est survenue. Veuillez réessayer.');
+        }
     } finally {
         setLoading(submitBtn, false);
     }
@@ -765,7 +737,6 @@ document.getElementById('email').addEventListener('input', validateEmailInput);
 document.getElementById('phone').addEventListener('input', validatePhoneInput);
 document.getElementById('password').addEventListener('input', validatePasswordInput);
 document.getElementById('password_confirmation').addEventListener('input', validatePasswordMatchInput);
-document.getElementById('farmingType').addEventListener('input', validateFarmingTypeInput);
 
 // ================= MODAL CONDITIONS =================
 const termsModal = document.getElementById('termsModal');

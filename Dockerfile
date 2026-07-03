@@ -1,7 +1,7 @@
-# Dockerfile avec contournement
+# Dockerfile - Version finale optimisée
 FROM php:8.2-apache
 
-# Installation des dépendances système
+# Installation des dépendances système (Ajout de ffmpeg obligatoire pour php-ffmpeg)
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     nodejs \
     npm \
     ca-certificates \
+    ffmpeg \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -37,36 +38,42 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
+# Copier le script de démarrage en amont
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 # Copier TOUT le projet
 COPY . /var/www/html/
 
-# Installer les dépendances en ignorant les vulnérabilités
-RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts || \
-    (echo "⚠️ Tentative d'installation alternative..." && \
-     composer config --global --no-plugins allow-plugins true && \
-     composer install --no-interaction --optimize-autoloader --no-dev --no-scripts --ignore-platform-req=php)
+# Forcer l'utilisation de HTTP/1.1 via curl pour tout le build Docker (Règle l'erreur HTTP/2 400 de Render)
+ENV CURL_HTTP_VERSION=3
 
-# Exécuter les scripts
+# Installer les dépendances PHP de production proprement
+RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts --prefer-dist
+
+# Exécuter les scripts post-installation
 RUN composer run-script post-autoload-dump
 
-# Permissions
+# Configuration des permissions pour Apache et Laravel
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
-# Node.js
+# Installation et build des assets Node.js (Vite / Mix)
 RUN npm install && npm run build
 
-# Optimiser Laravel
+# Optimiser Laravel (Mise en cache de la configuration et des routes)
 RUN php artisan config:cache \
     && php artisan route:cache \
-    && php artisan view:cache \
     && php artisan event:cache
 
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
+# Gestion du cache des vues
+RUN if [ -d "/var/www/html/resources/views" ]; then \
+        php artisan view:cache || echo "⚠️ View cache skipped"; \
+    else \
+        echo "⚠️ No views found, skipping view cache"; \
+    fi
 
 EXPOSE 80
 EXPOSE 8000
-
 CMD ["/start.sh"]

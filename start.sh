@@ -4,54 +4,99 @@
 echo "🚀 Démarrage de l'application Élevage+ sur Render"
 echo "=================================================="
 
-# Configuration
-echo "📋 Configuration:"
-echo "  APP_ENV: $APP_ENV"
-echo "  DB_HOST: $DB_HOST"
-echo "  DB_PORT: $DB_PORT"
-echo "  DB_DATABASE: $DB_DATABASE"
-echo "  DB_USERNAME: $DB_USERNAME"
+# 1. Créer tous les dossiers nécessaires
+echo "📂 Vérification et création des dossiers de stockage..."
+mkdir -p /var/www/html/storage/framework/cache/data
+mkdir -p /var/www/html/storage/framework/views
+mkdir -p /var/www/html/storage/framework/sessions
+mkdir -p /var/www/html/storage/logs
+mkdir -p /var/www/html/storage/app/public
+mkdir -p /var/www/html/storage/app/public/elevages
+mkdir -p /var/www/html/storage/app/public/animaux
+mkdir -p /var/www/html/storage/app/public/avatars
+mkdir -p /var/www/html/storage/app/public/uploads/publications/images
 
-# Fonction pour vérifier la base de données
-check_database() {
-    php artisan db:show > /dev/null 2>&1
-    return $?
-}
+# 2. 🔗 FORCER la création du lien symbolique (méthode fiable)
+echo "🔗 Création du lien symbolique storage..."
+# Supprimer l'ancien lien s'il existe (fichier ou dossier)
+rm -rf /var/www/html/public/storage
+# Créer le lien symbolique
+ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage
 
-# Attendre la base de données
-echo "⏳ Attente de la base de données..."
-for i in {1..60}; do
-    if check_database; then
-        echo "✅ Base de données accessible!"
-        break
-    fi
-    echo "   Tentative $i/60..."
-    sleep 2
-done
-
-# Si la base de données n'est pas accessible, continuer quand même
-if ! check_database; then
-    echo "⚠️ La base de données n'est pas accessible, mais on continue..."
+# 3. ✅ Vérifier que le lien est créé
+if [ -L "/var/www/html/public/storage" ]; then
+    echo "✅ Lien symbolique storage créé avec succès !"
+else
+    echo "❌ Échec de la création du lien symbolique"
+    # Tentative de secours avec php artisan
+    php artisan storage:link
 fi
 
-# Exécuter les migrations
+# 4. Nettoyer les caches
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
+
+# 5. Configuration
+echo "📋 Configuration :"
+echo "  APP_ENV: $APP_ENV"
+echo "  APP_URL: $APP_URL"
+
+# 6. ⭐ AJOUT : Créer un fichier de test pour vérifier le lien
+echo "🔍 Création d'un fichier de test..."
+echo "Le dossier storage est accessible !" > /var/www/html/storage/app/public/test.txt
+# Vérifier si le fichier est accessible via le lien
+if [ -f "/var/www/html/public/storage/test.txt" ]; then
+    echo "✅ Le lien fonctionne correctement !"
+else
+    echo "⚠️ Le lien semble ne pas fonctionner correctement"
+fi
+
+# 7. Permissions
+echo "🔐 Application des permissions..."
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# 8. Attendre la base de données
+echo "⏳ Attente de la base de données Aiven..."
+for i in {1..20}; do
+    # Tente de se connecter à la DB en demandant le statut des migrations
+    if php artisan db:show > /dev/null 2>&1; then
+        echo "✅ Base de données accessible !"
+        break
+    fi
+    echo "   Tentative $i/20... (La DB ne répond pas encore)"
+    sleep 3
+done
+
+# 9. Exécuter les migrations
 echo "📦 Exécution des migrations..."
 php artisan migrate --force
 
-# Optimiser Laravel
-echo "⚡ Optimisation pour la production..."
+# 10. Optimisation
+echo "⚡ Optimisation finale de Laravel..."
 php artisan config:cache
 php artisan route:cache
-php artisan view:cache
 
-# Lancer le worker de queue en arrière-plan
+# 11. 🔐 PERMISSIONS
+echo "🔐 Application des permissions www-data sur storage..."
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# 12. Vérification finale du lien
+echo "🔗 Vérification finale du lien symbolique :"
+ls -la /var/www/html/public/ | grep storage
+
+# 13. Lancer les services
 echo "🔄 Démarrage du worker de queue..."
-php artisan queue:work --daemon --quiet &
+# Redirection vers /dev/null pour éviter de saturer ou bloquer le conteneur
+php artisan queue:work --daemon --quiet > /dev/null 2>&1 &
 
-# Lancer le scheduler
 echo "⏰ Démarrage du scheduler..."
-nohup php artisan schedule:work > /var/log/scheduler.log 2>&1 &
+# Utilisation de /tmp au lieu de /var/log pour contourner les restrictions de droits de Render
+nohup php artisan schedule:work > /tmp/scheduler.log 2>&1 &
 
-# Démarrer Apache
+# 14. Démarrer Apache
 echo "🌐 Démarrage du serveur Apache..."
-apache2-foreground
+exec apache2-foreground
