@@ -436,4 +436,97 @@
         </section>
 
     </div>
+    @push('scripts')
+<script>
+$(document).ready(function() {
+    const token = localStorage.getItem('access_token');
+
+    if (!token) {
+        window.location.href = '/auth/login';
+        return;
+    }
+
+    // Charger les statistiques globales
+    $.ajax({
+        url: '/api/admin/dashboard/stats',
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/json'
+        },
+        success: function(response) {
+            if (response.success) {
+                const data = response.data;
+
+                // === Statistiques utilisateurs ===
+                const users = data.utilisateurs;
+                // Total utilisateurs
+                $('.stat-card.blue .stat-number').text(users.total);
+
+                // Nouveaux ce mois
+                const mois = users.nouveaux_par_mois;
+                if (mois.length > 0) {
+                    const dernierMois = mois[mois.length - 1];
+                    $('.stat-card.green .stat-number').text(dernierMois.nombre);
+                }
+
+                // Utilisateurs actifs
+                $('.stat-card.orange .stat-number').text(users.actifs);
+
+                // Taux activation
+                $('.stat-card.purple .stat-number').text(users.taux_activation + '%');
+
+                // === Publications ===
+                const pubs = data.publications;
+                console.log('Publications:', pubs);
+            }
+        },
+        error: function(xhr) {
+            console.error('Erreur:', xhr.responseJSON);
+            if (xhr.status === 401) {
+                window.location.href = '/auth/login';
+            }
+        }
+    });
+
+    // Charger le top utilisateurs
+    $.ajax({
+        url: '/api/admin/users',
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/json'
+        },
+        success: function(response) {
+            if (response.success) {
+                const users = response.data.data;
+                const tbody = $('table tbody');
+                tbody.empty();
+
+                users.forEach(function(user, index) {
+                    tbody.append(`
+                        <tr>
+                            <td><span class="badge bg-primary rounded-pill">${index + 1}</span></td>
+                            <td><strong>${user.name}</strong></td>
+                            <td>${user.publications_count || 0}</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-info" title="Voir le profil">
+                                    <i class="fas fa-user"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    `);
+                });
+            }
+        },
+        error: function(xhr) {
+            console.error('Erreur users:', xhr.responseJSON);
+        }
+    });
+});
+</script>
+@endpush
 @endsection
