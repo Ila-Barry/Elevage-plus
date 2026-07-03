@@ -125,27 +125,27 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // ========== ROUTES ADMIN (AUTHENTIFIÉ + ADMIN) ==========
-// Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/admin/dashboard', function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', function () {
         return view('admin/dashboard');
     })->name('admin.dashboard');
     
-    Route::get('/admin/utilisateur', function () {
+    Route::get('/utilisateur', function () {
         return view('admin/utilisateur');
     });
     
-    Route::get('/admin/publication', function () {
+    Route::get('/publication', function () {
         return view('admin/publication');
     });
     
-    Route::get('/admin/signale', function () {
+    Route::get('/signale', function () {
         return view('admin/signale');
     });
     
-    Route::get('/admin/statistique', function () {
+    Route::get('/statistique', function () {
         return view('admin/statistique');
     });
-// });
+});
 
 // ========== VÉRIFICATION D'EMAIL ==========
 Route::get('/verify-email', function (Request $request) {
