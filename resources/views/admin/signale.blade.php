@@ -355,4 +355,172 @@
     </section>
 
 </div>
+@push('scripts')
+<script>
+$(document).ready(function() {
+    const token = localStorage.getItem('access_token');
+
+    if (!token) {
+        window.location.href = '/auth/login';
+        return;
+    }
+
+    // Charger les signalements
+    function loadReports(filters = {}) {
+        $.ajax({
+            url: '/api/admin/reports',
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json'
+            },
+            data: filters,
+            success: function(response) {
+                if (response.success) {
+                    const meta = response.data.meta;
+                    const reports = response.data.data;
+
+                    // Mise à jour des compteurs
+                    updateCounters(meta);
+
+                    // Affichage des signalements
+                    renderReports(reports);
+                }
+            },
+            error: function(xhr) {
+                console.error('Erreur:', xhr.responseJSON);
+                if (xhr.status === 401) {
+                    window.location.href = '/auth/login';
+                }
+            }
+        });
+    }
+
+    // Mettre à jour les compteurs
+    function updateCounters(meta) {
+        // On peut afficher le total dans le titre de section
+        $('.section-title').first()
+            .html('<i class="fas fa-triangle-exclamation" style="color: #f59e0b;"></i> Signalements en attente (' + meta.en_attente + ')');
+    }
+
+    // Afficher les signalements
+    function renderReports(reports) {
+        const section = $('.reports-section');
+
+        // Supprimer les cartes statiques
+        section.find('.report-card').remove();
+
+        if (reports.length === 0) {
+            section.append('<div class="alert alert-success mt-3"><i class="fas fa-check-circle"></i> Aucun signalement en attente.</div>');
+            return;
+        }
+
+        reports.forEach(function(report) {
+            const card = `
+                <div class="report-card" id="report-${report.id}">
+                    <div class="report-header">
+                        <span class="report-id">
+                            <i class="fas fa-triangle-exclamation" style="color: #f59e0b;"></i> SIGNALEMENT #${report.id}
+                        </span>
+                        <span class="report-badge status-pending">
+                            <i class="fas fa-hourglass-half"></i> ${report.created_at}
+                        </span>
+                    </div>
+                    <div class="report-body">
+                        <div class="detail-row">
+                            <span class="detail-label"><i class="fas fa-file-alt"></i> Publication signalée :</span>
+                            <span class="detail-value">${report.publication?.titre || 'N/A'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label"><i class="fas fa-user"></i> Auteur :</span>
+                            <span class="detail-value">${report.publication?.user?.name || 'N/A'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label"><i class="fas fa-exclamation-triangle"></i> Raison :</span>
+                            <span class="detail-value">${report.motif || 'N/A'}</span>
+                        </div>
+                        <div class="report-meta">
+                            <span class="meta-reporter">
+                                <i class="fas fa-user-circle"></i> Signalé par : ${report.user?.name || 'N/A'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="report-actions">
+                        <button class="btn-action btn-approve" onclick="handleReport(${report.id}, 'aucune_action')">
+                            <i class="fas fa-check-circle"></i> Approuver
+                        </button>
+                        <button class="btn-action btn-reject" onclick="handleReport(${report.id}, 'publication_supprimee')">
+                            <i class="fas fa-times-circle"></i> Supprimer
+                        </button>
+                        <button class="btn-action btn-modify" onclick="ignoreReport(${report.id})">
+                            <i class="fas fa-eye-slash"></i> Ignorer
+                        </button>
+                    </div>
+                </div>`;
+            section.append(card);
+        });
+    }
+
+    // Traiter un signalement
+    window.handleReport = function(id, action) {
+        $.ajax({
+            url: `/api/admin/reports/${id}/handle`,
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({ action: action }),
+            success: function(response) {
+                if (response.success) {
+                    $(`#report-${id}`).fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                    alert('Signalement traité avec succès !');
+                }
+            },
+            error: function(xhr) {
+                console.error('Erreur:', xhr.responseJSON);
+            }
+        });
+    };
+
+    // Ignorer un signalement
+    window.ignoreReport = function(id) {
+        $.ajax({
+            url: `/api/admin/reports/${id}/ignore`,
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                if (response.success) {
+                    $(`#report-${id}`).fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                    alert('Signalement ignoré !');
+                }
+            },
+            error: function(xhr) {
+                console.error('Erreur:', xhr.responseJSON);
+            }
+        });
+    };
+
+    // Bouton filtrer
+    $('.btn-filter').on('click', function() {
+        const filters = {
+            statut: $('#filter-status').val(),
+            motif: $('#filter-type').val(),
+        };
+        loadReports(filters);
+    });
+
+    // Chargement initial
+    loadReports();
+});
+</script>
+@endpush
 @endsection
