@@ -307,6 +307,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function() {
+
             // --- Modal Voir ---
             $('#userModal').on('show.bs.modal', function(event) {
                 var button = $(event.relatedTarget);
@@ -324,11 +325,9 @@
                 modal.find('#editName').val(button.data('name'));
                 modal.find('#editEmail').val(button.data('email'));
                 modal.find('#editDate').val(button.data('date'));
-                // Rôle par défaut : on le met en "Éleveur" (ou on pourrait le passer en data-*)
                 modal.find('#editRole').val('Éleveur');
             });
 
-            // Soumission du formulaire de modification
             $('#editForm').on('submit', function(e) {
                 e.preventDefault();
                 var originalName = $('#editOriginalName').val();
@@ -336,19 +335,8 @@
                 var newEmail = $('#editEmail').val();
                 var newDate = $('#editDate').val();
                 var newRole = $('#editRole').val();
-
-                alert('Utilisateur "' + originalName + '" modifié :\n' +
-                      'Nom : ' + newName + '\n' +
-                      'Email : ' + newEmail + '\n' +
-                      'Date : ' + newDate + '\n' +
-                      'Rôle : ' + newRole);
-
-                // Ici vous pourriez faire un appel AJAX pour enregistrer les modifications
+                alert('Utilisateur "' + originalName + '" modifié :\nNom : ' + newName + '\nEmail : ' + newEmail + '\nDate : ' + newDate + '\nRôle : ' + newRole);
                 $('#editModal').modal('hide');
-                // Pour l'exemple, on met à jour le nom dans la ligne du tableau (simulation)
-                // Dans la vraie vie, on rechargerait les données.
-                // On peut mettre à jour l'élément parent de la ligne
-                // Ici, on va juste afficher un message.
             });
 
             // --- Modal Supprimer ---
@@ -362,8 +350,51 @@
                 var userName = $('#deleteUserName').text();
                 alert('Utilisateur "' + userName + '" supprimé (simulation).');
                 $('#deleteModal').modal('hide');
-                // Ici, vous pourriez ajouter un appel AJAX pour supprimer l'utilisateur
             });
+
+            // --- Intégration API Admin Stats ---
+            const token = localStorage.getItem('access_token');
+
+            if (!token) {
+                window.location.href = '/auth/login';
+                return;
+            }
+
+            $.ajax({
+                url: '/api/admin/dashboard/stats',
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        const data = response.data;
+
+                        // Utilisateurs
+                        $('.card-stat-users .indicator-number').text(data.utilisateurs.total);
+                        const mois = data.utilisateurs.nouveaux_par_mois;
+                        if (mois.length > 0) {
+                            const dernierMois = mois[mois.length - 1];
+                            $('.card-stat-users .indicator-change')
+                                .html('<i class="fas fa-arrow-up"></i> +' + dernierMois.nombre + ' ce mois');
+                        }
+
+                        // Publications
+                        $('.card-stat-posts .indicator-number').text(data.publications.total);
+
+                        // Signalements
+                        $('.card-stat-reports .indicator-number').text(data.stocks.produits_critiques);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Erreur API:', xhr.responseJSON);
+                    if (xhr.status === 401) {
+                        window.location.href = '/auth/login';
+                    }
+                }
+            });
+
         });
     </script>
 </body>
