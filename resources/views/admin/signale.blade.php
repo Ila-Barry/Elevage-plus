@@ -90,7 +90,7 @@
         <h2 class="section-title">
               <i class="fas fa-triangle-exclamation" style="color: #f59e0b;"></i> Signalements en attente
         </h2>
-        
+
         <!-- Carte Signalement #1 -->
         <div class="report-card">
             <div class="report-header">
@@ -101,52 +101,48 @@
                     <i class="fas fa-hourglass-half"></i> 12/05/2026
                 </span>
             </div>
-            
-            <div class="report-body">
-                <!-- Publication signalée -->
-                <div class="detail-row">
-                    <span class="detail-label">
-                        <i class="fas fa-file-alt"></i> Publication signalée :
-                    </span>
-                    <span class="detail-value">"Publicité non autorisée"</span>
+            <div class="row">
+                <div class="col-md-4"> 
+                    <!-- Publication signalée -->
+                    <div class="detail-row">
+                        <span class="detail-label">
+                            <i class="fas fa-file-alt"></i> Publication signalée :
+                        </span>
+                         <span class="detail-label">
+                            <i class="fas fa-user"></i> Auteur :
+                        </span>
+                          <span class="detail-label">
+                            <i class="fas fa-exclamation-triangle"></i> Raison :
+                        </span>
+                    </div>
                 </div>
-
-                <!-- Auteur -->
-                <div class="detail-row">
-                    <span class="detail-label">
-                        <i class="fas fa-user"></i> Auteur :
-                    </span>
-                    <span class="detail-value">User123</span>
+                <div class="col-md-4">
+                    <div class="detail-row-values">
+                        <span class="detail-value">"Publicité non autorisée"</span>
+                        <span class="detail-value">User123</span>
+                        <span class="detail-value">Publicité / Spam</span>
+                    </div>
                 </div>
-
-                <!-- Raison -->
-                <div class="detail-row">
-                    <span class="detail-label">
-                        <i class="fas fa-exclamation-triangle"></i> Raison :
-                    </span>
-                    <span class="detail-value">Publicité / Spam</span>
-                </div>
-
-                <!-- Commentaire signalement -->
-                <div class="report-comment">
-                    <span class="comment-label">
-                        <i class="fas fa-comment"></i> Commentaire signalement :
-                    </span>
-                    <p class="comment-text">"Ce post fait la promotion d'un site"</p>
-                </div>
-
-                <!-- Métadonnées -->
-                <div class="report-meta">
-                    <span class="meta-reporter">
-                        <i class="fas fa-user-circle"></i> Signalé par : Marie Diop
-                    </span>
-                    <span class="meta-count">
-                        <i class="fas fa-bell"></i> 3 signalements déjà
-                    </span>
+                <div class="col-md-4">
+                    <!-- Commentaire signalement -->
+                    <div class="report-comment">
+                        <span class="comment-label">
+                            <i class="fas fa-comment"></i> Commentaire signalement :
+                        </span>
+                        <p class="comment-text">"Ce post fait la promotion d'un site"</p>
+                    </div>
+                        <!-- Métadonnées -->
+                    <div class="report-meta">
+                        <span class="meta-reporter">
+                            <i class="fas fa-user-circle"></i> Signalé par : Marie Diop
+                             <span class="meta-count">
+                                <i class="fas fa-bell"></i> 3 signalements déjà
+                            </span>
+                        </span>
+                    </div>
                 </div>
             </div>
-
-            <!-- Actions -->
+             <!-- Actions -->
             <div class="report-actions">
                 <button class="btn-action btn-view">
                     <i class="fas fa-eye"></i> Voir publication
@@ -162,63 +158,60 @@
                 </button>
             </div>
         </div>
+
 
         <!-- Carte Signalement #2 -->
         <div class="report-card">
             <div class="report-header">
                 <span class="report-id">
-                     <i class="fas fa-triangle-exclamation" style="color: #f59e0b;"></i> SIGNALEMENT #2
+                    <i class="fas fa-triangle-exclamation" style="color: #f59e0b;"></i> SIGNALEMENT #2
                 </span>
                 <span class="report-badge status-pending">
                     <i class="fas fa-hourglass-half"></i> 11/05/2026
                 </span>
             </div>
-            
-            <div class="report-body">
-                <!-- Publication signalée -->
-                <div class="detail-row">
-                    <span class="detail-label">
-                        <i class="fas fa-file-alt"></i> Publication signalée :
-                    </span>
-                    <span class="detail-value">"Contenu offensant"</span>
+            <div class="row">
+                <div class="col-md-4"> 
+                    <!-- Publication signalée -->
+                    <div class="detail-row">
+                        <span class="detail-label">
+                            <i class="fas fa-file-alt"></i> Publication signalée :
+                        </span>
+                         <span class="detail-label">
+                            <i class="fas fa-user"></i> Auteur :
+                        </span>
+                          <span class="detail-label">
+                            <i class="fas fa-exclamation-triangle"></i> Raison :
+                        </span>
+                    </div>
                 </div>
-
-                <!-- Auteur -->
-                <div class="detail-row">
-                    <span class="detail-label">
-                        <i class="fas fa-user"></i> Auteur :
-                    </span>
-                    <span class="detail-value">User456</span>
+                <div class="col-md-4">
+                    <div class="detail-row-values">
+                        <span class="detail-value">"Conte offensant"</span>
+                        <span class="detail-value">User456</span>
+                        <span class="detail-value">Langage offensant/Harcelement</span>
+                    </div>
                 </div>
-
-                <!-- Raison -->
-                <div class="detail-row">
-                    <span class="detail-label">
-                        <i class="fas fa-exclamation-triangle"></i> Raison :
-                    </span>
-                    <span class="detail-value">Langage offensant / Harcèlement</span>
-                </div>
-
-                <!-- Commentaire signalement -->
-                <div class="report-comment">
-                    <span class="comment-label">
-                        <i class="fas fa-comment"></i> Commentaire signalement :
-                    </span>
-                    <p class="comment-text">"Insulte envers d'autres éleveurs"</p>
-                </div>
-
-                <!-- Métadonnées -->
-                <div class="report-meta">
-                    <span class="meta-reporter">
-                        <i class="fas fa-user-circle"></i> Signalé par : Jean Dupont
-                    </span>
-                    <span class="meta-count">
-                        <i class="fas fa-bell"></i> 1 signalement
-                    </span>
+                <div class="col-md-4">
+                    <!-- Commentaire signalement -->
+                    <div class="report-comment">
+                        <span class="comment-label">
+                            <i class="fas fa-comment"></i> Commentaire signalement :
+                        </span>
+                        <p class="comment-text">"Insulte envers d'autres éleveurs"</p>
+                    </div>
+                        <!-- Métadonnées -->
+                    <div class="report-meta">
+                        <span class="meta-reporter">
+                            <i class="fas fa-user-circle"></i> Signalé par : Jean Dupont
+                             <span class="meta-count">
+                                <i class="fas fa-bell"></i> 1 signalement
+                            </span>
+                        </span>
+                    </div>
                 </div>
             </div>
-
-            <!-- Actions -->
+             <!-- Actions -->
             <div class="report-actions">
                 <button class="btn-action btn-view">
                     <i class="fas fa-eye"></i> Voir publication
@@ -234,60 +227,57 @@
                 </button>
             </div>
         </div>
+
 
         <!-- Carte Signalement #3 -->
         <div class="report-card">
             <div class="report-header">
                 <span class="report-id">
-                     <i class="fas fa-triangle-exclamation" style="color: #f59e0b;"></i> SIGNALEMENT #3
+                    <i class="fas fa-triangle-exclamation" style="color: #f59e0b;"></i> SIGNALEMENT #3
                 </span>
                 <span class="report-badge status-pending">
                     <i class="fas fa-hourglass-half"></i> 10/05/2026
                 </span>
             </div>
-            
-            <div class="report-body">
-                <!-- Publication signalée -->
-                <div class="detail-row">
-                    <span class="detail-label">
-                        <i class="fas fa-file-alt"></i> Publication signalée :
-                    </span>
-                    <span class="detail-value">"Fausse information sanitaire"</span>
+            <div class="row">
+                <div class="col-md-4"> 
+                    <!-- Publication signalée -->
+                    <div class="detail-row">
+                        <span class="detail-label">
+                            <i class="fas fa-file-alt"></i> Publication signalée :
+                        </span>
+                         <span class="detail-label">
+                            <i class="fas fa-user"></i> Auteur :
+                        </span>
+                          <span class="detail-label">
+                            <i class="fas fa-exclamation-triangle"></i> Raison :
+                        </span>
+                    </div>
                 </div>
-
-                <!-- Auteur -->
-                <div class="detail-row">
-                    <span class="detail-label">
-                        <i class="fas fa-user"></i> Auteur :
-                    </span>
-                    <span class="detail-value">Amadou Sy</span>
+                <div class="col-md-4">
+                    <div class="detail-row-values">
+                        <span class="detail-value">"Fausse information sanitaire"</span>
+                        <span class="detail-value">Amadou Sy</span>
+                        <span class="detail-value">Information medicale dangereuse</span>
+                    </div>
                 </div>
-
-                <!-- Raison -->
-                <div class="detail-row">
-                    <span class="detail-label">
-                        <i class="fas fa-exclamation-triangle"></i> Raison :
-                    </span>
-                    <span class="detail-value">Information médicale dangereuse</span>
-                </div>
-
-                <!-- Commentaire signalement -->
-                <div class="report-comment">
-                    <span class="comment-label">
-                        <i class="fas fa-comment"></i> Commentaire signalement :
-                    </span>
-                    <p class="comment-text">"Conseil vétérinaire non vérifié"</p>
-                </div>
-
-                <!-- Métadonnées -->
-                <div class="report-meta">
-                    <span class="meta-reporter">
-                        <i class="fas fa-user-circle"></i> Signalé par : Modérateur automatique
-                    </span>
+                <div class="col-md-4">
+                    <!-- Commentaire signalement -->
+                    <div class="report-comment">
+                        <span class="comment-label">
+                            <i class="fas fa-comment"></i> Commentaire signalement :
+                        </span>
+                        <p class="comment-text">"Conseil vétérinaire non vérifié"</p>
+                    </div>
+                        <!-- Métadonnées -->
+                    <div class="report-meta">
+                        <span class="meta-reporter">
+                            <i class="fas fa-user-circle"></i> Signalé par : Modérateur automatique
+                        </span>
+                    </div>
                 </div>
             </div>
-
-            <!-- Actions -->
+             <!-- Actions -->
             <div class="report-actions">
                 <button class="btn-action btn-view">
                     <i class="fas fa-eye"></i> Voir publication
@@ -303,7 +293,6 @@
                 </button>
             </div>
         </div>
-    </section>
 
     <!-- Section Historique des signalements traités -->
     <section class="history-section">
@@ -317,10 +306,10 @@
                     <i class="fas fa-flag"></i> Signalement #0
                 </span>
                 <span class="history-date">
-                    <i class="fas fa-calendar-day"></i> - 05/05/2026
+                    <i ></i> - 05/05/2026
                 </span>
                 <span class="history-action">
-                    <i class="fas fa-trash-alt"></i> - Publication supprimée
+                    <i></i> - Publication supprimée
                 </span>
             </div>
             <div class="history-item">
@@ -328,10 +317,10 @@
                     <i class="fas fa-flag"></i> Signalement #0
                 </span>
                 <span class="history-date">
-                    <i class="fas fa-calendar-day"></i> - 03/05/2026
+                    <i ></i> - 03/05/2026
                 </span>
                 <span class="history-action">
-                    <i class="fas fa-user-shield"></i> - Utilisateur averti
+                    <i ></i> - Utilisateur averti
                 </span>
             </div>
             <div class="history-item">
@@ -339,10 +328,10 @@
                     <i class="fas fa-flag"></i> Signalement #0
                 </span>
                 <span class="history-date">
-                    <i class="fas fa-calendar-day"></i> - 01/05/2026
+                    <i ></i> - 01/05/2026
                 </span>
                 <span class="history-action">
-                    <i class="fas fa-edit"></i> - Publication modifiée
+                    <i ></i> - Publication modifiée
                 </span>
             </div>
         </div>

@@ -17,10 +17,11 @@ return new class extends Migration
             $table->text('contenu');
             
             // ✅ Stockage JSON pour les médias multiples
-            $table->json('images')->nullable();
-            $table->json('videos')->nullable();
-            $table->json('documents')->nullable();
+            // $table->json('images')->nullable();
+            // $table->json('videos')->nullable();
+            // $table->json('documents')->nullable();
             
+
             $table->integer('nbr_likes')->default(0);
             $table->integer('nbr_commentaires')->default(0);
             $table->integer('nbr_partages')->default(0);
