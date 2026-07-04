@@ -66,6 +66,7 @@ Route::middleware(['auth'])->group(function () {
             'animaux' => $user->elevages()->withCount('animaux')->get()->sum('animaux_count') ?? 0,
         ];
         
+        
         return view('auth/profile', compact('user', 'stats'));
     });
     
@@ -138,11 +139,19 @@ Route::middleware(['auth'])->group(function () {
         return view('admin/publication');
     });
     
+    
     Route::get('/admin/signale', function () {
         return view('admin/signale');
     });
+
+    
+
+    Route::get('/admin/messages/{id}', function ($id) {
+        return view('admin/messages', compact('id'));
+    })->name('admin.messages');
     
     Route::get('/admin/statistique', function () {
         return view('admin/statistique');
     });
+
 // });
