@@ -129,8 +129,9 @@
             <div class="col-md-6">
                 <section class="stats-section">
                     <h2><i class="fas fa-users"></i> STATISTIQUES UTILISATEURS</h2>
-                    <div class="row g-3">
-                        <div class="col-12">
+                    {{-- Espacement modéré entre les colonnes --}}
+                    <div class="row" style="gap: 2rem 0rem;">
+                        <div class="col-6">
                             <div class="stat-card blue">
                                 <div class="stat-number">127</div>
                                 <div class="stat-label">Total utilisateurs</div>
@@ -148,14 +149,14 @@
                                 <div class="stat-label">Utilisateurs actifs</div>
                             </div>
                         </div>
-                        <div class="col-12">
+                        <div class="col-6">
                             <div class="stat-card purple">
                                 <div class="stat-number">92%</div>
                                 <div class="stat-label">Taux de rétention</div>
                             </div>
                         </div>
                     </div>
-                    <div class="mt-3">
+                    <div class="mt-4">
                         <h4><i class="fas fa-user-tie"></i> Éleveurs</h4>
                         <div class="role-distribution">
                             <div class="role-item">
@@ -176,10 +177,10 @@
                     </div>
                 </section>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6 ">
                 <section class="stats-section">
                     <h2><i class="fas fa-chart-simple"></i> ENGAGEMENT</h2>
-                    <div class="row g-3">
+                    <div class="row g-3 ">
                         <div class="col-6">
                             <div class="stat-card">
                                 <div class="stat-number">4.2%</div>
@@ -205,7 +206,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mt-3">
+                    <div class="mt-4">
                         <h4><i class="fas fa-star"></i> MEILLEUR POST</h4>
                         <div class="best-post">
                             <div class="post-content">
@@ -249,7 +250,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="text-center mt-3">
+                    <div class="text-center mt-4">
                         <div class="pie-chart-wrapper">
                             <svg viewBox="0 0 100 100" width="160" height="160">
                                 <path d="M 50 50 L 50 10 A 40 40 0 0 1 62.36 88.04 Z" fill="#4e73df" />
@@ -306,7 +307,7 @@
 
         {{-- ==================== TOP 10 DES ÉLEVEURS ==================== --}}
         <section class="stats-section full-width">
-            <h2><i class="fas fa-trophy text-success"></i> TOP 10 DES ÉLEVEURS LES PLUS ACTIFS</h2>
+            <h2><i class="fas fa-trophy" style="color: #ffc107;"></i> TOP 10 DES ÉLEVEURS LES PLUS ACTIFS</h2>
             <div class="table-responsive">
                 <table class="table table-striped table-hover align-middle">
                     <thead>

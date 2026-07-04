@@ -109,9 +109,6 @@
     margin-right: 0.6rem;
     color: #4e73df;
 }
-.stats-section h2 i.text-success {
-    color: #1cc88a !important;
-}
 .stats-section h4 {
     font-size: 1.1rem;
     font-weight: 600;
@@ -165,7 +162,7 @@
 .stat-card {
     background: #fff;
     border-radius: 0.5rem;
-    padding: 1rem 0.8rem;
+    padding: 1.5rem 1.2rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     text-align: center;
     transition: transform 0.2s;
