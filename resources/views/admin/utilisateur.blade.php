@@ -1338,5 +1338,175 @@ document.addEventListener("keydown", function (e) {
     width: 150px;
 }
 </style>
+@push('scripts')
+<script>
+$(document).ready(function() {
+    const token = localStorage.getItem('access_token');
+
+    if (!token) {
+        window.location.href = '/auth/login';
+        return;
+    }
+
+    // Charger les statistiques utilisateurs
+    function loadStats() {
+        $.ajax({
+            url: '/api/admin/dashboard/stats',
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                if (response.success) {
+                    const users = response.data.utilisateurs;
+                    $('.stat-user.total strong').text(users.total);
+                    $('.stat-user.actifs strong').text(users.actifs);
+                    $('.stat-user.bannis strong').text(users.bannis);
+                }
+            }
+        });
+    }
+
+    // Charger la liste des utilisateurs
+    function loadUsers(filters = {}) {
+        $.ajax({
+            url: '/api/admin/users',
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json'
+            },
+            data: filters,
+            success: function(response) {
+                if (response.success) {
+                    const users = response.data.data;
+                    const tbody = $('table tbody');
+                    tbody.empty();
+
+                    users.forEach(function(user) {
+                        const roleClass = user.role === 'admin' ? 'admin-role' : 'eleveur';
+                        const roleLabel = user.role === 'admin' ? 'Admin' : 'Eleveur';
+                        const date = new Date(user.created_at).toLocaleDateString('fr-FR');
+
+                        let actions = `
+                            <button class="btn-view" title="Voir les détails"
+                                onclick="openViewModal(${user.id}, '${user.name}', '${user.email}', '${roleLabel}', '${date}', '', '')">
+                                👁️
+                            </button>
+                            <button class="btn-edit" title="Modifier"
+                                onclick="openEditModal('${user.name}', '${user.email}', '', '', '${roleLabel}')">
+                                ✏️
+                            </button>`;
+
+                        if (user.role !== 'admin') {
+                            actions += `
+                            <button class="btn-lock" title="Bloquer" data-id="${user.id}">🔒</button>
+                            <button class="btn-delete" title="Supprimer" data-id="${user.id}" data-name="${user.name}">🗑️</button>`;
+                        }
+
+                        tbody.append(`
+                            <tr id="user-row-${user.id}">
+                                <td>${user.id}</td>
+                                <td>${user.name}</td>
+                                <td>${user.email}</td>
+                                <td><span class="role ${roleClass}">${roleLabel}</span></td>
+                                <td>${date}</td>
+                                <td class="actions">${actions}</td>
+                            </tr>
+                        `);
+                    });
+
+                    // Rebind events
+                    bindDeleteButtons();
+                    bindBlockButtons();
+                }
+            },
+            error: function(xhr) {
+                console.error('Erreur:', xhr.responseJSON);
+                if (xhr.status === 401) window.location.href = '/auth/login';
+            }
+        });
+    }
+
+    // Supprimer un utilisateur via API
+    function bindDeleteButtons() {
+        $('table').on('click', '.btn-delete', function() {
+            const id = $(this).data('id');
+            const name = $(this).data('name');
+            document.getElementById('deleteUserName').textContent = name;
+            document.getElementById('deleteModal').classList.add('show');
+            document.body.classList.add('modal-open');
+
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                $.ajax({
+                    url: `/api/admin/users/${id}`,
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json'
+                    },
+                    success: function() {
+                        $(`#user-row-${id}`).remove();
+                        closeDeleteModal();
+                        loadStats();
+                        alert('🗑️ Utilisateur supprimé avec succès !');
+                    },
+                    error: function(xhr) {
+                        console.error('Erreur suppression:', xhr.responseJSON);
+                    }
+                });
+            };
+        });
+    }
+
+    // Bloquer un utilisateur via API
+    function bindBlockButtons() {
+        $('table').on('click', '.btn-lock', function() {
+            const id = $(this).data('id');
+            const row = $(this).closest('tr');
+            const name = row.find('td').eq(1).text();
+
+            document.getElementById('blockUserName').textContent = name;
+            document.getElementById('blockModal').classList.add('show');
+            document.body.classList.add('modal-open');
+
+            document.getElementById('confirmBlockBtn').onclick = function() {
+                $.ajax({
+                    url: `/api/admin/users/${id}/status`,
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    data: JSON.stringify({ status: 'bannie' }),
+                    success: function() {
+                        const roleEl = row.find('.role');
+                        roleEl.text('Banni').removeClass('eleveur admin-role').addClass('status-banned');
+                        closeBlockModal();
+                        loadStats();
+                        alert('🔒 Utilisateur bloqué avec succès !');
+                    },
+                    error: function(xhr) {
+                        console.error('Erreur blocage:', xhr.responseJSON);
+                    }
+                });
+            };
+        });
+    }
+
+    // Recherche
+    $('.btn-search').on('click', function() {
+        const search = $('input[type="text"]').val();
+        loadUsers({ search: search });
+    });
+
+    // Chargement initial
+    loadStats();
+    loadUsers();
+});
+</script>
+@endpush
 
 @endsection
