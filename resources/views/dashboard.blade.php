@@ -143,8 +143,8 @@
             </div>
 
             <a href="#" class="history-link" onclick="showHistory(event)">
-                Voir tout l'historique →
-            </a>
+    📜 Voir tout l'historique →
+</a>
         </div>
 
     </div>
@@ -558,53 +558,59 @@ function renderAlerts() {
 }
 
 // ============================================================
-// RENDU DES ACTIVITÉS
+// RENDU DES ACTIVITÉS - CORRIGÉ
 // ============================================================
 
 function renderActivities() {
-    const container = document.getElementById('activitiesContainer');
-    const activities = [];
+    var container = document.getElementById('activitiesContainer');
+    var activities = [];
     
-    const publications = state.dashboardData?.recent_activity?.dernieres_publications || [];
-    publications.forEach(pub => {
+    var publications = state.dashboardData?.recent_activity?.dernieres_publications || [];
+    for (var i = 0; i < publications.length; i++) {
+        var pub = publications[i];
         if (pub.created_at) {
             activities.push({
                 icon: '📝',
-                text: `Vous avez publié : "${pub.titre || 'Sans titre'}"`,
+                text: 'Vous avez publié : "' + (pub.titre || 'Sans titre') + '"',
                 time: formatDate(pub.created_at),
                 type: 'publication'
             });
         }
-    });
+    }
     
-    const mouvements = state.dashboardData?.recent_activity?.derniers_mouvements_stock || [];
-    mouvements.forEach(mvt => {
+    var mouvements = state.dashboardData?.recent_activity?.derniers_mouvements_stock || [];
+    for (var j = 0; j < mouvements.length; j++) {
+        var mvt = mouvements[j];
         if (mvt.created_at) {
-            const action = mvt.type === 'entree' ? 'entré' : 'sorti';
+            var action = mvt.type === 'entree' ? 'entré' : 'sorti';
             activities.push({
                 icon: '📦',
-                text: `${mvt.quantite || 0} ${action} : ${mvt.produit_nom || 'Produit inconnu'}`,
+                text: (mvt.quantite || 0) + ' ' + action + ' : ' + (mvt.produit_nom || 'Produit inconnu'),
                 time: formatDate(mvt.created_at),
                 type: 'stock'
             });
         }
-    });
+    }
     
-    const taches = state.dashboardData?.recent_activity?.dernieres_taches || [];
-    taches.forEach(tache => {
+    var taches = state.dashboardData?.recent_activity?.dernieres_taches || [];
+    for (var k = 0; k < taches.length; k++) {
+        var tache = taches[k];
         if (tache.date_realisee) {
-            const typeLabel = tache.type || 'Tâche';
-            const animalName = tache.animal_nom || 'Animal inconnu';
+            var typeLabel = tache.type || 'Tâche';
+            var animalName = tache.animal_nom || 'Animal inconnu';
             activities.push({
                 icon: '✅',
-                text: `Tâche terminée : ${typeLabel} - ${animalName}`,
+                text: 'Tâche terminée : ' + typeLabel + ' - ' + animalName,
                 time: formatDate(tache.date_realisee),
                 type: 'task'
             });
         }
-    });
+    }
     
+    // ⚠️ CORRECTION : Sauvegarder dans state
     state.activities = activities;
+    state.currentActivityIndex = 0; // Réinitialiser l'index
+    
     console.log('📊 Total activités:', activities.length);
     
     if (activities.length === 0) {
@@ -620,36 +626,47 @@ function renderActivities() {
     displayActivities();
 }
 
+// ============================================================
+// AFFICHER LES ACTIVITÉS - CORRIGÉ
+// ============================================================
+
 function displayActivities() {
-    const container = document.getElementById('activitiesContainer');
-    const start = state.currentActivityIndex;
-    const end = Math.min(start + state.activitiesPerPage, state.activities.length);
-    const displayItems = state.activities.slice(start, end);
+    var container = document.getElementById('activitiesContainer');
+    
+    // Vérifier que state.activities existe et n'est pas vide
+    if (!state.activities || state.activities.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4 text-muted">
+                <i class="fas fa-inbox" style="font-size: 24px;"></i>
+                <p class="mt-2">Aucune activité récente</p>
+            </div>
+        `;
+        return;
+    }
+    
+    var start = state.currentActivityIndex || 0;
+    var end = Math.min(start + state.activitiesPerPage, state.activities.length);
+    var displayItems = state.activities.slice(start, end);
     
     if (displayItems.length === 0) {
+        // Si on est à la fin, revenir au début
         state.currentActivityIndex = 0;
-        return displayActivities();
+        displayItems = state.activities.slice(0, state.activitiesPerPage);
     }
     
-    container.innerHTML = displayItems.map(activity => `
-        <div class="activity-item">
-            ${activity.icon} ${escapeHtml(activity.text)}
-            <small>${activity.time}</small>
-        </div>
-    `).join('');
+    var html = '';
+    for (var i = 0; i < displayItems.length; i++) {
+        var activity = displayItems[i];
+        html += '<div class="activity-item">';
+        html += '  ' + activity.icon + ' ' + escapeHtml(activity.text);
+        html += '  <small>' + activity.time + '</small>';
+        html += '</div>';
+    }
+    
+    container.innerHTML = html;
 }
 
-function nextActivity() {
-    const total = state.activities.length;
-    const maxStart = Math.max(0, total - state.activitiesPerPage);
-    
-    state.currentActivityIndex += state.activitiesPerPage;
-    if (state.currentActivityIndex > maxStart) {
-        state.currentActivityIndex = 0;
-    }
-    
-    displayActivities();
-}
+
 
 // ============================================================
 // RENDU DE LA LÉGENDE DES ESPÈCES
@@ -899,11 +916,6 @@ function updateWelcomeMessage() {
     const user = CONFIG.USER;
     const name = user?.name || 'Utilisateur';
     document.getElementById('welcomeMessage').textContent = 'BONJOUR ' + name.toUpperCase() + ' ! 👋';
-}
-
-function showHistory(event) {
-    if (event) event.preventDefault();
-    showToast('📜 Affichage de tout l\'historique', 'info');
 }
 
 // ============================================================
@@ -1251,6 +1263,156 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
-</script>
 
+// ============================================================
+// FONCTIONS POUR L'HISTORIQUE DES TÂCHES
+// ============================================================
+
+function showHistory(event) {
+    event.preventDefault();
+    
+    // Récupérer les tâches depuis state.dashboardData
+    var allTasks = state.dashboardData?.recent_activity?.dernieres_taches || [];
+    var tasks = state.dashboardData?.taches?.prochaines_taches || [];
+    
+    // Combiner et trier par date
+    var recentTasks = allTasks.concat(tasks)
+        .filter(function(task) {
+            return task.date_planifiee || task.date_realisee;
+        })
+        .sort(function(a, b) {
+            var dateA = new Date(a.date_planifiee || a.date_realisee || 0);
+            var dateB = new Date(b.date_planifiee || b.date_realisee || 0);
+            return dateB - dateA;
+        })
+        .slice(0, 20);
+    
+    if (recentTasks.length === 0) {
+        showToast('Aucune tâche récente', 'info');
+        return;
+    }
+    
+    openTaskHistoryModal(recentTasks);
+}
+
+function openTaskHistoryModal(tasks) {
+    // Supprimer un ancien modal
+    var oldModal = document.getElementById('taskHistoryModal');
+    if (oldModal) oldModal.remove();
+    
+    var today = new Date().toISOString().split('T')[0];
+    
+    var modal = document.createElement('div');
+    modal.id = 'taskHistoryModal';
+    modal.className = 'modal-overlay';
+    
+    var html = '';
+    html += '<div class="modal-box">';
+    html += '  <div class="modal-header">';
+    html += '    <h2>📋 Historique des tâches</h2>';
+    html += '    <button class="modal-close" onclick="closeTaskHistoryModal()">×</button>';
+    html += '  </div>';
+    html += '  <div class="modal-body">';
+    html += '    <div class="modal-stats">';
+    html += '      <span>Total : <strong>' + tasks.length + '</strong> tâche' + (tasks.length > 1 ? 's' : '') + '</span>';
+    
+    var todayCount = tasks.filter(function(t) {
+        return t.date_planifiee === today || t.date_realisee === today;
+    }).length;
+    html += '      <span>' + todayCount + ' aujourd\'hui</span>';
+    html += '    </div>';
+    html += '    <div class="modal-list">';
+    
+    for (var i = 0; i < tasks.length; i++) {
+        var task = tasks[i];
+        var date = task.date_planifiee || task.date_realisee;
+        var dateObj = date ? new Date(date) : null;
+        var dateStr = dateObj ? dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+        var timeStr = dateObj ? dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+        var isToday = date && date.startsWith(today);
+        var isCompleted = !!task.date_realisee;
+        var title = task.titre || task.description || task.animal_nom || 'Sans titre';
+        var typeIcon = task.type_icone || (isCompleted ? '✅' : '📋');
+        var statusLabel = isCompleted ? '✅ Terminée' : '⏳ À venir';
+        var statusClass = isCompleted ? 'completed' : 'pending';
+        var animalHtml = task.animal_nom ? '<div class="task-animal">🐄 ' + escapeHtml(task.animal_nom) + '</div>' : '';
+        var descHtml = (task.description && task.description !== task.titre) ? '<div class="task-desc">' + escapeHtml(task.description) + '</div>' : '';
+        
+        html += '<div class="modal-task-item ' + statusClass + '">';
+        html += '  <div class="task-icon">' + typeIcon + '</div>';
+        html += '  <div class="task-content">';
+        html += '    <div class="task-title">' + escapeHtml(title) + '</div>';
+        html += '    <div class="task-meta">';
+        html += '      <span class="task-date">' + dateStr + ' ' + timeStr + '</span>';
+        if (isToday) html += '<span class="task-badge today">Aujourd\'hui</span>';
+        html += '      <span class="task-badge ' + statusClass + '">' + statusLabel + '</span>';
+        html += '    </div>';
+        html += animalHtml;
+        html += descHtml;
+        html += '  </div>';
+        html += '</div>';
+    }
+    
+    html += '    </div>';
+    html += '  </div>';
+    html += '  <div class="modal-footer">';
+    html += '    <button onclick="navigateTo(\'/taches\')" class="btn-primary">📅 Voir le calendrier</button>';
+    html += '    <button onclick="closeTaskHistoryModal()" class="btn-secondary">Fermer</button>';
+    html += '  </div>';
+    html += '</div>';
+    
+    modal.innerHTML = html;
+    document.body.appendChild(modal);
+    
+    // Ouvrir avec animation
+    setTimeout(function() {
+        modal.classList.add('open');
+    }, 10);
+    
+    // Fermer en cliquant sur l'overlay
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeTaskHistoryModal();
+        }
+    });
+    
+    // Fermer avec Echap
+    var escHandler = function(e) {
+        if (e.key === 'Escape') {
+            closeTaskHistoryModal();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+}
+
+function closeTaskHistoryModal() {
+    var modal = document.getElementById('taskHistoryModal');
+    if (modal) {
+        modal.classList.remove('open');
+        setTimeout(function() {
+            modal.remove();
+        }, 300);
+    }
+}
+
+function nextActivity() {
+    // Vérifier qu'il y a des activités
+    if (!state.activities || state.activities.length === 0) {
+        showToast('Aucune activité à afficher', 'info');
+        return;
+    }
+    
+    var total = state.activities.length;
+    var maxStart = Math.max(0, total - state.activitiesPerPage);
+    
+    // Passer à la page suivante
+    state.currentActivityIndex += state.activitiesPerPage;
+    if (state.currentActivityIndex > maxStart) {
+        state.currentActivityIndex = 0;
+    }
+    
+    displayActivities();
+}
+</script>
 @endsection

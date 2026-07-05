@@ -1,5 +1,4 @@
 <?php
-// routes/web.php
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -23,15 +22,13 @@ Route::get('/login', function () {
     return view('auth/login');
 })->name('login');
 
-
-// ✅ CHANGEMENT ICI : Renommer pour éviter le conflit
 Route::get('/auth/login', function () {
     return view('auth/login');
-})->name('web.login'); // ✅ Nom unique
+})->name('web.login');
 
 Route::get('/auth/register', function () {
     return view('auth/register');
-})->name('web.register'); // ✅ Nom unique
+})->name('web.register');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/logout', function () {
@@ -45,19 +42,15 @@ Route::get('/auth/verify-2fa', function () {
 // ========== ROUTES PROTÉGÉES (AUTHENTIFIÉ) ==========
 Route::middleware(['auth'])->group(function () {
     
-    // Dashboard Éleveur
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
     
     Route::get('/auth/profile', function () {
         $user = Auth::user();
-        
         if (!$user) {
-            return redirect()->route('web.login'); // ✅ Utiliser le nouveau nom
+            return redirect()->route('web.login');
         }
-        
-        // Statistiques
         $stats = [
             'publications' => $user->publications()->count(),
             'likes_received' => $user->publications()->sum('nbr_likes') ?? 0,
@@ -65,37 +58,28 @@ Route::middleware(['auth'])->group(function () {
             'elevages' => $user->elevages()->count(),
             'animaux' => $user->elevages()->withCount('animaux')->get()->sum('animaux_count') ?? 0,
         ];
-        
-        
         return view('auth/profile', compact('user', 'stats'));
     });
     
     Route::get('/auth/parametre', function () {
         $user = Auth::user();
-        
         if (!$user) {
-            return redirect()->route('web.login'); // ✅ Utiliser le nouveau nom
+            return redirect()->route('web.login');
         }
-        
-        // Récupérer les statistiques
         $stats = [
             'publications' => $user->publications()->count(),
             'likes_received' => $user->publications()->sum('nbr_likes') ?? 0,
             'commentaires' => $user->commentaires()->count(),
             'elevages' => $user->elevages()->count(),
         ];
-        
         return view('auth/parametre', compact('user', 'stats'));
     });
     
-    // Gestion
     Route::get('/elevages', function () {
         $user = Auth::user();
-        
         if (!$user) {
             return redirect()->route('web.login');
         }
-        
         return view('elevages', compact('user'));
     });
     
@@ -111,7 +95,6 @@ Route::middleware(['auth'])->group(function () {
         return view('stocks');
     });
     
-    // Communauté
     Route::get('/blog', function () {
         return view('blog');
     });
@@ -123,35 +106,31 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/notification', function () {
         return view('notification');
     });
-});
+}); // Fin du groupe auth
 
 // ========== ROUTES ADMIN (AUTHENTIFIÉ + ADMIN) ==========
-// Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/admin/dashboard', function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', function () {
         return view('admin/dashboard');
     })->name('admin.dashboard');
     
-    Route::get('/admin/utilisateur', function () {
+    Route::get('/utilisateur', function () {
         return view('admin/utilisateur');
     });
     
-    Route::get('/admin/publication', function () {
+    Route::get('/publication', function () {
         return view('admin/publication');
     });
     
-    
-    Route::get('/admin/signale', function () {
+    Route::get('/signale', function () {
         return view('admin/signale');
     });
-
     
-
-    Route::get('/admin/messages/{id}', function ($id) {
+    Route::get('/messages/{id}', function ($id) {
         return view('admin/messages', compact('id'));
     })->name('admin.messages');
     
-    Route::get('/admin/statistique', function () {
+    Route::get('/statistique', function () {
         return view('admin/statistique');
     });
-
-// });
+}); // Fin du groupe admin

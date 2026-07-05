@@ -36,14 +36,14 @@
                         <a href="{{ url('/messages') }}" class="nav-link {{ request()->is('messages') ? 'active' : '' }}">
                             <i class="fas fa-comment"></i>
                             <span class="titre">Messages</span>
-                            <span class="badge badge-danger badge-pill">3</span>
+                            <span id="navbarMessageBadge" class="badge badge-danger badge-pill"></span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url('/notification') }}" class="nav-link {{ request()->is('notification') ? 'active' : '' }}">
                             <i class="fas fa-bell"></i>
                             <span class="titre">Notifications</span>
-                            <span class="badge badge-danger badge-pill">12</span>
+                            <span id="navbarNotificationBadge" class="badge badge-danger badge-pill"></span>
                         </a>
                     </li>
                 </ul>
@@ -282,6 +282,57 @@ $(document).ready(function() {
             setTimeout(() => toast.remove(), 300);
         }, 4000);
     }
+    async function refreshBadges() {
+        try {
+
+            // ================= MESSAGES =================
+            const response = await fetch('/api/messaging/unread-count', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await response.json();
+
+            const totalMessages = data.data?.unread_count || 0;
+
+            const msgBadgeNavbar = document.getElementById('navbarMessageBadge');
+            const msgBadgeSidebar = document.getElementById('sidebarMessageBadge');
+
+            if (msgBadgeNavbar) {
+                msgBadgeNavbar.textContent = totalMessages > 0 ? totalMessages : '';
+            }
+
+            if (msgBadgeSidebar) {
+                msgBadgeSidebar.textContent = totalMessages > 0 ? totalMessages : '';
+            }
+
+
+            // ================= NOTIFICATIONS =================
+            const notifResponse = await fetch('/api/notifications/unread', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                    'Accept': 'application/json'
+                }
+            });
+
+            const notifData = await notifResponse.json();
+
+            const totalNotif = notifData.data?.unread_count || 0;
+
+            const notifBadgeNavbar = document.getElementById('navbarNotificationBadge');
+
+            if (notifBadgeNavbar) {
+                notifBadgeNavbar.textContent = totalNotif > 0 ? totalNotif : '';
+            }
+
+        } catch (e) {
+            console.error(e);
+        }
+    }
+        refreshBadges();
+    setInterval(refreshBadges, 5000);
 });
+
 </script>
 @endpush
