@@ -272,7 +272,6 @@
                         <!-- Métadonnées -->
                     <div class="report-meta">
                         <span class="meta-reporter">
-                            <i class="fas fa-user-circle"></i> Signalé par : Modérateur automatique
                         </span>
                     </div>
                 </div>
