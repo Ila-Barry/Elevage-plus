@@ -172,6 +172,125 @@ body {
     font-size: 14px;
 }
 
+/* ========== NOUVEAU GRAPHIQUE AVEC AXES ========== */
+.chart-container {
+    display: flex;
+    align-items: stretch;
+    height: 200px;
+    position: relative;
+}
+
+/* Axe Y (vertical) */
+.chart-y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-right: 10px;
+    font-size: 12px;
+    color: #64748b;
+    width: 40px;
+    flex-shrink: 0;
+}
+
+/* Zone du graphique (barres + grille) */
+.chart-area {
+    flex: 1;
+    position: relative;
+    height: 100%;
+}
+
+/* Barres */
+.bar-wrapper {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    height: 100%;
+    position: relative;
+    z-index: 2;
+}
+
+.bar {
+    width: 30px;
+    background: #28a745;
+    border-radius: 4px 4px 0 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 4px;
+    transition: 0.3s;
+    min-height: 10px;
+    position: relative;
+}
+.bar span {
+    color: white;
+    font-weight: 600;
+    font-size: 12px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Couleurs alternées pour les barres */
+.bar:nth-child(2) { background: #17a2b8; }
+.bar:nth-child(3) { background: #ffc107; }
+.bar:nth-child(4) { background: #6f42c1; }
+.bar:nth-child(5) { background: #fd7e14; }
+.bar:nth-child(6) { background: #20c997; }
+.bar:nth-child(7) { background: #e83e8c; }
+
+/* Lignes de la grille horizontale */
+.grid-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.grid-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-top: 1px dashed #e0e0e0;
+    height: 0;
+}
+
+/* Axe X (horizontal) */
+.chart-x-axis {
+    display: flex;
+    justify-content: space-around;
+    padding-top: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+}
+.chart-x-axis span {
+    width: 30px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+/* Ajustement pour les petits écrans */
+@media (max-width: 576px) {
+    .chart-container {
+        height: 150px;
+    }
+    .chart-y-axis {
+        font-size: 10px;
+        width: 30px;
+    }
+    .bar {
+        width: 20px;
+    }
+    .bar span {
+        font-size: 10px;
+    }
+    .chart-x-axis {
+        font-size: 11px;
+    }
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
     .dashboard-header {

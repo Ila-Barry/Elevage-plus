@@ -37,12 +37,12 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'photo_url',
         'role',
         'status',
-        'profile_visibility',      // public, prive
-        'email_notifications',      // boolean
-        'web_notifications',        // boolean
-        'reminder_notifications',   // boolean
-        'newsletter_subscription',  // boolean
-        'two_factor_enabled',       // boolean
+        'profile_visibility',      
+        'email_notifications',      
+        'web_notifications',        
+        'reminder_notifications',   
+        'newsletter_subscription',  
+        'two_factor_enabled',       
         'two_factor_secret',
         'email_verified_at',
     ];
@@ -82,7 +82,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
      */
     protected $attributes = [
         'role' => 'user',
-        'status' => 'inactive',
+        'status' => 'active',
         'profile_visibility' => 'public',
         'email_notifications' => true,
         'web_notifications' => true,

@@ -428,8 +428,9 @@
 
             const data = await response.json();
 
+            // Si le serveur répond avec une erreur (ex: 401, 403, 500)
             if (!response.ok) {
-                throw data;
+                throw new Error(data.message || 'Identifiants incorrects.');
             }
 
             return data;
@@ -466,7 +467,7 @@
             const result = await loginUser({ login, password, remember });
             console.log('📥 Réponse reçue:', result);
             
-            if (result.status === 'success') {
+            if (result.success === true || result.status === 'success') {
                 resetFailedAttempts();
                 
                 // ✅ Vérifier que le token est présent

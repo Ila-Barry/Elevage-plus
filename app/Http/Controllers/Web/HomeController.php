@@ -157,18 +157,36 @@ class HomeController extends Controller
     public function getStats(Request $request)
     {
         try {
-            $stats = Cache::remember('home_stats', self::CACHE_DURATION, function () {
-                return [
-                    'users' => User::where('status', 'active')->count(),
-                    'posts' => Publication::where('statut', 'publiee')->count(),
-                    'likes' => Publication::where('statut', 'publiee')->sum('nbr_likes'),
-                    'comments' => Commentaire::count(),
+            // ✅ 1. Calcul ou récupération des statistiques globales
+            if (app()->environment('local')) {
+                // Pas de cache en développement local
+                $stats = [
+                    'total_users' => User::where('status', 'active')->count(),
+                    'total_posts' => Publication::where('statut', 'publiee')->count(),
+                    'total_likes' => (int) Publication::where('statut', 'publiee')->sum('nbr_likes'),
+                    'total_comments' => Commentaire::count(),
                 ];
-            });
+            } else {
+                // Utilisation du cache uniquement en production
+                $stats = Cache::remember('home_stats', self::CACHE_DURATION, function () {
+                    return [
+                        'total_users' => User::where('status', 'active')->count(),
+                        'total_posts' => Publication::where('statut', 'publiee')->count(),
+                        'total_likes' => (int) Publication::where('statut', 'publiee')->sum('nbr_likes'),
+                        'total_comments' => Commentaire::count(),
+                    ];
+                });
+            }
 
             LogService::api('GET', '/api/home/stats');
 
-            return $this->successResponse($stats);
+            // ✅ 2. Envoi à travers le trait ApiResponseTrait
+            return $this->successResponse([
+                'total_users'    => $stats['total_users'],
+                'total_posts'    => $stats['total_posts'],
+                'total_likes'    => $stats['total_likes'],
+                'total_comments' => $stats['total_comments'],
+            ]);
 
         } catch (\Exception $e) {
             LogService::security('Erreur récupération stats home', [
