@@ -46,7 +46,7 @@ RUN chmod +x /start.sh
 COPY . /var/www/html/
 
 # Forcer l'utilisation de HTTP/1.1 via curl pour tout le build Docker (Règle l'erreur HTTP/2 400 de Render)
-ENV CURL_HTTP_VERSION=2
+ENV CURL_HTTP_VERSION=3
 
 # Installer les dépendances PHP de production proprement
 RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts --prefer-dist
@@ -76,5 +76,4 @@ RUN if [ -d "/var/www/html/resources/views" ]; then \
 
 EXPOSE 80
 EXPOSE 8000
-
 CMD ["/start.sh"]

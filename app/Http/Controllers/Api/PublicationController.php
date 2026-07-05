@@ -23,20 +23,16 @@ class PublicationController extends Controller
     {
         $query = Publication::with(['user'])->published();
 
-        // Filtrer par catégorie
         if ($request->has('categorie') && $request->categorie !== 'all' && !empty($request->categorie)) {
             $query->byCategory($request->categorie);
         }
 
-        // Filtrer par auteur (mes publications)
         if ($request->has('scope') && $request->scope === 'mine') {
             $query->where('user_id', Auth::id());
         }
 
-        // ✅ Mélange aléatoire pour un flux dynamique
         $publications = $query->inRandomOrder()->paginate(10);
 
-        // Formatage des données
         $formatted = $publications->through(function ($post) {
             return $this->formatPublication($post);
         });
@@ -57,48 +53,80 @@ class PublicationController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'titre' => 'required|string|min:5|max:255',
-            'categorie' => 'required|string|in:conseil,experience,alerte',
-            'contenu' => 'required|string|min:10',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'videos.*' => 'nullable|file|mimes:mp4,mov,avi,webm|max:51200',
-            'documents.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar|max:10240',
-        ]);
+        try {
+            \Log::info('📝 Tentative de création de publication', [
+                'user_id' => Auth::id(),
+                'titre' => $request->titre,
+                'files' => [
+                    'images' => $request->hasFile('images') ? count($request->file('images')) : 0,
+                    'videos' => $request->hasFile('videos') ? count($request->file('videos')) : 0,
+                    'documents' => $request->hasFile('documents') ? count($request->file('documents')) : 0,
+                ]
+            ]);
 
-        if ($validator->fails()) {
+            $validator = Validator::make($request->all(), [
+                'titre' => 'required|string|min:5|max:255',
+                'categorie' => 'required|string|in:conseil,experience,alerte',
+                'contenu' => 'nullable|string|min:2',
+                'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+                'videos.*' => 'nullable|file|mimes:mp4,mov,avi,webm|max:51200',
+                'documents.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar|max:10240',
+            ]);
+
+            if ($validator->fails()) {
+                \Log::warning('⚠️ Erreur de validation publication', $validator->errors()->toArray());
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Erreur de validation',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            \Log::info('📤 Upload des fichiers...');
+            
+            $images = $this->uploadMultipleFiles($request->file('images'), 'uploads/publications/images');
+            $videos = $this->uploadMultipleFiles($request->file('videos'), 'uploads/publications/videos');
+            $documents = $this->uploadMultipleDocuments($request->file('documents'), 'uploads/publications/documents');
+
+            \Log::info('✅ Fichiers uploadés', [
+                'images' => count($images),
+                'videos' => count($videos),
+                'documents' => count($documents)
+            ]);
+
+            \Log::info('💾 Création de la publication...');
+            
+            $publication = Publication::create([
+                'titre' => $request->titre,
+                'categorie' => $request->categorie,
+                'contenu' => $request->contenu,
+                'user_id' => Auth::id(),
+                'images' => $images,
+                'videos' => $videos,
+                'documents' => $documents,
+                'published_at' => now(),
+            ]);
+
+            $publication->load('user');
+
+            \Log::info('✅ Publication créée avec succès', ['id' => $publication->id]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Article publié avec succès !',
+                'data' => $this->formatPublication($publication)
+            ], 201);
+            
+        } catch (\Exception $e) {
+            \Log::error('❌ ERREUR CRÉATION PUBLICATION: ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            
             return response()->json([
                 'status' => 'error',
-                'message' => 'Erreur de validation',
-                'errors' => $validator->errors()
-            ], 422);
+                'message' => 'Erreur lors de la création: ' . $e->getMessage(),
+                'trace' => config('app.debug') ? $e->getTraceAsString() : null
+            ], 500);
         }
-
-        // Traitement des fichiers
-        $images = $this->uploadMultipleFiles($request->file('images'), 'uploads/publications/images');
-        $videos = $this->uploadMultipleFiles($request->file('videos'), 'uploads/publications/videos');
-        $documents = $this->uploadMultipleDocuments($request->file('documents'), 'uploads/publications/documents');
-
-        // Création
-        $publication = Publication::create([
-            'titre' => $request->titre,
-            'categorie' => $request->categorie,
-            'contenu' => $request->contenu,
-            'user_id' => Auth::id(),
-            'images' => $images,
-            'videos' => $videos,
-            'documents' => $documents,
-            'published_at' => now(),
-        ]);
-
-        // Charger la relation user
-        $publication->load('user');
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Article publié avec succès !',
-            'data' => $this->formatPublication($publication)
-        ], 201);
     }
 
     /**
@@ -108,7 +136,6 @@ class PublicationController extends Controller
     {
         $publication = Publication::findOrFail($id);
 
-        // Vérifier les droits
         if (!$publication->canManage(Auth::user())) {
             return response()->json([
                 'status' => 'error',
@@ -119,7 +146,7 @@ class PublicationController extends Controller
         $validator = Validator::make($request->all(), [
             'titre' => 'sometimes|string|min:5|max:255',
             'categorie' => 'sometimes|string|in:conseil,experience,alerte',
-            'contenu' => 'sometimes|string|min:10',
+            'contenu' => 'nullable|string|min:2',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'videos.*' => 'nullable|file|mimes:mp4,mov,avi,webm|max:51200',
             'documents.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar|max:10240',
@@ -133,12 +160,10 @@ class PublicationController extends Controller
             ], 422);
         }
 
-        // Récupérer les fichiers existants
-        $images = $publication->getAttributes()['images'] ?? [];
-        $videos = $publication->getAttributes()['videos'] ?? [];
-        $documents = $publication->getAttributes()['documents'] ?? [];
+        $images = is_array($publication->images) ? $publication->images : [];
+        $videos = is_array($publication->videos) ? $publication->videos : [];
+        $documents = is_array($publication->documents) ? $publication->documents : [];
 
-        // Supprimer des fichiers si demandé
         if ($request->has('delete_images') && $request->delete_images) {
             $this->deleteMultipleFiles($images, 'public');
             $images = [];
@@ -152,7 +177,6 @@ class PublicationController extends Controller
             $documents = [];
         }
 
-        // Ajouter les nouveaux fichiers
         if ($request->hasFile('images')) {
             $newImages = $this->uploadMultipleFiles($request->file('images'), 'uploads/publications/images');
             $images = array_merge($images, $newImages);
@@ -166,7 +190,6 @@ class PublicationController extends Controller
             $documents = array_merge($documents, $newDocuments);
         }
 
-        // Mise à jour
         $updateData = [];
         if ($request->has('titre')) $updateData['titre'] = $request->titre;
         if ($request->has('categorie')) $updateData['categorie'] = $request->categorie;
@@ -199,7 +222,6 @@ class PublicationController extends Controller
             ], 403);
         }
 
-        // Supprimer les fichiers
         $this->deleteMultipleFiles($publication->getAttributes()['images'] ?? [], 'public');
         $this->deleteMultipleFiles($publication->getAttributes()['videos'] ?? [], 'public');
         $this->deleteMultipleDocuments($publication->getAttributes()['documents'] ?? [], 'public');
@@ -213,16 +235,22 @@ class PublicationController extends Controller
     }
 
     // ============================================================
-    // MÉTHODES UTILITAIRES DE FICHIERS
+    // MÉTHODES UTILITAIRES DE FICHIERS (AVEC CRÉATION AUTO DES DOSSIERS)
     // ============================================================
 
     /**
-     * Upload multiple fichiers
+     * Upload multiple fichiers avec création automatique du dossier
      */
     private function uploadMultipleFiles($files, $directory)
     {
         if (empty($files)) {
             return [];
+        }
+
+        // ✅ CRÉER LE DOSSIER AUTOMATIQUEMENT (SOLUTION DÉFINITIVE)
+        $fullPath = storage_path('app/public/' . $directory);
+        if (!file_exists($fullPath)) {
+            mkdir($fullPath, 0777, true);
         }
 
         $uploaded = [];
@@ -234,12 +262,18 @@ class PublicationController extends Controller
     }
 
     /**
-     * Upload multiple documents (avec noms)
+     * Upload multiple documents avec création automatique du dossier
      */
     private function uploadMultipleDocuments($files, $directory)
     {
         if (empty($files)) {
             return [];
+        }
+
+        // ✅ CRÉER LE DOSSIER AUTOMATIQUEMENT (SOLUTION DÉFINITIVE)
+        $fullPath = storage_path('app/public/' . $directory);
+        if (!file_exists($fullPath)) {
+            mkdir($fullPath, 0777, true);
         }
 
         $uploaded = [];
@@ -338,9 +372,10 @@ class PublicationController extends Controller
         };
     }
 
-    /**
-     * commentaire à une publication
-     */
+    // ============================================================
+    // COMMENTAIRES
+    // ============================================================
+
     public function addComment(Request $request, $id)
     {
         $publication = Publication::findOrFail($id);
@@ -365,9 +400,7 @@ class PublicationController extends Controller
             'contenu' => $request->contenu,
         ]);
 
-        // Incrémenter le compteur de commentaires
         $publication->increment('nbr_commentaires');
-
         $commentaire->load('user');
 
         return response()->json([
@@ -387,9 +420,6 @@ class PublicationController extends Controller
         ], 201);
     }
 
-    /**
-     * Récupérer les commentaires d'une publication
-     */
     public function getComments($id)
     {
         $publication = Publication::findOrFail($id);
@@ -400,7 +430,6 @@ class PublicationController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Formater les commentaires
         $formatted = $commentaires->map(function($comment) {
             return [
                 'id' => $comment->id,
@@ -421,14 +450,10 @@ class PublicationController extends Controller
         ]);
     }
 
-    /**
-     * Supprimer un commentaire
-     */
     public function deleteComment($id)
     {
         $commentaire = Commentaire::findOrFail($id);
         
-        // Vérifier les droits (auteur ou admin)
         if (Auth::id() !== $commentaire->user_id && Auth::user()->role !== 'admin') {
             return response()->json([
                 'status' => 'error',
@@ -438,8 +463,6 @@ class PublicationController extends Controller
 
         $publication_id = $commentaire->publication_id;
         $commentaire->delete();
-
-        // Décrémenter le compteur de commentaires
         Publication::where('id', $publication_id)->decrement('nbr_commentaires');
 
         return response()->json([
@@ -448,27 +471,25 @@ class PublicationController extends Controller
         ]);
     }
 
-    /**
-     * ou retirer un like
-     */
+    // ============================================================
+    // LIKES
+    // ============================================================
+
     public function toggleLike($id)
     {
         $publication = Publication::findOrFail($id);
         $user = Auth::user();
         
-        // Vérifier si l'utilisateur a déjà liké
         $existingLike = Like::where('publication_id', $publication->id)
                             ->where('user_id', $user->id)
                             ->first();
         
         if ($existingLike) {
-            // Supprimer le like
             $existingLike->delete();
             $publication->decrement('nbr_likes');
             $liked = false;
             $message = 'Like retiré';
         } else {
-            // Ajouter le like
             Like::create([
                 'publication_id' => $publication->id,
                 'user_id' => $user->id,
@@ -476,14 +497,8 @@ class PublicationController extends Controller
             $publication->increment('nbr_likes');
             $liked = true;
             $message = 'Like ajouté';
-            
-            // 🔔 Notification (optionnel - à décommenter si vous avez la notification)
-            // if ($publication->user_id !== $user->id) {
-            //     $publication->user->notify(new NewLikeNotification($user, $publication));
-            // }
         }
         
-        // Recharger pour avoir le compteur à jour
         $publication->refresh();
         
         return response()->json([
@@ -496,9 +511,6 @@ class PublicationController extends Controller
         ]);
     }
 
-    /**
-     * Vérifier si l'utilisateur a liké une publication
-     */
     public function checkLike($id)
     {
         $publication = Publication::findOrFail($id);
@@ -517,9 +529,6 @@ class PublicationController extends Controller
         ]);
     }
 
-    /**
-     * Récupérer la liste des utilisateurs qui ont liké
-     */
     public function getLikes($id)
     {
         $publication = Publication::findOrFail($id);
@@ -543,9 +552,10 @@ class PublicationController extends Controller
         ]);
     }
 
-    /**
-     * Partager une publication
-     */
+    // ============================================================
+    // PARTAGES
+    // ============================================================
+
     public function share(Request $request, $id)
     {
         $publication = Publication::findOrFail($id);
@@ -563,20 +573,16 @@ class PublicationController extends Controller
             ], 422);
         }
 
-        // Enregistrer le partage
         Share::create([
             'publication_id' => $publication->id,
             'user_id' => $user->id,
             'plateforme' => $request->plateforme,
         ]);
 
-        // Incrémenter le compteur de partages
         $publication->increment('nbr_partages');
 
-        // Générer l'URL de partage
         $shareUrl = url('/blog/' . $publication->id);
         
-        // URLs spécifiques aux plateformes
         $platformUrls = [
             'facebook' => 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode($shareUrl),
             'twitter' => 'https://twitter.com/intent/tweet?url=' . urlencode($shareUrl) . '&text=' . urlencode($publication->titre),
@@ -595,9 +601,6 @@ class PublicationController extends Controller
         ]);
     }
 
-    /**
-     * Récupérer les statistiques de partage
-     */
     public function getShares($id)
     {
         $publication = Publication::findOrFail($id);
@@ -619,7 +622,6 @@ class PublicationController extends Controller
                 ];
             });
         
-        // Statistiques par plateforme
         $stats = Share::where('publication_id', $publication->id)
             ->select('plateforme', \DB::raw('count(*) as total'))
             ->groupBy('plateforme')
@@ -636,6 +638,4 @@ class PublicationController extends Controller
             ]
         ]);
     }
-
-
 }

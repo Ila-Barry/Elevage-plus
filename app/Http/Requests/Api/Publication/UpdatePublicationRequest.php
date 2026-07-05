@@ -30,9 +30,9 @@ class UpdatePublicationRequest extends ApiRequest
                 'in:experience,conseil,alerte',
             ],
             'contenu' => [
-                'sometimes',
+                'nullable',
                 'string',
-                'min:10',
+                'min:2',
                 'max:1000000',
             ],
             // ✅ Images multiples
@@ -91,7 +91,7 @@ class UpdatePublicationRequest extends ApiRequest
         return [
             'titre.min' => 'Le titre doit contenir au moins 5 caractères.',
             'titre.max' => 'Le titre ne peut pas dépasser 200 caractères.',
-            'contenu.min' => 'Le contenu doit contenir au moins 10 caractères.',
+            'contenu.min' => 'Le contenu doit contenir au moins 2 caractères.',
             'contenu.max' => 'Le contenu ne peut pas dépasser 1 million de caractères.',
             'images.max' => 'Vous ne pouvez pas ajouter plus de 5 images.',
             'images.*.image' => 'Le fichier doit être une image.',
