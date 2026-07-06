@@ -229,6 +229,8 @@ Route::middleware(['auth:api'])->prefix('taches')->group(function () {
     
     // Actions spécifiques
     Route::patch('/{id}/complete', [TacheController::class, 'complete']);
+    // ✅ Route pour vérifier les rappels (appelée par cron)
+    Route::post('/taches/verifier-rappels', [TacheController::class, 'verifierRappels']);
 });
 
 /*

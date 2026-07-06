@@ -16,6 +16,9 @@ use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Notifications\TacheNotification;
+use App\Services\TacheRappelService;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Contrôleur TacheController
@@ -30,14 +33,19 @@ use Carbon\Carbon;
 class TacheController extends Controller
 {
     use ApiResponseTrait;
+    protected TacheRappelService $rappelService;
+
 
     /**
      * Constructeur avec middleware
      */
-    public function __construct()
+
+    public function __construct(TacheRappelService $rappelService)
     {
         $this->middleware('auth:api');
+        $this->rappelService = $rappelService;
     }
+    
 
     /**
      * Liste des tâches
@@ -204,6 +212,27 @@ class TacheController extends Controller
             
             $tache = Tache::create($data);
             
+            // 🔔 ENVOYER LA NOTIFICATION DE CRÉATION
+            try {
+                Log::info('📤 Envoi notification création tâche', [
+                    'user_id' => $user->id,
+                    'tache_id' => $tache->id,
+                    'tache_titre' => $tache->titre
+                ]);
+                
+                $user->notify(new TacheNotification($tache, 'created'));
+                
+                // ✅ PROGRAMMER LES RAPPELS AUTOMATIQUES
+                $this->programmerRappels($tache);
+                
+                Log::info('✅ Notification création tâche envoyée');
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur notification création tâche', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+            
             DB::commit();
             
             return $this->successResponse(
@@ -214,7 +243,7 @@ class TacheController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur création tâche: ' . $e->getMessage());
+            Log::error('Erreur création tâche: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la création de la tâche.', 500);
         }
     }
@@ -258,14 +287,69 @@ class TacheController extends Controller
         DB::beginTransaction();
         
         try {
+            // Récupérer les anciennes valeurs
+            $oldValues = [
+                'titre' => $tache->titre,
+                'type' => $tache->type,
+                'date_planifiee' => $tache->date_planifiee,
+                'priorite' => $tache->priorite,
+                'description' => $tache->description,
+                'terminee' => $tache->terminee,
+            ];
+            
             $data = $request->validated();
             
-            // Si la tâche est marquée comme terminée, enregistrer la date
+            // Si la tâche est marquée comme terminée
             if (isset($data['terminee']) && $data['terminee'] && !$tache->terminee) {
                 $data['date_realisee'] = now();
             }
             
             $tache->update($data);
+            
+            // 🔔 DÉTECTER LES CHANGEMENTS
+            $changes = [];
+            $fieldsToCheck = ['titre', 'type', 'date_planifiee', 'priorite', 'description', 'terminee'];
+            
+            foreach ($fieldsToCheck as $field) {
+                if (isset($data[$field]) && $oldValues[$field] != $data[$field]) {
+                    $changes[$field] = [
+                        'old' => $oldValues[$field],
+                        'new' => $data[$field]
+                    ];
+                }
+            }
+            
+            // 🔔 NOTIFICATION DE COMPLÉTION
+            if (isset($data['terminee']) && $data['terminee'] && !$oldValues['terminee']) {
+                try {
+                    $user->notify(new TacheNotification($tache, 'completed'));
+                    Log::info('✅ Notification complétion tâche envoyée');
+                } catch (\Exception $e) {
+                    Log::error('❌ Erreur notification complétion', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            // 🔔 NOTIFICATION DE MODIFICATION
+            if (!empty($changes)) {
+                try {
+                    // Si la date a changé, reprogrammer les rappels
+                    if (isset($changes['date_planifiee'])) {
+                        $this->programmerRappels($tache);
+                    }
+                    
+                    $user->notify(new TacheNotification($tache, 'updated', [
+                        'changes' => $changes
+                    ]));
+                    
+                    Log::info('✅ Notification modification tâche envoyée');
+                } catch (\Exception $e) {
+                    Log::error('❌ Erreur notification modification', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
             
             DB::commit();
             
@@ -276,10 +360,11 @@ class TacheController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur mise à jour tâche: ' . $e->getMessage());
+            Log::error('Erreur mise à jour tâche: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la mise à jour de la tâche.', 500);
         }
     }
+
 
     /**
      * Marquer une tâche comme terminée
@@ -325,9 +410,71 @@ class TacheController extends Controller
             })
             ->findOrFail($id);
         
+        try {
+            // 🔔 NOTIFICATION DE SUPPRESSION
+            $user->notify(new TacheNotification($tache, 'deleted'));
+            Log::info('✅ Notification suppression tâche envoyée');
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur notification suppression', [
+                'error' => $e->getMessage()
+            ]);
+        }
+        
         $tache->delete();
         
         return $this->successResponse(null, 'Tâche supprimée avec succès.');
+    }
+
+    /**
+     * Programme tous les rappels pour une tâche
+     */
+    protected function programmerRappels(Tache $tache): void
+    {
+        $datePlanifiee = $tache->date_planifiee;
+        
+        if (!$datePlanifiee || $tache->terminee) {
+            return;
+        }
+        
+        $rappels = [
+            '72h' => $datePlanifiee->copy()->subHours(72),
+            '48h' => $datePlanifiee->copy()->subHours(48),
+            '24h' => $datePlanifiee->copy()->subHours(24),
+            '1h' => $datePlanifiee->copy()->subHour(),
+            '30min' => $datePlanifiee->copy()->subMinutes(30),
+            'now' => $datePlanifiee->copy(),
+        ];
+        
+        foreach ($rappels as $type => $dateEnvoi) {
+            // Ne programmer que les rappels futurs
+            if ($dateEnvoi > now()) {
+                $this->rappelService->programmerRappel($tache, $type, $dateEnvoi);
+            }
+        }
+        
+        Log::info('📅 Rappels programmés pour la tâche', [
+            'tache_id' => $tache->id,
+            'count' => count($rappels)
+        ]);
+    }
+
+    /**
+     * Endpoint pour vérifier les rappels (peut être appelé par cron)
+     */
+    public function verifierRappels(Request $request)
+    {
+        try {
+            $this->rappelService->verifierEtEnvoyerRappels();
+            
+            return $this->successResponse([
+                'checked_at' => now()->toDateTimeString(),
+                'message' => 'Vérification des rappels effectuée'
+            ], 'Rappels vérifiés avec succès.');
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur vérification rappels: ' . $e->getMessage());
+            return $this->errorResponse('Erreur lors de la vérification des rappels.', 500);
+        }
     }
 
     /**

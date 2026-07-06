@@ -12,6 +12,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         \App\Console\Commands\CheckAnimalHealthAlerts::class,
         \App\Console\Commands\CheckAnimalWeightLoss::class,
+        \App\Console\Commands\CheckTaskReminders::class,
     ];
 
     protected function schedule(Schedule $schedule): void
@@ -25,9 +26,6 @@ class Kernel extends ConsoleKernel
         // Vérification des pertes de poids - une fois par jour
         $schedule->command('alerts:check-weight-loss')->daily();
         
-        // Envoi des rappels de tâches - toutes les 15 minutes
-        $schedule->command('task:send-reminders')->everyFifteenMinutes();
-        
         // Nettoyage des anciennes notifications (30 jours) - tous les jours
         $schedule->command('notifications:clean --days=30')->daily();
 
@@ -36,5 +34,8 @@ class Kernel extends ConsoleKernel
         
         // Vérifier les pertes de poids tous les jours
         $schedule->command('animals:check-weight-loss')->daily();
+
+        // Vérifier les rappels toutes les 15 minutes
+        $schedule->command('tasks:check-reminders')->everyFifteenMinutes();
     }
 }
