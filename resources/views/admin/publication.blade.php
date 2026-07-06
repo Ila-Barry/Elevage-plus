@@ -16,10 +16,10 @@
 
         // Statistiques par défaut
         $defaultStats = [
-            'total'      => ['value' => 0, 'trend' => null, 'direction' => 'up'],
-            'publie'     => ['value' => 0, 'trend' => null, 'direction' => 'up'],
-            'brouillon'  => ['value' => 0, 'trend' => null, 'direction' => 'down'],
-            'en_attente' => ['value' => 0, 'trend' => null, 'direction' => 'down'],
+            'total'      => ['value' => 0, 'trend' => '0', 'direction' => 'up'],
+            'publie'     => ['value' => 0, 'trend' => '0', 'direction' => 'up'],
+            'brouillon'  => ['value' => 0, 'trend' => '0', 'direction' => 'down'],
+            'en_attente' => ['value' => 0, 'trend' => '0', 'direction' => 'down'],
         ];
 
         // Publications par défaut (exemple)
@@ -37,7 +37,7 @@
         $categories  = $categories ?? $defaultCategories;
         $statuses    = $statuses ?? $defaultStatuses;
 
-        // Configuration des icônes pour les cartes (thème vert)
+        // Configuration des icônes pour les cartes
         $statConfig = [
             'total'      => ['icon' => 'layer-group', 'bg' => 'bg-primary-soft', 'color' => 'text-primary'],
             'publie'     => ['icon' => 'check-circle', 'bg' => 'bg-success-soft', 'color' => 'text-success'],
@@ -59,23 +59,18 @@
         <div class="page-header d-flex flex-wrap align-items-center justify-content-between">
             <div>
                 <h1 class="page-title">
-                    <i class="fas fa-newspaper me-2"> </i> Gestion des publications
+                    <i class="fas fa-newspaper me-2 text-primary"></i> Gestion des publications
                 </h1>
-                <p class="page-subtitle">
+                <p class="page-subtitle text-muted">
                     Gérez l'ensemble des articles et actualités de votre élevage
                 </p>
             </div>
-            <div class="header-actions">
-                <button class="btn btn-add-publication"
-                        data-toggle="modal"
-                        data-target="#addPublicationModal"
-                        aria-label="Ajouter une nouvelle publication">
-                    <i class="fas fa-plus-circle me-1"></i> Ajouter une publication
-                </button>
-                <button class="btn btn-export" type="button" aria-label="Exporter en CSV">
-                    <i class="fas fa-file-export me-1"></i> Exporter csv
-                </button>
-            </div>
+            <button class="btn btn-primary btn-add-publication"
+                    data-toggle="modal"
+                    data-target="#addPublicationModal"
+                    aria-label="Ajouter une nouvelle publication">
+                <i class="fas fa-plus-circle me-1"></i> Nouvelle publication
+            </button>
         </div>
 
         {{-- MESSAGES FLASH --}}
@@ -109,12 +104,10 @@
                             <span class="stat-label">{{ $statLabels[$key] }}</span>
                             <span class="stat-value">{{ $stat['value'] }}</span>
                         </div>
-                        @if(!empty($stat['trend']))
-                            <div class="stat-trend {{ $stat['direction'] }}">
-                                <i class="fas fa-arrow-{{ $stat['direction'] == 'up' ? 'up' : 'down' }}"></i>
-                                {{ $stat['trend'] }} %
-                            </div>
-                        @endif
+                        <div class="stat-trend {{ $stat['direction'] }}">
+                            <i class="fas fa-arrow-{{ $stat['direction'] == 'up' ? 'up' : 'down' }}"></i>
+                            {{ $stat['trend'] }} %
+                        </div>
                     </div>
                 </div>
             @endforeach
@@ -122,34 +115,15 @@
 
         {{-- BARRE DE FILTRE --}}
         <div class="filter-bar card p-3 mb-4">
-            <div class="filter-bar-title">
-                <i class="fas fa-sliders-h me-1"></i> Filtres et statuts
-            </div>
-
-            <div class="row g-3 align-items-center mb-3">
-                <div class="col-12">
+            <div class="row g-3 align-items-center">
+                <div class="col-xl-4 col-lg-4 col-md-12">
                     <div class="search-wrapper">
                         <i class="fas fa-search search-icon" aria-hidden="true"></i>
                         <input type="text"
                                class="form-control search-input"
-                               placeholder="Rechercher par titre, auteur..."
+                               placeholder="Rechercher une publication..."
                                aria-label="Rechercher une publication"
                                id="searchPublications">
-                    </div>
-                </div>
-            </div>
-
-            <div class="row g-3 align-items-center">
-                <div class="col-xl-6 col-lg-6 col-md-12">
-                    <div class="status-pills" id="statusPills" role="group" aria-label="Filtrer par statut">
-                        <label class="status-pill pill-tous active">
-                            <input type="checkbox" value="" checked> Tous
-                        </label>
-                        @foreach($statuses as $status)
-                            <label class="status-pill pill-{{ Str::slug($status) }}">
-                                <input type="checkbox" value="{{ Str::slug($status) }}"> {{ $status }}
-                            </label>
-                        @endforeach
                     </div>
                 </div>
 
@@ -162,12 +136,21 @@
                     </select>
                 </div>
 
-                <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 d-flex gap-2 flex-wrap">
-                    <button class="btn btn-filter flex-fill" type="button">
+                <div class="col-xl-2 col-lg-2 col-md-6 col-sm-6">
+                    <select class="form-select filter-select" aria-label="Filtrer par statut">
+                        <option value="">Tous les statuts</option>
+                        @foreach($statuses as $status)
+                            <option value="{{ Str::slug($status) }}">{{ $status }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-xl-3 col-lg-3 col-md-12 d-flex gap-2 flex-wrap">
+                    <button class="btn btn-filter btn-primary flex-fill" type="button">
                         <i class="fas fa-filter me-1"></i> Filtrer
                     </button>
-                    <button class="btn btn-reset flex-fill" type="reset">
-                        <i class="fas fa-undo me-1"></i> Réinit.
+                    <button class="btn btn-reset btn-outline-secondary flex-fill" type="reset">
+                        <i class="fas fa-undo me-1"></i> Réinitialiser
                     </button>
                 </div>
             </div>
@@ -179,9 +162,10 @@
                 <table class="table table-hover publication-table" aria-label="Liste des publications">
                     <thead>
                         <tr>
-                            <th scope="col">Statut</th>
+                            <th scope="col" style="width: 50px;">#</th>
                             <th scope="col">Titre</th>
                             <th scope="col">Catégorie</th>
+                            <th scope="col">Statut</th>
                             <th scope="col">Date de publication</th>
                             <th scope="col" style="width: 140px;">Actions</th>
                         </tr>
@@ -189,43 +173,23 @@
                     <tbody>
                         @forelse($publications as $index => $publication)
                             <tr>
-                                <td>
-                                    <span class="badge-status badge-{{ Str::slug($publication['status']) }}">
-                                        <i class="fas fa-{{ Str::slug($publication['status']) == 'publie' ? 'check-circle' : (Str::slug($publication['status']) == 'bloque' ? 'times-circle' : 'clock') }}"></i>
-                                        {{ $publication['status'] }}
-                                    </span>
-                                </td>
+                                <td>{{ $loop->iteration }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="pub-thumb me-2">
-                                            <i class="fas fa-image" aria-hidden="true"></i>
+                                            <i class="fas fa-image text-muted" aria-hidden="true"></i>
                                         </div>
-                                        <div>
-                                            <span class="fw-semibold d-block">{{ $publication['title'] }}</span>
-                                            @if(isset($publication['likes']) || isset($publication['comments']) || isset($publication['shares']))
-                                                <div class="pub-meta">
-                                                    @if(isset($publication['likes']))
-                                                        <span><i class="far fa-heart"></i>{{ $publication['likes'] }}</span>
-                                                    @endif
-                                                    @if(isset($publication['comments']))
-                                                        <span><i class="far fa-comment"></i>{{ $publication['comments'] }}</span>
-                                                    @endif
-                                                    @if(isset($publication['shares']))
-                                                        <span><i class="fas fa-share"></i>{{ $publication['shares'] }}</span>
-                                                    @endif
-                                                </div>
-                                            @endif
-                                            @if(!empty($publication['reports']))
-                                                <div class="pub-meta text-danger">
-                                                    <i class="fas fa-flag"></i>{{ $publication['reports'] }} signalement(s)
-                                                </div>
-                                            @endif
-                                        </div>
+                                        <span class="fw-semibold">{{ $publication['title'] }}</span>
                                     </div>
                                 </td>
                                 <td>
                                     <span class="badge-category badge-{{ Str::slug($publication['category']) }}">
                                         {{ $publication['category'] }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge-status badge-{{ Str::slug($publication['status']) }}">
+                                        {{ $publication['status'] }}
                                     </span>
                                 </td>
                                 <td>{{ $publication['date'] ?? '—' }}</td>
@@ -245,7 +209,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-4">
+                                <td colspan="6" class="text-center text-muted py-4">
                                     <i class="fas fa-inbox fa-2x d-block mb-2"></i>
                                     Aucune publication trouvée.
                                 </td>
@@ -272,9 +236,9 @@
                     @else
                         {{-- Pagination statique de fallback --}}
                         <ul class="pagination pagination-sm mb-0">
-                            <li class="page-item disabled"><a class="page-link" href="#">Précédente</a></li>
+                            <li class="page-item disabled"><a class="page-link" href="#"><i class="fas fa-chevron-left"></i></a></li>
                             <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">Suivante</a></li>
+                            <li class="page-item"><a class="page-link" href="#"><i class="fas fa-chevron-right"></i></a></li>
                         </ul>
                     @endif
                 </nav>
@@ -289,7 +253,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addPublicationModalLabel">
-                        <i class="fas fa-plus-circle me-2"></i>Nouvelle publication
+                        <i class="fas fa-plus-circle text-primary me-2"></i>Nouvelle publication
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
                         <span aria-hidden="true">&times;</span>
@@ -366,38 +330,3 @@
     </div>
 
 @endsection
-
-@push('scripts')
-<script>
-    // Gestion visuelle des pastilles de statut (filtre)
-    document.addEventListener('DOMContentLoaded', function () {
-        var pills = document.querySelectorAll('#statusPills .status-pill');
-        pills.forEach(function (pill) {
-            pill.addEventListener('click', function () {
-                var input = pill.querySelector('input');
-                var isTous = pill.classList.contains('pill-tous');
-
-                if (isTous) {
-                    pills.forEach(function (p) {
-                        p.classList.remove('active');
-                        p.querySelector('input').checked = false;
-                    });
-                    pill.classList.add('active');
-                    input.checked = true;
-                } else {
-                    document.querySelector('#statusPills .pill-tous').classList.remove('active');
-                    document.querySelector('#statusPills .pill-tous input').checked = false;
-                    pill.classList.toggle('active');
-                    input.checked = pill.classList.contains('active');
-
-                    var anyActive = document.querySelectorAll('#statusPills .status-pill.active').length > 0;
-                    if (!anyActive) {
-                        document.querySelector('#statusPills .pill-tous').classList.add('active');
-                        document.querySelector('#statusPills .pill-tous input').checked = true;
-                    }
-                }
-            });
-        });
-    });
-</script>
-@endpush

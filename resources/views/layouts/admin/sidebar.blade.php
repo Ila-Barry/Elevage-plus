@@ -36,7 +36,7 @@
 
         <a href="{{ url('admin/signale') }}" class="sidebar-item">
             <i class="fas fa-tasks"></i>
-            <span>Signallements</span>
+            <span>Signalements</span>
         </a>
 
         <a href="{{ url('admin/statistique') }}" class="sidebar-item">
