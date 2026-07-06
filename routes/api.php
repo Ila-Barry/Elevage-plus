@@ -207,6 +207,8 @@ Route::middleware(['auth:api'])->prefix('animaux')->group(function () {
     Route::put('/{id}', [AnimalController::class, 'update']);
     Route::delete('/{id}', [AnimalController::class, 'destroy']);
     Route::get('/all', [AnimalController::class, 'getAll']);
+    // ✅ Route pour vérifier les alertes sanitaires (peut être appelée par cron)
+    Route::post('/check-health-alerts', [AnimalController::class, 'checkHealthAlerts']);
 });
 
 /*

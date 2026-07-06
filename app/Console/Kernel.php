@@ -8,6 +8,12 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
+
+    protected $commands = [
+        \App\Console\Commands\CheckAnimalHealthAlerts::class,
+        \App\Console\Commands\CheckAnimalWeightLoss::class,
+    ];
+
     protected function schedule(Schedule $schedule): void
     {
         // Vérification des rappels de vaccination - toutes les 6 heures
@@ -24,5 +30,11 @@ class Kernel extends ConsoleKernel
         
         // Nettoyage des anciennes notifications (30 jours) - tous les jours
         $schedule->command('notifications:clean --days=30')->daily();
+
+        // Vérifier les alertes sanitaires toutes les 6 heures
+        $schedule->command('animals:check-health')->everySixHours();
+        
+        // Vérifier les pertes de poids tous les jours
+        $schedule->command('animals:check-weight-loss')->daily();
     }
 }
