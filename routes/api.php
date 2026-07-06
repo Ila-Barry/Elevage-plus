@@ -23,6 +23,8 @@ use App\Http\Controllers\Api\Admin\AdminNewsletterController;
 
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\EmailVerificationNotification;
+use App\Http\Controllers\Api\WebPushController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -395,3 +397,14 @@ Route::middleware(['auth:api'])->prefix('dashboard')->group(function () {
 Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard/stats', [App\Http\Controllers\Api\DashboardController::class, 'adminStats']);
 });
+
+
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - notifications
+|--------------------------------------------------------------------------
+*/
+Route::post('/webpush/subscribe', [WebPushController::class, 'subscribe'])->middleware('auth:api');
+Route::post('/webpush/unsubscribe', [WebPushController::class, 'unsubscribe'])->middleware('auth:api');
+Route::post('/webpush/update-subscription', [WebPushController::class, 'update'])->middleware('auth:api');

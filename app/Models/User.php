@@ -12,6 +12,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Hash;
 use App\Notifications\TwoFactorCodeNotification;
+use NotificationChannels\WebPush\HasPushSubscriptions;
 
 /**
  * Modèle User (Éleveur/Admin)
@@ -21,7 +22,8 @@ use App\Notifications\TwoFactorCodeNotification;
  */
 class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
-    use HasFactory, Notifiable;
+    // ✅ Supprimer HasApiTokens car nous utilisons JWT
+    use HasFactory, Notifiable, HasPushSubscriptions;
 
     /**
      * Les attributs qui sont assignables en masse.
@@ -45,6 +47,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'two_factor_enabled',       
         'two_factor_secret',
         'email_verified_at',
+        'last_login_at',
     ];
 
     /**
@@ -65,6 +68,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'last_login_at' => 'datetime',
         'profile_visibility' => 'string',
         'email_notifications' => 'boolean',
         'web_notifications' => 'boolean',
@@ -90,14 +94,6 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'newsletter_subscription' => false,
         'two_factor_enabled' => false,
     ];
-
-    /**
-     * Vérifie si l'utilisateur est actif
-     */
-    // public function isActive(): bool
-    // {
-    //     return $this->status === 'active' && !is_null($this->email_verified_at);
-    // }
 
     // ========== RELATIONS ==========
     
@@ -174,7 +170,6 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function sendEmailVerificationNotification()
     {
         // Envoyer immédiatement la notification de vérification
-        // Utilise sendNow pour ne pas dépendre d'un worker de queue en développement
         Notification::sendNow($this, new \App\Notifications\CustomVerifyEmailNotification());
     }
 
@@ -225,7 +220,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         return Attribute::make(
             get: function ($value) {
                 if (!$value) {
-                    return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=4F46E5&color=fff';
+                    return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=4F46E5&color=fff&size=300';
                 }
                 
                 if (filter_var($value, FILTER_VALIDATE_URL)) {
@@ -237,12 +232,22 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         );
     }
 
+    // ========== MÉTHODES UTILITAIRES ==========
+
     /**
      * Vérifie si l'utilisateur est admin
      */
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    /**
+     * Vérifie si l'utilisateur est un éleveur (utilisateur standard)
+     */
+    public function isFarmer(): bool
+    {
+        return $this->role === 'user';
     }
 
     /**
@@ -325,6 +330,31 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     }
 
     /**
+     * Récupère le nombre total d'animaux pour cet utilisateur
+     */
+    public function getTotalAnimauxAttribute(): int
+    {
+        return $this->elevages()->withCount('animaux')->get()->sum('animaux_count');
+    }
+
+    /**
+     * Récupère les statistiques de l'utilisateur
+     */
+    public function getStats(): array
+    {
+        return [
+            'total_elevages' => $this->elevages()->count(),
+            'total_animaux' => $this->getTotalAnimauxAttribute(),
+            'total_publications' => $this->publications()->count(),
+            'total_likes_recus' => $this->publications()->sum('nbr_likes') ?? 0,
+            'total_commentaires' => $this->commentaires()->count(),
+            'membre_depuis' => $this->created_at->format('d/m/Y'),
+        ];
+    }
+
+    // ========== SCOPES ==========
+
+    /**
      * Scope pour les utilisateurs actifs
      */
     public function scopeActive($query)
@@ -356,10 +386,22 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         return $query->where('profile_visibility', 'public');
     }
 
-        /**
-        * Règles de validation pour la création d'un utilisateur
-        */
-    public static function getValidationRules()
+    /**
+     * Scope pour la recherche d'utilisateurs
+     */
+    public function scopeSearch($query, string $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('name', 'LIKE', "%{$search}%")
+              ->orWhere('email', 'LIKE', "%{$search}%")
+              ->orWhere('telephone', 'LIKE', "%{$search}%");
+        });
+    }
+
+    /**
+     * Règles de validation pour la création d'un utilisateur
+     */
+    public static function getValidationRules(): array
     {
         return [
             'name' => 'required|string|max:255',
@@ -367,9 +409,27 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
             'telephone' => 'required|string|unique:users|regex:/^(\+221|00221)?(77|78|70|76|75)[0-9]{7}$/',
             'password' => 'required|string|min:6|confirmed',
             'type_elevage' => 'nullable|string|max:255',
-            'bio' => 'nullable|string',
+            'bio' => 'nullable|string|max:500',
             'photo' => 'nullable|image|max:5120', // 5MB max
         ];
     }
-}
 
+    /**
+     * Règles de validation pour la mise à jour du profil
+     */
+    public static function getUpdateValidationRules(int $userId): array
+    {
+        return [
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|string|email|max:255|unique:users,email,' . $userId,
+            'telephone' => 'sometimes|string|unique:users,telephone,' . $userId . '|regex:/^(\+221|00221)?(77|78|70|76|75)[0-9]{7}$/',
+            'bio' => 'nullable|string|max:500',
+            'photo' => 'nullable|image|max:5120',
+            'profile_visibility' => 'sometimes|in:public,prive',
+            'email_notifications' => 'sometimes|boolean',
+            'web_notifications' => 'sometimes|boolean',
+            'reminder_notifications' => 'sometimes|boolean',
+            'newsletter_subscription' => 'sometimes|boolean',
+        ];
+    }
+}

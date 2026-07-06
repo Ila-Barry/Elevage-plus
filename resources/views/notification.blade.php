@@ -127,6 +127,8 @@ const state = {
     total: 0,
     unreadCount: 0,
     isLoading: false,
+    pollingInterval: null,
+    notificationPollingInterval: null,
 };
 
 // ============================================================
@@ -176,14 +178,55 @@ function formatDate(dateString) {
 }
 
 // ============================================================
+// MISE À JOUR DU BADGE (CORRECTION)
+// ============================================================
+
+function updateNotificationBadge(count) {
+    // Mettre à jour le badge dans le menu principal
+    const badgeElements = document.querySelectorAll('.notification-badge, .menu-notification-badge');
+    badgeElements.forEach(el => {
+        if (count > 0) {
+            el.textContent = count;
+            el.style.display = 'inline-block';
+            // Animation
+            el.classList.remove('pulse');
+            void el.offsetWidth; // Force reflow
+            el.classList.add('pulse');
+        } else {
+            el.textContent = '0';
+            el.style.display = 'none';
+        }
+    });
+
+    // Mettre à jour le titre de la page
+    if (count > 0) {
+        document.title = `(${count}) Notifications - Élevage+`;
+    } else {
+        document.title = 'Notifications - Élevage+';
+    }
+}
+
+// ============================================================
 // API CALLS
 // ============================================================
 
 async function apiCall(endpoint, options = {}) {
+    // Vérifier le token avant chaque appel
+    if (!CONFIG.TOKEN) {
+        logError('❌ Token manquant pour l\'appel API', endpoint);
+        // Tentative de récupération du token depuis le localStorage
+        const raw = localStorage.getItem('access_token');
+        CONFIG.TOKEN = raw ? raw.replace(/^"(.*)"$/, '$1').trim() : null;
+        if (!CONFIG.TOKEN) {
+            throw new Error('Non authentifié');
+        }
+    }
+
     const defaultHeaders = {
         'Accept': 'application/json',
         'Authorization': 'Bearer ' + CONFIG.TOKEN,
-        'X-CSRF-TOKEN': CONFIG.CSRF_TOKEN
+        'X-CSRF-TOKEN': CONFIG.CSRF_TOKEN,
+        'Content-Type': 'application/json',
     };
 
     const config = {
@@ -203,6 +246,29 @@ async function apiCall(endpoint, options = {}) {
 
     try {
         const response = await fetch(url, config);
+        
+        // Gestion spéciale pour 401 (token expiré)
+        if (response.status === 401) {
+            logError('🔑 Token expiré, tentative de rafraîchissement...');
+            try {
+                const refreshResult = await refreshToken();
+                if (refreshResult) {
+                    // Réessayer la requête avec le nouveau token
+                    config.headers.Authorization = 'Bearer ' + CONFIG.TOKEN;
+                    const retryResponse = await fetch(url, config);
+                    const retryData = await retryResponse.json();
+                    if (retryResponse.ok) {
+                        return retryData;
+                    }
+                }
+            } catch (refreshError) {
+                logError('❌ Échec du rafraîchissement du token', refreshError);
+                // Rediriger vers la page de connexion
+                window.location.href = '/auth/login';
+                throw new Error('Session expirée, veuillez vous reconnecter');
+            }
+        }
+
         const data = await response.json();
 
         if (!response.ok) {
@@ -221,6 +287,35 @@ async function apiCall(endpoint, options = {}) {
     }
 }
 
+// Fonction de rafraîchissement du token
+async function refreshToken() {
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/auth/refresh`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + CONFIG.TOKEN,
+                'X-CSRF-TOKEN': CONFIG.CSRF_TOKEN,
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.data && data.data.access_token) {
+                const newToken = data.data.access_token;
+                localStorage.setItem('access_token', JSON.stringify(newToken));
+                CONFIG.TOKEN = newToken;
+                log('✅ Token rafraîchi avec succès');
+                return true;
+            }
+        }
+        return false;
+    } catch (error) {
+        logError('❌ Erreur rafraîchissement token', error);
+        return false;
+    }
+}
+
 // ============================================================
 // CHARGEMENT DES NOTIFICATIONS
 // ============================================================
@@ -232,6 +327,8 @@ async function loadNotifications(page = 1, filter = 'all') {
     state.currentFilter = filter;
 
     const container = document.getElementById('notificationsList');
+    if (!container) return;
+    
     container.innerHTML = `
         <div class="text-center py-5">
             <div class="spinner-border text-success" role="status">
@@ -247,41 +344,86 @@ async function loadNotifications(page = 1, filter = 'all') {
 
         if (filter === 'unread') {
             endpoint = '/notifications/unread';
-        } else if (filter !== 'all') {
+        } else if (filter !== 'all' && ['success', 'warning', 'danger', 'info'].includes(filter)) {
             params += `&type=${filter}`;
         }
 
         const result = await apiCall(`${endpoint}?${params}`);
 
-        if (result.status === 'success') {
-            const data = result.data;
+        console.log('🔍 RÉPONSE COMPLÈTE:', JSON.stringify(result, null, 2));
+
+        // ✅ CORRECTION : Vérifier "success" au lieu de "status"
+        if (result.success === true || result.status === 'success') {
+            const responseData = result.data;
             
-            // Gérer les différents formats de réponse
-            if (Array.isArray(data)) {
-                state.notifications = data;
-                state.total = data.length;
-                state.totalPages = 1;
-            } else if (data.data) {
-                state.notifications = data.data;
-                state.total = data.meta?.total || data.data.length;
-                state.totalPages = data.meta?.last_page || 1;
-                state.unreadCount = data.meta?.unread_count || 0;
-            } else {
-                state.notifications = [];
-                state.total = 0;
-                state.totalPages = 1;
+            console.log('🔍 responseData:', responseData);
+            
+            // ✅ CORRECTION : La structure est data.data
+            let notifications = [];
+            let total = 0;
+            let lastPage = 1;
+            let unreadCount = 0;
+
+            // La structure correcte est: result.data.data (tableau)
+            if (responseData && responseData.data && Array.isArray(responseData.data)) {
+                notifications = responseData.data;
+                total = responseData.meta?.total || responseData.data.length;
+                lastPage = responseData.meta?.last_page || 1;
+                unreadCount = responseData.meta?.unread_count || 0;
+                console.log('✅ Cas 1: responseData.data est un tableau');
+            }
+            // Fallback: si responseData est un tableau
+            else if (Array.isArray(responseData)) {
+                notifications = responseData;
+                total = responseData.length;
+                lastPage = 1;
+                unreadCount = responseData.filter(n => !n.read_at).length;
+                console.log('✅ Cas 2: responseData est un tableau');
+            }
+            // Fallback: si responseData est un objet avec des clés numériques
+            else if (responseData && typeof responseData === 'object') {
+                const values = Object.values(responseData);
+                if (values.length > 0 && values[0] && (values[0].id || values[0].data)) {
+                    notifications = values;
+                    total = values.length;
+                    lastPage = 1;
+                    unreadCount = values.filter(n => !n.read_at).length;
+                    console.log('✅ Cas 3: Objet avec clés numériques');
+                }
             }
 
+            console.log('📊 RÉSULTAT FINAL:');
+            console.log('  - Notifications:', notifications);
+            console.log('  - Total:', total);
+            console.log('  - LastPage:', lastPage);
+            console.log('  - UnreadCount:', unreadCount);
+            console.log('  - Première notification:', notifications.length > 0 ? notifications[0] : 'Aucune');
+
+            state.notifications = notifications;
+            state.total = total;
+            state.totalPages = lastPage;
+            state.unreadCount = unreadCount;
+
+            // Mettre à jour le badge
+            updateNotificationBadge(state.unreadCount);
+            
             renderNotifications();
             updateCounters();
             updatePagination();
         } else {
+            console.log('❌ Erreur dans la réponse:', result);
             showToast(result.message || 'Erreur lors du chargement', 'danger');
             renderNotifications();
         }
     } catch (error) {
+        console.error('❌ Erreur fatale:', error);
         logError('Erreur chargement notifications', error);
-        showToast('Erreur lors du chargement des notifications', 'danger');
+        if (error.message === 'Non authentifié') {
+            showToast('Session expirée, veuillez vous reconnecter', 'danger');
+            setTimeout(() => window.location.href = '/auth/login', 2000);
+        } else {
+            showToast('Erreur lors du chargement des notifications', 'danger');
+        }
         renderNotifications();
     } finally {
         state.isLoading = false;
@@ -296,6 +438,8 @@ function renderNotifications() {
     const container = document.getElementById('notificationsList');
     const emptyDiv = document.getElementById('emptyNotifications');
 
+    if (!container || !emptyDiv) return;
+
     if (state.notifications.length === 0) {
         container.style.display = 'none';
         emptyDiv.style.display = 'flex';
@@ -306,16 +450,14 @@ function renderNotifications() {
     emptyDiv.style.display = 'none';
 
     container.innerHTML = state.notifications.map(notification => {
-        const isRead = notification.is_read || false;
-        const icon = notification.icon || '🔔';
-        const type = notification.type || 'info';
-        const url = notification.url || '#';
-        const title = notification.title || 'Notification';
-        const message = notification.message || '';
+        const isRead = notification.read_at !== null || notification.is_read === true;
+        const type = notification.data?.type || notification.type || 'info';
+        const url = notification.data?.url || notification.url || '#';
+        const title = notification.data?.title || notification.title || 'Notification';
+        const message = notification.data?.message || notification.message || '';
         const time = formatDate(notification.created_at);
-        const actions = notification.actions || [];
+        const actions = notification.data?.actions || [];
 
-        // Déterminer la classe CSS selon le type
         const iconClass = getIconClass(type);
 
         return `
@@ -336,20 +478,20 @@ function renderNotifications() {
                         <div class="notification-footer">
                             ${actions.map(action => `
                                 <button class="action-btn ${action.type || ''}" 
-                                        onclick="handleAction('${notification.id}', '${action.label}', '${action.url || '#'}')">
-                                    ${action.label}
+                                        onclick="handleAction('${notification.id}', '${escapeHtml(action.label)}', '${action.url || '#'}')">
+                                    ${escapeHtml(action.label)}
                                 </button>
                             `).join('')}
                         </div>
                     ` : ''}
                 </div>
                 ${!isRead ? `
-                    <button class="mark-read-btn" onclick="markAsRead('${notification.id}')" title="Marquer comme lu">
+                    <button class="mark-read-btn" onclick="event.stopPropagation(); markAsRead('${notification.id}')" title="Marquer comme lu">
                         <i class="fas fa-circle"></i>
                     </button>
                 ` : `
                     <button class="mark-read-btn" style="opacity: 0.4;" disabled>
-                        <i class="fas fa-circle"></i>
+                        <i class="fas fa-check-circle"></i>
                     </button>
                 `}
             </div>
@@ -362,11 +504,15 @@ function renderNotifications() {
             if (e.target.closest('button')) return;
             const id = this.dataset.id;
             const url = this.dataset.url;
+            
+            // Marquer comme lue si non lue
+            if (this.classList.contains('unread')) {
+                markAsRead(id, false);
+            }
+            
             if (url && url !== '#') {
                 window.location.href = url;
             }
-            if (!this.classList.contains('unread')) return;
-            markAsRead(id);
         });
     });
 }
@@ -418,6 +564,7 @@ function getIconType(type) {
 // ============================================================
 
 function handleAction(notificationId, label, url) {
+    event.stopPropagation();
     log(`📌 Action: ${label} sur la notification ${notificationId}`);
     
     // Marquer comme lue avant de rediriger
@@ -450,8 +597,13 @@ async function markAsRead(notificationId, showToastMsg = true) {
                 const markBtn = item.querySelector('.mark-read-btn');
                 if (markBtn) {
                     markBtn.style.opacity = '0.4';
+                    markBtn.innerHTML = '<i class="fas fa-check-circle"></i>';
                     markBtn.disabled = true;
                 }
+                
+                // Mettre à jour le compteur
+                state.unreadCount = Math.max(0, state.unreadCount - 1);
+                updateNotificationBadge(state.unreadCount);
             }
             
             updateCounters();
@@ -485,10 +637,13 @@ async function markAllAsRead() {
                 const markBtn = item.querySelector('.mark-read-btn');
                 if (markBtn) {
                     markBtn.style.opacity = '0.4';
+                    markBtn.innerHTML = '<i class="fas fa-check-circle"></i>';
                     markBtn.disabled = true;
                 }
             });
             
+            state.unreadCount = 0;
+            updateNotificationBadge(0);
             updateCounters();
             showToast('Toutes les notifications ont été marquées comme lues', 'success');
         }
@@ -507,10 +662,15 @@ function updateCounters() {
     const unread = document.querySelectorAll('.notification-item.unread').length;
     const read = total - unread;
 
-    document.getElementById('totalNotifCount').textContent = total;
-    document.getElementById('allCount').textContent = total;
-    document.getElementById('unreadCount').textContent = unread;
-    document.getElementById('readCount').textContent = read;
+    const totalBadge = document.getElementById('totalNotifCount');
+    const allCount = document.getElementById('allCount');
+    const unreadCount = document.getElementById('unreadCount');
+    const readCount = document.getElementById('readCount');
+    
+    if (totalBadge) totalBadge.textContent = total;
+    if (allCount) allCount.textContent = total;
+    if (unreadCount) unreadCount.textContent = unread;
+    if (readCount) readCount.textContent = read;
 }
 
 // ============================================================
@@ -521,6 +681,8 @@ function updatePagination() {
     const pageNumbers = document.getElementById('pageNumbers');
     const prevBtn = document.getElementById('prevPageBtn');
     const nextBtn = document.getElementById('nextPageBtn');
+
+    if (!pageNumbers || !prevBtn || !nextBtn) return;
 
     if (state.totalPages <= 1) {
         pageNumbers.innerHTML = '';
@@ -540,7 +702,7 @@ function updatePagination() {
 
     if (start > 1) {
         html += `<button class="page-number" onclick="goToPage(1)">1</button>`;
-        if (start > 2) html += `<button class="page-number" disabled>...</button>`;
+        if (start > 2) html += `<span class="page-number disabled">...</span>`;
     }
 
     for (let i = start; i <= end; i++) {
@@ -548,7 +710,7 @@ function updatePagination() {
     }
 
     if (end < state.totalPages) {
-        if (end < state.totalPages - 1) html += `<button class="page-number" disabled>...</button>`;
+        if (end < state.totalPages - 1) html += `<span class="page-number disabled">...</span>`;
         html += `<button class="page-number" onclick="goToPage(${state.totalPages})">${state.totalPages}</button>`;
     }
 
@@ -560,7 +722,10 @@ function updatePagination() {
 function goToPage(page) {
     if (page === state.currentPage || state.isLoading) return;
     loadNotifications(page, state.currentFilter);
-    document.querySelector('.notifications-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const list = document.querySelector('.notifications-list');
+    if (list) {
+        list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 // ============================================================
@@ -603,7 +768,7 @@ function showToast(message, type = 'info') {
     toast.innerHTML = `
         <div class="toast-content">
             <i class="fas ${icons[type] || icons.info}"></i>
-            <span>${message}</span>
+            <span>${escapeHtml(message)}</span>
         </div>
     `;
     document.body.appendChild(toast);
@@ -617,23 +782,215 @@ function showToast(message, type = 'info') {
 }
 
 // ============================================================
+// VÉRIFICATION DES NOUVELLES NOTIFICATIONS
+// ============================================================
+
+async function checkNewNotifications() {
+    try {
+        const result = await apiCall('/notifications/unread');
+        if (result.status === 'success') {
+            let unreadData = result.data;
+            let count = 0;
+            
+            if (Array.isArray(unreadData)) {
+                count = unreadData.length;
+            } else if (unreadData && unreadData.data) {
+                count = unreadData.data.length;
+            } else if (unreadData && typeof unreadData === 'object' && 'count' in unreadData) {
+                count = unreadData.count;
+            }
+            
+            // Mettre à jour le badge
+            if (count > 0) {
+                updateNotificationBadge(count);
+                
+                // Si la page est cachée, afficher une notification toast
+                if (document.hidden) {
+                    const latest = Array.isArray(unreadData) ? unreadData[0] : 
+                                   (unreadData.data ? unreadData.data[0] : null);
+                    if (latest) {
+                        const title = latest.data?.title || latest.title || 'Nouvelle notification';
+                        const message = latest.data?.message || latest.message || '';
+                        showToast(`${title}: ${message}`, 'info');
+                    } else {
+                        showToast(`Vous avez ${count} nouvelle(s) notification(s)`, 'info');
+                    }
+                }
+                
+                // Recharger la liste si on est sur la page
+                if (document.getElementById('notificationsList') && !document.hidden) {
+                    loadNotifications(state.currentPage, state.currentFilter);
+                }
+            } else {
+                // Pas de nouvelles notifications
+                if (document.hidden) {
+                    // Ne rien faire
+                }
+            }
+        }
+    } catch (error) {
+        // Silencieux
+        logError('Erreur vérification nouvelles notifications', error);
+    }
+}
+
+// ============================================================
 // POLLING - RÉCUPÉRATION EN TEMPS RÉEL
 // ============================================================
 
-let pollingInterval = null;
+function startAllPolling() {
+    // Polling pour les nouvelles notifications (15 secondes)
+    if (state.notificationPollingInterval) {
+        clearInterval(state.notificationPollingInterval);
+    }
+    state.notificationPollingInterval = setInterval(() => {
+        if (!document.hidden) {
+            checkNewNotifications();
+        }
+    }, 15000);
 
-function startPolling() {
-    if (pollingInterval) clearInterval(pollingInterval);
-    pollingInterval = setInterval(() => {
-        if (document.hidden) return;
-        loadNotifications(state.currentPage, state.currentFilter);
-    }, 30000); // Toutes les 30 secondes
+    // Polling pour rafraîchir la liste (30 secondes)
+    if (state.pollingInterval) {
+        clearInterval(state.pollingInterval);
+    }
+    state.pollingInterval = setInterval(() => {
+        if (!document.hidden && document.getElementById('notificationsList')) {
+            loadNotifications(state.currentPage, state.currentFilter);
+        }
+    }, 30000);
 }
 
-function stopPolling() {
-    if (pollingInterval) {
-        clearInterval(pollingInterval);
-        pollingInterval = null;
+function stopAllPolling() {
+    if (state.pollingInterval) {
+        clearInterval(state.pollingInterval);
+        state.pollingInterval = null;
+    }
+    if (state.notificationPollingInterval) {
+        clearInterval(state.notificationPollingInterval);
+        state.notificationPollingInterval = null;
+    }
+}
+
+// ============================================================
+// SERVICE WORKER POUR NOTIFICATIONS PUSH
+// ============================================================
+
+function registerServiceWorker() {
+    if (!('serviceWorker' in navigator)) {
+        log('⚠️ Service Workers non supportés');
+        return;
+    }
+
+    navigator.serviceWorker.register('/sw.js')
+        .then(registration => {
+            log('✅ Service Worker enregistré avec succès', registration);
+            
+            // Vérifier la permission des notifications
+            if ('Notification' in window && Notification.permission === 'granted') {
+                subscribeToPushNotifications();
+            }
+        })
+        .catch(error => {
+            logError('❌ Erreur enregistrement Service Worker', error);
+        });
+}
+
+function requestNotificationPermission() {
+    if (!('Notification' in window)) {
+        log('⚠️ Les notifications ne sont pas supportées');
+        return;
+    }
+    
+    if (Notification.permission === 'granted') {
+        log('✅ Permission notifications déjà accordée');
+        subscribeToPushNotifications();
+        return;
+    }
+    
+    if (Notification.permission === 'denied') {
+        log('⚠️ Permission notifications refusée');
+        showToast('Veuillez autoriser les notifications dans les paramètres de votre navigateur', 'warning');
+        return;
+    }
+    
+    // Demander la permission
+    Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+            log('✅ Permission notifications accordée');
+            showToast('Notifications activées !', 'success');
+            subscribeToPushNotifications();
+        } else {
+            log('⚠️ Permission notifications refusée');
+            showToast('Pour recevoir les notifications, veuillez autoriser les notifications.', 'warning');
+        }
+    });
+}
+
+function subscribeToPushNotifications() {
+    if (!('serviceWorker' in navigator)) return;
+    if (!('PushManager' in window)) return;
+    
+    navigator.serviceWorker.ready.then(registration => {
+        // Vérifier si déjà abonné
+        registration.pushManager.getSubscription().then(subscription => {
+            if (subscription) {
+                log('✅ Déjà abonné aux notifications push', subscription);
+                return;
+            }
+            
+            // S'abonner
+            const vapidPublicKey = document.querySelector('meta[name="vapid-public-key"]')?.content || '';
+            if (!vapidPublicKey) {
+                log('⚠️ Clé VAPID publique non trouvée');
+                return;
+            }
+            
+            const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+            
+            registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: applicationServerKey
+            })
+            .then(subscription => {
+                log('✅ Abonnement push réussi', subscription);
+                // Envoyer la subscription au serveur
+                return saveSubscription(subscription);
+            })
+            .then(response => {
+                if (response) {
+                    log('✅ Subscription sauvegardée sur le serveur', response);
+                }
+            })
+            .catch(error => {
+                logError('❌ Erreur abonnement push', error);
+            });
+        });
+    });
+}
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+async function saveSubscription(subscription) {
+    try {
+        const result = await apiCall('/webpush/subscribe', {
+            method: 'POST',
+            body: { subscription: subscription }
+        });
+        return result;
+    } catch (error) {
+        logError('❌ Erreur sauvegarde subscription', error);
+        return null;
     }
 }
 
@@ -644,10 +1001,22 @@ function stopPolling() {
 document.addEventListener('DOMContentLoaded', function() {
     log('🚀 Initialisation de la page Notifications');
     
+    // Vérifier l'authentification
     if (!CONFIG.TOKEN) {
-        showToast('Non connecté. Redirection...', 'danger');
-        setTimeout(() => window.location.href = '/auth/login', 2000);
-        return;
+        // Essayer de récupérer depuis le localStorage
+        try {
+            const raw = localStorage.getItem('access_token');
+            CONFIG.TOKEN = raw ? raw.replace(/^"(.*)"$/, '$1').trim() : null;
+        } catch (e) {
+            CONFIG.TOKEN = null;
+        }
+        
+        if (!CONFIG.TOKEN) {
+            log('⚠️ Non authentifié, redirection vers login');
+            showToast('Veuillez vous connecter', 'danger');
+            setTimeout(() => window.location.href = '/auth/login', 2000);
+            return;
+        }
     }
     
     // Charger les notifications
@@ -657,43 +1026,71 @@ document.addEventListener('DOMContentLoaded', function() {
     setupFilters();
     
     // Événement "Tout marquer comme lu"
-    document.getElementById('markAllReadBtn').addEventListener('click', markAllAsRead);
+    const markAllBtn = document.getElementById('markAllReadBtn');
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', markAllAsRead);
+    }
     
     // Événement "Paramètres"
-    document.getElementById('notificationSettingsBtn').addEventListener('click', function() {
-        showToast('Paramètres des notifications (bientôt disponible)', 'info');
-    });
+    const settingsBtn = document.getElementById('notificationSettingsBtn');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', function() {
+            showToast('Paramètres des notifications (bientôt disponible)', 'info');
+        });
+    }
     
     // Pagination
-    document.getElementById('prevPageBtn').addEventListener('click', function() {
-        if (state.currentPage > 1) goToPage(state.currentPage - 1);
-    });
-    
-    document.getElementById('nextPageBtn').addEventListener('click', function() {
-        if (state.currentPage < state.totalPages) goToPage(state.currentPage + 1);
-    });
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function() {
+            if (state.currentPage > 1) goToPage(state.currentPage - 1);
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+            if (state.currentPage < state.totalPages) goToPage(state.currentPage + 1);
+        });
+    }
     
     // Démarrer le polling
-    startPolling();
+    startAllPolling();
     
-    // Arrêter le polling quand la page est cachée
+    // Enregistrer le service worker pour les notifications push
+    registerServiceWorker();
+    
+    // Gestion de la visibilité de la page
     document.addEventListener('visibilitychange', function() {
         if (document.hidden) {
-            stopPolling();
+            stopAllPolling();
         } else {
-            startPolling();
+            startAllPolling();
             // Rafraîchir immédiatement
+            checkNewNotifications();
             loadNotifications(state.currentPage, state.currentFilter);
         }
     });
     
-    // Nettoyer le polling avant de quitter
+    // Nettoyage avant de quitter
     window.addEventListener('beforeunload', function() {
-        stopPolling();
+        stopAllPolling();
+    });
+    
+    // Gestion des erreurs réseau
+    window.addEventListener('online', function() {
+        log('🌐 Réseau rétabli, rechargement des notifications');
+        showToast('Connexion rétablie', 'success');
+        loadNotifications(state.currentPage, state.currentFilter);
+    });
+    
+    window.addEventListener('offline', function() {
+        log('🌐 Réseau perdu');
+        showToast('Connexion perdue. Vérifiez votre réseau.', 'warning');
     });
     
     log('✅ Page Notifications initialisée avec succès');
 });
+</script>
 </script>
 @endpush
 @endsection

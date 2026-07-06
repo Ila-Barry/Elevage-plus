@@ -102,6 +102,86 @@
             $(this).fadeOut(200);
         });
     });
+
+    // Enregistrement du service worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js')
+                .then(function(registration) {
+                    console.log('✅ Service Worker enregistré avec succès:', registration);
+                })
+                .catch(function(error) {
+                    console.error('❌ Erreur enregistrement Service Worker:', error);
+                });
+        });
+    }
+
+    // Demander la permission pour les notifications
+    function requestNotificationPermission() {
+        if (!('Notification' in window)) {
+            console.log('🔔 Les notifications ne sont pas supportées par ce navigateur');
+            return;
+        }
+        
+        if (Notification.permission === 'granted') {
+            console.log('✅ Permission notifications déjà accordée');
+            subscribeToPushNotifications();
+            return;
+        }
+        
+        if (Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    console.log('✅ Permission notifications accordée');
+                    subscribeToPushNotifications();
+                } else {
+                    console.log('⚠️ Permission notifications refusée');
+                }
+            });
+        }
+    }
+
+    // S'abonner aux notifications push
+    function subscribeToPushNotifications() {
+        if (!('serviceWorker' in navigator)) return;
+        if (!('PushManager' in window)) return;
+        
+        navigator.serviceWorker.ready.then(registration => {
+            registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: '{{ config('webpush.vapid.public_key') }}'
+            })
+            .then(subscription => {
+                console.log('✅ Abonnement push réussi:', subscription);
+                // Envoyer la subscription au serveur
+                return fetch('/api/webpush/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                        'Authorization': 'Bearer ' + (localStorage.getItem('access_token') || '')
+                    },
+                    body: JSON.stringify({ subscription: subscription })
+                });
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('✅ Subscription sauvegardée sur le serveur:', data);
+            })
+            .catch(error => {
+                console.error('❌ Erreur abonnement push:', error);
+            });
+        });
+    }
+
+    // Vérifier les permissions au chargement
+    document.addEventListener('DOMContentLoaded', function() {
+        // Vérifier si l'utilisateur est connecté
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            requestNotificationPermission();
+        }
+    });
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
