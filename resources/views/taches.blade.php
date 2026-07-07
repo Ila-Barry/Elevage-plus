@@ -877,14 +877,13 @@ function renderTaskLists() {
     if (upcomingList) {
         const today = new Date().toISOString().split('T')[0];
         
-        // Filtre les tâches à venir (date > aujourd'hui) et non terminées
         const upcomingTasks = tasks
             .filter(t => {
                 const taskDate = (t.date_planifiee ?? '').substring(0, 10);
                 return taskDate > today && !(t.terminee == 1);
             })
             .sort((a, b) => new Date(a.date_planifiee) - new Date(b.date_planifiee))
-            .slice(0, 10); // Limite à 10 tâches
+            .slice(0, 10);
         
         console.log('📋 Tâches à venir:', upcomingTasks.length);
         
@@ -925,7 +924,6 @@ function renderTaskLists() {
         const today = new Date();
         const todayStr = today.toISOString().split('T')[0];
         
-        // Met à jour la date
         if (todayDateSpan) {
             todayDateSpan.textContent = today.toLocaleDateString('fr-FR', {
                 weekday: 'long',
@@ -934,7 +932,6 @@ function renderTaskLists() {
             });
         }
         
-        // Filtre les tâches du jour
         const todayTasks = tasks.filter(t => {
             const taskDate = (t.date_planifiee ?? '').substring(0, 10);
             return taskDate === todayStr;
@@ -970,27 +967,18 @@ function renderTaskLists() {
                     </div>
                     
                     <div class="task-actions">
-                        ${t.terminee == 1 ? 
-                            `<button class="btn-success-task" onclick="toggleTask(${t.id})">
-                                <i class="fas fa-undo"></i> Réouvrir
-                            </button>` :
-                            `<button class="btn-success-task" onclick="toggleTask(${t.id})">
-                                <i class="fas fa-check"></i> Terminer
-                            </button>`
-                        }
+                        <button class="btn-hide-task" onclick="toggleTask(${t.id})">
+                            ✅ Masquer fait
+                        </button>
                         <button class="btn-edit-task" onclick="openEditModal(${t.id})">
-                            <i class="fas fa-edit"></i> Modifier
-                        </button>
-                        <button class="btn-delete-task" onclick="openDeleteModal(${t.id}, '${t.titre || t.type}')">
-                            <i class="fas fa-trash"></i> Supprimer
-                        </button>
+    <i class="fas fa-pen" style="color: #dc3545;"></i> Modifier
+</button>
                     </div>
                 </div>
             `).join('');
         }
     }
 }
-
 // =====================================================
 // 📊 STATISTIQUES - COMPTEURS EN HAUT DE PAGE
 // =====================================================
