@@ -171,6 +171,8 @@ Route::middleware(['auth:api'])->prefix('stock')->group(function () {
     
     // Rapports
     Route::get('/rapport', [StockController::class, 'rapport']);
+    // ✅ Route pour vérifier les alertes (cron)
+    Route::post('/stock/check-alerts', [StockController::class, 'checkAlerts']);
 });
 
 /*

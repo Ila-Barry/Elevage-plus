@@ -13,6 +13,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\CheckAnimalHealthAlerts::class,
         \App\Console\Commands\CheckAnimalWeightLoss::class,
         \App\Console\Commands\CheckTaskReminders::class,
+         \App\Console\Commands\CheckStockAlerts::class,
     ];
 
     protected function schedule(Schedule $schedule): void
@@ -20,8 +21,8 @@ class Kernel extends ConsoleKernel
         // Vérification des rappels de vaccination - toutes les 6 heures
         $schedule->command('alerts:check-vaccinations')->everySixHours();
         
-        // Vérification des stocks critiques - toutes les 4 heures
-        $schedule->command('alerts:check-stock')->everyFourHours();
+        // Vérifier les alertes de stock toutes les 6 heures
+    $schedule->command('stock:check-alerts')->everySixHours();
         
         // Vérification des pertes de poids - une fois par jour
         $schedule->command('alerts:check-weight-loss')->daily();
