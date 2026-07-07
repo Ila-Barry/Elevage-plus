@@ -187,16 +187,51 @@
                         <textarea class="form-control" id="addDescription" rows="3" placeholder="Ajouter une description..."></textarea>
                     </div>
 
-                    <div class="d-flex justify-content-center gap-3">
-                        <button
-                            type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal"
-                            onclick="window.location.reload();">
-                            ❌ Annuler
-                        </button>
-                        <button type="submit" class="btn btn-success" id="addSubmitBtn">✅ Ajouter</button>
-                    </div>
+                    <div class="modal-footer" style="border-top: none; padding: 16px 24px 24px 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 15px;">
+        <button
+            type="button"
+            class="btn btn-cancel"
+            data-bs-dismiss="modal"
+            onclick="window.location.reload();"
+            style="
+                background: white;
+                color: #000000;
+                border: 2px solid #d1d1d1;
+                padding: 10px 30px;
+                border-radius: 10px;
+                font-weight: 600;
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-width: 120px;
+            "
+            onmouseover="this.style.background='#f8f9fa'"
+            onmouseout="this.style.background='white'">
+            ❌ Annuler
+        </button>
+        <button 
+            type="submit" 
+            class="btn btn-success" 
+            id="addSubmitBtn"
+            style="
+                background: #198754;
+                color: white;
+                border: none;
+                padding: 10px 30px;
+                border-radius: 10px;
+                font-weight: 600;
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-width: 120px;
+            "
+            onmouseover="this.style.background='#146c43'"
+            onmouseout="this.style.background='#198754'">
+            ✅ Ajouter
+        </button>
+    </div>
+</div>
                 </form>
             </div>
         </div>
@@ -277,15 +312,22 @@
                         </select>
                     </div>
 
-                    <div class="d-flex justify-content-center gap-3">
-                        <button
-                            type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal"
-                            onclick="window.location.reload();">
-                            Annuler
-                        </button>
-                        <button type="submit" class="btn btn-success" id="editSubmitBtn">Enregistrer</button>
+                    <div class="modal-footer" style="border-top: none; padding: 16px 24px 24px 24px;">
+                        <div class="btn-container">
+                            <button
+                                type="button"
+                                class="btn-cancel-modal"
+                                data-bs-dismiss="modal"
+                                onclick="window.location.reload();">
+                                ❌ Annuler
+                            </button>
+                            <button 
+                                type="submit" 
+                                class="btn-add-modal" 
+                                id="editSubmitBtn">
+                                ✅ Enregistrer
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
