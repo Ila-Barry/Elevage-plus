@@ -15,6 +15,9 @@ use App\Http\Resources\MessageResource;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Notifications\MessageNotification;
+use App\Models\Conversation;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Contrôleur MessageController
@@ -27,17 +30,12 @@ use Illuminate\Http\Request;
  * 
  * @package App\Http\Controllers\Api
  */
+
 class MessageController extends Controller
 {
     use ApiResponseTrait;
 
-    /**
-     * Service de gestion de la messagerie
-     *
-     * @var MessagingService
-     */
     protected MessagingService $messagingService;
-
     protected MediaUploadService $mediaUploadService;
 
     public function __construct(MessagingService $messagingService, MediaUploadService $mediaUploadService)
@@ -47,11 +45,8 @@ class MessageController extends Controller
         $this->middleware('auth:api');
     }
 
-        /**
-     * Envoie un message (supporte texte, images, vidéos, fichiers, stickers)
-     *
-     * @param SendMessageRequest $request
-     * @return JsonResponse
+    /**
+     * Envoie un message - AVEC NOTIFICATION
      */
     public function sendMessage(SendMessageRequest $request): JsonResponse
     {
@@ -59,7 +54,6 @@ class MessageController extends Controller
             $expediteur = auth()->user();
             $destinataire = User::findOrFail($request->destinataire_id);
 
-            // Vérifier que l'expéditeur et le destinataire peuvent communiquer
             if (!$this->messagingService->canCommunicate($expediteur, $destinataire)) {
                 return $this->forbiddenResponse(
                     'Impossible d\'envoyer le message. Vérifiez que votre compte et celui du destinataire sont actifs.'
@@ -109,7 +103,33 @@ class MessageController extends Controller
                 );
             }
 
+            // Charger les relations
             $message->load(['expediteur', 'destinataire', 'conversation']);
+
+            // 🔔 ENVOYER LA NOTIFICATION AU DESTINATAIRE
+            try {
+                Log::info('📤 Envoi notification nouveau message', [
+                    'message_id' => $message->id,
+                    'expediteur_id' => $expediteur->id,
+                    'destinataire_id' => $destinataire->id,
+                    'type' => $message->type
+                ]);
+
+                // Envoyer la notification au destinataire
+                $destinataire->notify(new MessageNotification($message, 'new_message'));
+
+                // Si le destinataire a des préférences de notification push
+                if ($destinataire->web_notifications ?? true) {
+                    // Le WebPush sera envoyé automatiquement via le canal
+                }
+
+                Log::info('✅ Notification nouveau message envoyée à ' . $destinataire->name);
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur envoi notification message', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
 
             return $this->successResponse(
                 new MessageResource($message),
@@ -120,7 +140,7 @@ class MessageController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFoundResponse('Destinataire non trouvé.');
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de l\'envoi du message: ' . $e->getMessage());
+            Log::error('Erreur lors de l\'envoi du message: ' . $e->getMessage());
             return $this->errorResponse(
                 'Erreur lors de l\'envoi du message: ' . $e->getMessage(),
                 $e->getCode() === 403 ? 403 : 500
@@ -129,47 +149,20 @@ class MessageController extends Controller
     }
 
     /**
-     * Récupère la liste des conversations de l'utilisateur connecté
-     *
-     * @param GetConversationsRequest $request
-     * @return JsonResponse
-     */
-    public function getConversations(GetConversationsRequest $request): JsonResponse
-    {
-        try {
-            $userId = auth()->id();
-            $perPage = $request->get('per_page', 20);
-
-            $conversations = $this->messagingService->getUserConversations($userId, $perPage);
-
-            return $this->successResponse([
-                'conversations' => ConversationResource::collection($conversations),
-                'pagination' => [
-                    'current_page' => $conversations->currentPage(),
-                    'per_page' => $conversations->perPage(),
-                    'total' => $conversations->total(),
-                    'last_page' => $conversations->lastPage(),
-                ],
-            ]);
-
-        } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération des conversations: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération des conversations.', 500);
-        }
-    }
-
-    /**
-     * Récupère les messages d'une conversation spécifique
-     *
-     * @param int $conversationId
-     * @param GetMessagesRequest $request
-     * @return JsonResponse
+     * Récupère les messages d'une conversation - AVEC NOTIFICATION DE LECTURE
      */
     public function getMessages(int $conversationId, GetMessagesRequest $request): JsonResponse
     {
         try {
             $userId = auth()->id();
             $perPage = $request->get('per_page', 50);
+
+            // Récupérer les messages non lus avant de les marquer comme lus
+            $unreadMessages = \App\Models\Message::where('conversation_id', $conversationId)
+                ->where('destinataire_id', $userId)
+                ->where('lu', false)
+                ->with('expediteur')
+                ->get();
 
             $messages = $this->messagingService->getConversationMessages(
                 $conversationId,
@@ -178,7 +171,27 @@ class MessageController extends Controller
             );
 
             // Marquer automatiquement les messages comme lus
-            $this->messagingService->markMessagesAsRead($conversationId, $userId);
+            $updatedCount = $this->messagingService->markMessagesAsRead($conversationId, $userId);
+
+            // 🔔 NOTIFIER L'EXPÉDITEUR QUE SES MESSAGES ONT ÉTÉ LUS
+            if ($unreadMessages->count() > 0) {
+                foreach ($unreadMessages as $msg) {
+                    try {
+                        $expediteur = $msg->expediteur;
+                        if ($expediteur && $expediteur->id !== $userId) {
+                            // Créer une notification de lecture
+                            $expediteur->notify(new MessageNotification($msg, 'message_read'));
+                            Log::info('✅ Notification de lecture envoyée à ' . $expediteur->name, [
+                                'message_id' => $msg->id
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('❌ Erreur notification lecture', [
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+            }
 
             return $this->successResponse([
                 'messages' => MessageResource::collection($messages),
@@ -192,7 +205,7 @@ class MessageController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération des messages: ' . $e->getMessage());
+            Log::error('Erreur lors de la récupération des messages: ' . $e->getMessage());
             
             if ($e->getCode() === 403) {
                 return $this->forbiddenResponse($e->getMessage());
@@ -203,41 +216,41 @@ class MessageController extends Controller
     }
 
     /**
-     * Récupère le nombre total de messages non lus
-     *
-     * @return JsonResponse
-     */
-    public function getUnreadCount(): JsonResponse
-    {
-        try {
-            $userId = auth()->id();
-            $unreadCount = $this->messagingService->getTotalUnreadCount($userId);
-
-            return $this->successResponse([
-                'unread_count' => $unreadCount,
-            ]);
-
-        } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération du compteur non lu: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la récupération du compteur.', 500);
-        }
-    }
-
-    /**
-     * Marque tous les messages d'une conversation comme lus
-     *
-     * @param int $conversationId
-     * @return JsonResponse
+     * Marque tous les messages d'une conversation comme lus - AVEC NOTIFICATION
      */
     public function markConversationAsRead(int $conversationId): JsonResponse
     {
         try {
             $userId = auth()->id();
             
+            // Récupérer les messages non lus avant de les marquer
+            $unreadMessages = \App\Models\Message::where('conversation_id', $conversationId)
+                ->where('destinataire_id', $userId)
+                ->where('lu', false)
+                ->with('expediteur')
+                ->get();
+            
             $updatedCount = $this->messagingService->markMessagesAsRead(
                 $conversationId,
                 $userId
             );
+
+            // 🔔 NOTIFIER LES EXPÉDITEURS
+            if ($unreadMessages->count() > 0) {
+                foreach ($unreadMessages as $msg) {
+                    try {
+                        $expediteur = $msg->expediteur;
+                        if ($expediteur && $expediteur->id !== $userId) {
+                            $expediteur->notify(new MessageNotification($msg, 'message_read'));
+                            Log::info('✅ Notification de lecture envoyée à ' . $expediteur->name);
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('❌ Erreur notification lecture', [
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+            }
 
             return $this->successResponse([
                 'conversation_id' => $conversationId,
@@ -245,7 +258,7 @@ class MessageController extends Controller
             ], "$updatedCount message(s) marqué(s) comme lu(s).");
 
         } catch (\Exception $e) {
-            \Log::error('Erreur lors du marquage des messages: ' . $e->getMessage());
+            Log::error('Erreur lors du marquage des messages: ' . $e->getMessage());
             
             if ($e->getCode() === 403) {
                 return $this->forbiddenResponse($e->getMessage());

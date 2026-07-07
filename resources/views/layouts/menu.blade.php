@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- VAPID Public Key pour les notifications push -->
+    <meta name="vapid-public-key" content="{{ config('webpush.vapid.public_key') }}">
 
     <title>@yield('title', 'Élevage+')</title>
 
@@ -182,6 +184,19 @@
             requestNotificationPermission();
         }
     });
+
+    // Enregistrement du Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js')
+                .then(function(registration) {
+                    console.log('✅ Service Worker enregistré avec succès:', registration);
+                })
+                .catch(function(error) {
+                    console.error('❌ Erreur enregistrement Service Worker:', error);
+                });
+        });
+    }
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>

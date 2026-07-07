@@ -85,6 +85,8 @@ Route::middleware(['auth:api'])->prefix('auth')->group(function () {
     
     // Préférences
     Route::put('/notification-preferences', [AuthController::class, 'updateNotificationPreferences']);
+    Route::get('/notification-preferences', [AuthController::class, 'getNotificationPreferences']);
+
     Route::put('/profile-visibility', [AuthController::class, 'updateProfileVisibility']);
     
     // Suppression de compte
@@ -408,9 +410,12 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| API Routes - notifications
+| API Routes - WebPush Notifications
 |--------------------------------------------------------------------------
 */
-Route::post('/webpush/subscribe', [WebPushController::class, 'subscribe'])->middleware('auth:api');
-Route::post('/webpush/unsubscribe', [WebPushController::class, 'unsubscribe'])->middleware('auth:api');
-Route::post('/webpush/update-subscription', [WebPushController::class, 'update'])->middleware('auth:api');
+
+Route::middleware(['auth:api'])->group(function () {
+    Route::post('/webpush/subscribe', [WebPushController::class, 'subscribe']);
+    Route::post('/webpush/unsubscribe', [WebPushController::class, 'unsubscribe']);
+    Route::post('/webpush/update-subscription', [WebPushController::class, 'update']);
+});

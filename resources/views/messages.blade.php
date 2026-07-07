@@ -201,25 +201,164 @@
             document.getElementById('emptyDiscussionArea').style.display = 'none';
             document.getElementById('discussionArea').style.display = 'flex';
         }
+        // ================= POLLING AMÉLIORÉ =================
+        let messagePollingInterval = null;
+
         function startPolling(conversationId) {
             clearInterval(state.pollingInterval);
+            clearInterval(messagePollingInterval);
 
             if (!conversationId) return;
 
+            // Polling pour les messages de la conversation active (3 secondes)
             state.pollingInterval = setInterval(() => {
-                loadMessages(conversationId, false);
-                loadConversations(); // 👈 important pour badge + preview
-            }, 3000); // toutes les 3 secondes
+                if (!document.hidden) {
+                    loadMessages(conversationId, false);
+                }
+            }, 3000);
+
+            // Polling pour les nouveaux messages (10 secondes)
+            messagePollingInterval = setInterval(() => {
+                if (!document.hidden) {
+                    checkNewMessages();
+                }
+            }, 10000);
+        }
+
+        function stopAllPolling() {
+            clearInterval(state.pollingInterval);
+            clearInterval(messagePollingInterval);
+            state.pollingInterval = null;
+            messagePollingInterval = null;
+        }
+
+        // ================= SERVICE WORKER =================
+        function registerServiceWorker() {
+            if (!('serviceWorker' in navigator)) {
+                console.log('⚠️ Service Workers non supportés');
+                return;
+            }
+
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('✅ Service Worker enregistré avec succès', registration);
+                    
+                    // Vérifier la permission des notifications
+                    if ('Notification' in window) {
+                        if (Notification.permission === 'granted') {
+                            console.log('✅ Permission notifications déjà accordée');
+                            subscribeToPushNotifications();
+                        } else if (Notification.permission === 'default') {
+                            // Demander la permission après un délai
+                            setTimeout(() => {
+                                Notification.requestPermission().then(permission => {
+                                    if (permission === 'granted') {
+                                        console.log('✅ Permission notifications accordée');
+                                        subscribeToPushNotifications();
+                                    }
+                                });
+                            }, 3000);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Erreur enregistrement Service Worker:', error);
+                });
+        }
+
+        function subscribeToPushNotifications() {
+            if (!('serviceWorker' in navigator)) return;
+            if (!('PushManager' in window)) return;
+            
+            navigator.serviceWorker.ready.then(registration => {
+                registration.pushManager.getSubscription().then(subscription => {
+                    if (subscription) {
+                        console.log('✅ Déjà abonné aux notifications push');
+                        return;
+                    }
+                    
+                    // Récupérer la clé VAPID depuis le meta tag
+                    const vapidPublicKey = document.querySelector('meta[name="vapid-public-key"]')?.content || '';
+                    if (!vapidPublicKey) {
+                        console.warn('⚠️ Clé VAPID publique non trouvée');
+                        return;
+                    }
+                    
+                    const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+                    
+                    registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: applicationServerKey
+                    })
+                    .then(subscription => {
+                        console.log('✅ Abonnement push réussi', subscription);
+                        return saveSubscription(subscription);
+                    })
+                    .then(response => {
+                        if (response) {
+                            console.log('✅ Subscription sauvegardée sur le serveur');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('❌ Erreur abonnement push:', error);
+                    });
+                });
+            });
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        async function saveSubscription(subscription) {
+            try {
+                const response = await fetch(`${API_URL}/webpush/subscribe`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'X-CSRF-TOKEN': CSRF_TOKEN
+                    },
+                    body: JSON.stringify({ subscription: subscription })
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('❌ Erreur sauvegarde subscription:', error);
+                return null;
+            }
         }
 
         // ================= CHARGEMENT DES CONVERSATIONS =================
+        function playNotificationSound() {
+            try {
+                const audio = new Audio('/sounds/notification.mp3');
+                audio.volume = 0.3;
+                audio.play().catch(e => console.log('⚠️ Son de notification non joué'));
+            } catch (e) {
+                console.log('⚠️ Erreur lecture son de notification');
+            }
+        }
         async function loadConversations() {
             try {
                 const res = await fetchWithAuth(`${API_URL}/messaging/conversations?per_page=50`);
                 const conversations = res.data?.conversations || [];
                 const container = document.getElementById('conversationsContainer');
+                
+                // Sauvegarder les anciens IDs pour détecter les nouveaux messages
+                const oldUnreadCount = parseInt(document.querySelectorAll('.unread-badge').length);
+                let newUnreadCount = 0;
+                
                 container.innerHTML = '';
-
                 document.getElementById('conversationsCount').textContent = conversations.length;
 
                 if (conversations.length === 0) {
@@ -227,7 +366,6 @@
                     return;
                 }
 
-                // Calculer le total des non-lus
                 let totalUnread = 0;
 
                 conversations.forEach(conv => {
@@ -271,11 +409,95 @@
                     container.innerHTML += itemHtml;
                 });
 
+                // Mettre à jour le badge
                 document.getElementById('totalUnread').textContent = totalUnread > 0 ? totalUnread : '';
+                
+                // Détecter les nouveaux messages non lus
+                if (totalUnread > oldUnreadCount && !document.hidden) {
+                    // Jouer un son de notification
+                    playNotificationSound();
+                    
+                    // Afficher un toast
+                    const newMessages = totalUnread - oldUnreadCount;
+                    showMessageToast(`📩 ${newMessages} nouveau(x) message(s) reçu(s)`);
+                }
 
             } catch (error) {
                 console.error('❌ Erreur chargement conversations:', error);
             }
+        }
+
+        // ================= VÉRIFICATION DES NOUVEAUX MESSAGES =================
+        async function checkNewMessages() {
+            try {
+                const res = await fetchWithAuth(`${API_URL}/messaging/unread-count`);
+                const unreadCount = res.data?.unread_count || 0;
+                
+                // Mettre à jour le badge
+                const badge = document.getElementById('totalUnread');
+                if (badge) {
+                    badge.textContent = unreadCount > 0 ? unreadCount : '';
+                    
+                    // Animation du badge si nouveau message
+                    if (unreadCount > 0) {
+                        badge.classList.remove('pulse');
+                        void badge.offsetWidth; // Force reflow
+                        badge.classList.add('pulse');
+                    }
+                }
+                
+                // Mettre à jour le titre de la page
+                if (unreadCount > 0) {
+                    document.title = `(${unreadCount}) Messagerie - Élevage+`;
+                } else {
+                    document.title = 'Messagerie - Élevage+';
+                }
+                
+                // Si un nouveau message est détecté et que la page est cachée, afficher une notification
+                if (unreadCount > 0 && document.hidden) {
+                    // Afficher une notification toast
+                    showMessageToast(`📩 Vous avez ${unreadCount} nouveau(x) message(s)`);
+                }
+                
+                // Recharger les conversations pour mettre à jour la preview
+                if (!document.hidden) {
+                    const currentConvCount = document.querySelectorAll('.conversation-item').length;
+                    // Recharger uniquement si le nombre de conversations a changé
+                    // ou si on a des messages non lus
+                    if (unreadCount > 0) {
+                        loadConversations();
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Erreur vérification nouveaux messages:', error);
+            }
+        }
+
+        // ================= TOAST DE NOTIFICATION =================
+        let messageToastTimeout = null;
+
+        function showMessageToast(message) {
+            const existingToast = document.querySelector('.custom-toast-message');
+            if (existingToast) existingToast.remove();
+            if (messageToastTimeout) clearTimeout(messageToastTimeout);
+            
+            const toast = document.createElement('div');
+            toast.className = 'custom-toast-message info';
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <i class="fas fa-envelope"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            messageToastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
         }
 
         // ================= CHARGEMENT DES MESSAGES =================
@@ -587,8 +809,67 @@
             input.click();
         });
 
+        // ================= INITIALISATION AMÉLIORÉE =================
+        // Nettoyer avant de quitter
+        window.addEventListener('beforeunload', function() {
+            stopAllPolling();
+        });
+
+        // Gestion de la visibilité de la page
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // Page cachée : réduire le polling
+                stopAllPolling();
+                // Garder seulement un polling léger pour les notifications
+                messagePollingInterval = setInterval(() => {
+                    checkNewMessages();
+                }, 15000);
+            } else {
+                // Page visible : reprendre le polling normal
+                stopAllPolling();
+                if (state.activeConversationId) {
+                    startPolling(state.activeConversationId);
+                } else {
+                    // Démarrer seulement le polling des messages
+                    messagePollingInterval = setInterval(() => {
+                        checkNewMessages();
+                    }, 10000);
+                }
+                // Rafraîchir immédiatement
+                loadConversations();
+                if (state.activeConversationId) {
+                    loadMessages(state.activeConversationId, true);
+                }
+            }
+        });
+
+        // Gestion des erreurs réseau
+        window.addEventListener('online', function() {
+            showMessageToast('🌐 Connexion rétablie');
+            loadConversations();
+            if (state.activeConversationId) {
+                loadMessages(state.activeConversationId, true);
+                startPolling(state.activeConversationId);
+            }
+        });
+
+        window.addEventListener('offline', function() {
+            showMessageToast('⚠️ Connexion perdue. Les messages seront synchronisés automatiquement.');
+        });
+
         // ================= INITIALISATION =================
+        // Enregistrer le service worker
+        registerServiceWorker();
+
+        // Charger les conversations
         loadConversations();
+
+        // Démarrer le polling pour les nouveaux messages
+        messagePollingInterval = setInterval(() => {
+            if (!document.hidden) {
+                checkNewMessages();
+            }
+        }, 10000);
     });
 </script>
 @endpush
