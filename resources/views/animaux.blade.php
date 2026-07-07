@@ -12,27 +12,30 @@
 
 <div class="animaux-container">
     
+    <!-- ===== EN-TÊTE : Titre + compteur + bouton Ajouter sur la même ligne ===== -->
     <div class="page-header">
-        <div>
+        <div class="header-left">
             <h2>GESTION DES ANIMAUX</h2>
             <span class="total-count" id="totalCount">0 animaux</span>
         </div>
 
-        <div class="header-actions">
-            <button class="btn-add-animal" id="openAddModal">
-                <i class="fas fa-plus"></i>
-                Ajouter un animal
-            </button>
+        <button class="btn-add-animal" id="openAddModal">
+            <i class="fas fa-plus"></i>
+            Ajouter un animal
+        </button>
+    </div>
 
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="rechercher..." value="{{ request('search') }}">
-                <button id="searchBtn">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
+    <!-- ===== BARRE DE RECHERCHE (déplacée en dessous du titre) ===== -->
+    <div class="search-bar-container">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="rechercher..." value="{{ request('search') }}">
+            <button id="searchBtn">
+                <i class="fas fa-search"></i>
+            </button>
         </div>
     </div>
 
+    <!-- ===== FILTRES ===== -->
     <div class="filters-section">
         <span class="filter-label">Filtres :</span>
         <select id="filterType">
@@ -65,6 +68,7 @@
         </button>
     </div>
 
+    <!-- ===== LISTE DES ANIMAUX ===== -->
     <div class="animals-list" id="animalsList">
         <div class="text-center py-5">
             <div class="spinner-border text-success" role="status">
@@ -74,6 +78,7 @@
         </div>
     </div>
 
+    <!-- ===== PAGINATION ===== -->
     <div class="pagination-section">
         <div class="pagination-custom" id="pagination">
             <button id="prevPage" disabled><i class="fas fa-angle-left"></i></button>
@@ -87,6 +92,9 @@
     </div>
 </div>
 
+<!-- ========== MODALES (inchangées) ========== -->
+
+<!-- MODALE DÉTAIL -->
 <div id="detailAnimalModal" class="modal">
     <div class="modal-content modal-detail">
         <div class="modal-header">
@@ -174,6 +182,7 @@
     </div>
 </div>
 
+<!-- MODALE AJOUTER -->
 <div id="addAnimalModal" class="modal">
     <div class="modal-content">
         <div class="modal-header mt-3">
@@ -281,6 +290,7 @@
     </div>
 </div>
 
+<!-- MODALE MODIFIER -->
 <div id="editAnimalModal" class="modal">
     <div class="modal-content">
         <div class="modal-header mt-3">
@@ -388,6 +398,7 @@
     </div>
 </div>
 
+<!-- MODALE SUPPRIMER -->
 <div id="deleteAnimalModal" class="modal">
     <div class="modal-content" style="max-width: 450px;">
         <div class="modal-header">
