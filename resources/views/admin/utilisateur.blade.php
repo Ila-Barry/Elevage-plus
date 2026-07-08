@@ -506,9 +506,9 @@
             <!-- Rôle -->
             <label for="role">👑 Rôle</label>
             <select name="role" id="role">
-                <option value="Eleveur">Eleveur</option>
-                <option value="Visiteur">Visiteur</option>
-                <option value="Admin">Admin</option>
+                <option value="eleveur">Eleveur</option>
+                <option value="visiteur">Visiteur</option>
+                <option value="admin">Admin</option>
             </select>
 
             <!-- Boutons de la modale -->
@@ -569,9 +569,9 @@
             <!-- Rôle -->
             <label for="editRole">👑 Rôle</label>
             <select id="editRole" name="role">
-                <option value="Eleveur">Eleveur</option>
-                <option value="Visiteur">Visiteur</option>
-                <option value="Admin">Admin</option>
+                <option value="eleveur">Eleveur</option>
+                <option value="visiteur">Visiteur</option>
+                <option value="admin">Admin</option>
             </select>
 
 <!-- Ajoutez ces champs dans votre formulaire, après le champ TYPE(s) ELEVAGE -->
@@ -844,7 +844,10 @@
      * @param {string} elevage - Type d'élevage
      * @param {string} role - Rôle de l'utilisateur
      */
-    function openEditModal(nom, email, localisation, elevage, role) {
+    function openEditModal(id, nom, email, localisation, elevage, role) {
+            console.log("Role reçu dans openEditModal :", role);
+
+        document.getElementById('editUserForm').dataset.userId = id;
         // Récupération de la modale
         const editModal = document.getElementById('editModal');
         
@@ -1385,8 +1388,19 @@ $(document).ready(function() {
                     tbody.empty();
 
                     users.forEach(function(user) {
-                        const roleClass = user.role === 'admin' ? 'admin-role' : 'eleveur';
-                        const roleLabel = user.role === 'admin' ? 'Admin' : 'Eleveur';
+                        const roleClass =
+                            user.role === 'admin'
+                                ? 'admin-role'
+                                : user.role === 'visiteur'
+                                ? 'visiteur-role'
+                                : 'eleveur';
+
+                        const roleLabel =
+                            user.role === 'admin'
+                                ? 'Admin'
+                                : user.role === 'visiteur'
+                                ? 'Visiteur'
+                                : 'Eleveur';
                         const date = new Date(user.created_at).toLocaleDateString('fr-FR');
 
                         let actions = `
@@ -1395,7 +1409,7 @@ $(document).ready(function() {
                                 👁️
                             </button>
                             <button class="btn-edit" title="Modifier"
-                                onclick="openEditModal('${user.name}', '${user.email}', '', '', '${roleLabel}')">
+                                onclick="openEditModal(${user.id}, '${user.name}', '${user.email}', '', '', '${user.role}')">
                                 ✏️
                             </button>`;
 
@@ -1410,7 +1424,7 @@ $(document).ready(function() {
                                 <td>${user.id}</td>
                                 <td>${user.name}</td>
                                 <td>${user.email}</td>
-                                <td><span class="role ${roleClass}">${roleLabel}</span></td>
+                                <td><span class="role ${roleClass}">${user.role}</span></td>
                                 <td>${date}</td>
                                 <td class="actions">${actions}</td>
                             </tr>
@@ -1501,7 +1515,53 @@ $(document).ready(function() {
         const search = $('input[type="text"]').val();
         loadUsers({ search: search });
     });
+        // Soumission du formulaire d'édition → API
+       document.getElementById('editUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
 
+    const userId = this.dataset.userId;
+
+    const statut = document.querySelector('input[name="statut"]:checked');
+
+    // const data = {
+    //     name: document.getElementById('editNom').value,
+    //     email: document.getElementById('editEmail').value,
+    //     role: document.getElementById('editRole').value,
+    //     status: (statut && statut.value === 'banni') ? 'bannie' : 'active'
+    // };
+
+    // $.ajax({
+    const data = {
+        name: document.getElementById('editNom').value,
+        email: document.getElementById('editEmail').value,
+        role: document.getElementById('editRole').value,
+        status: (statut && statut.value === 'banni') ? 'bannie' : 'active'
+    };
+
+    console.log("Role envoyé :", document.getElementById('editRole').value);
+    console.log("Données envoyées :", data);
+
+    $.ajax({
+        url: `/api/admin/users/${userId}`,
+        method: 'PUT',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify(data),
+
+        success: function(response) {
+            closeEditModal();
+            loadUsers();
+            alert("✅ Utilisateur modifié !");
+        },
+
+        error: function(xhr) {
+            console.log(xhr.responseJSON);
+        }
+    });
+});
     // Chargement initial
     loadStats();
     loadUsers();
