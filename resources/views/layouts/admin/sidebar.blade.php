@@ -8,15 +8,19 @@
 
     <!-- PROFIL UTILISATEUR DANS SIDEBAR -->
     <div class="sidebar-user">
+        @php
+            $user = auth()->user();
+            $avatar = $user?->photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($user?->name ?? 'User') . '&background=2e7d32&color=fff';
+        @endphp
         <div class="user-avatar">
-            <img src="https://i.pravatar.cc/100?u=admin" alt="Admin">
+            <img src="{{ $avatar }}" alt="{{ $user?->name ?? 'Utilisateur' }}">
         </div>
         <div class="user-info">
-            <h6>Admin Système</h6>
-            <span>Super Administrateur</span>
-            <div class="user-status">
-                <i class="fas fa-circle"></i> En ligne
-            </div>
+            <h6>{{ $user?->name ?? 'Utilisateur' }}</h6>
+            <span>
+                {{ $user?->role ?? 'Éleveur' }}
+                <i class="fas fa-circle user-status"></i> En ligne
+            </span>
         </div>
     </div>
 
@@ -38,8 +42,8 @@
             <span>Publications</span>
         </a>
 
-        <a href="{{ url('admin/signale') }}" class="sidebar-item">
-            <i class="fas fa-tasks"></i>
+        <a href="{{ url('admin/signale') }}" class="sidebar-item {{ request()->is('admin/signale*') ? 'active' : '' }}">
+            <i class="fas fa-flag"></i>
             <span>Signalements</span>
         </a>
 
@@ -48,7 +52,7 @@
             <span>Statistiques</span>
         </a>
 
-        <a href="#" class="sidebar-item {{ request()->is('admin/parametre*') ? 'active' : '' }}">
+        <a href="#" class="sidebar-item {{ request()->is('admin/parametres*') ? 'active' : '' }}">
             <i class="fas fa-cog"></i>
             <span>Paramètres</span>
         </a>
@@ -98,7 +102,6 @@
 <script>
     $(document).ready(function() {
         // === TOGGLE SIDEBAR ===
-        // Le bouton #menuToggleBtn est dans la navbar
         $('#menuToggleBtn').on('click', function(e) {
             e.preventDefault();
             e.stopPropagation();

@@ -17,13 +17,7 @@
         </div>
         <div class="user-info">
             <h6>{{ $user?->name ?? 'Utilisateur' }}</h6>
-            <span>{{ $user?->role ?? 'Éleveur' }}</span>
-            @if($user)
-                <div class="user-status">
-                    <i class="fas fa-circle"></i>
-                    <span>En ligne</span>
-                </div>
-            @endif
+            <span>{{ $user?->role ?? 'Éleveur' }}, <i class="fas fa-circle user-status"></i> En ligne</span>
         </div>
     </div>
 

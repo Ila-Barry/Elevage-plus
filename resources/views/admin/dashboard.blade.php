@@ -17,7 +17,7 @@
         <header class="dashboard-header">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h1><i class="fas fa-tachometer-alt text-success"></i> Dashboard Administrateur</h1>
+                    <h2><i class="fas fa-tachometer-alt text-success"></i> Dashboard Administrateur</h2>
                     <p class="text-muted">Admin 3 - Bienvenue, Administrateur</p>
                 </div>
                 <div class="col-md-6 text-md-right">

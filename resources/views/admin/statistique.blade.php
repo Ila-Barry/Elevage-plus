@@ -24,7 +24,7 @@
 @endpush
 
 @section('content')
-    <div class="dashboard-wrapper">
+    <div class="dashboard-wrapper px-5">
 
         {{-- ==================== EN-TÊTE + ACTIONS ==================== --}}
         <div class="stats-header">

@@ -37,30 +37,36 @@
                 <div class="navbar-right d-flex align-items-center">
 
                     <div class="dropdown profile-dropdown">
-                        <button class="btn dropdown-toggle profile-button"
-                                type="button"
-                                id="profileDropdown"
-                                data-bs-toggle="dropdown"  
-                                aria-expanded="false">
-                            <img src="https://i.pravatar.cc/100?u=admin" alt="profile" class="profile-image">
-                            <span class="profile-name d-none d-lg-inline">Admin Système</span>
+                        <button class="btn dropdown-toggle profile-button" type="button" id="profileDropdown" data-toggle="dropdown">
+                            @php
+                                $user = auth()->user();
+                                $avatar = $user?->photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($user?->name ?? 'User') . '&background=2e7d32&color=fff';
+                            @endphp
+                            <img src="{{ $avatar }}" alt="profile" class="profile-image">
+                            <span class="profile-name d-none d-lg-inline">Admin: {{ $user?->name ?? 'Administrateur' }}</span>
                         </button>
 
-                        <div class="dropdown-menu dropdown-menu-right shadow border-0" aria-labelledby="profileDropdown">
-                            <a class="dropdown-item" href="{{ url('/admin/profil') }}">
-                                <i class="fas fa-user mr-2"></i> Mon profil
+                        <div class="dropdown-menu dropdown-menu-right shadow border-0">
+                            
+                            <a class="dropdown-item" href="{{ url('../auth/profile') }}">
+                                <i class="fas fa-user mr-2"></i>
+                                Mon profil
                             </a>
-                            <a class="dropdown-item" href="{{ url('/admin/parametres') }}">
-                                <i class="fas fa-cog mr-2"></i> Paramètres
+
+                            <a class="dropdown-item" href="{{ url('../auth/parametre') }}">
+                                <i class="fas fa-cog mr-2"></i>
+                                Paramètres
                             </a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item text-danger" href="{{ url('/admin/logout') }}">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Déconnexion
+                            <a class="dropdown-item text-danger" href="{{ url('/auth/login') }}" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt mr-2"></i>
+                                Déconnexion
                             </a>
                         </div>
                     </div>
 
-                    <a href="{{ url('/admin/logout') }}" class="btn btn-danger btn-logout">
+
+                    <a href="{{ url('/auth/login') }}" class="btn btn-danger btn-logout">
                         <i class="fas fa-sign-out-alt"></i>
                         <span class="d-none d-lg-inline">Déconnexion</span>
                     </a>
