@@ -516,6 +516,7 @@ async function loadElevages(page = 1, search = '') {
 }
 
 // ================= AFFICHAGE DES ÉLEVAGES =================
+// ================= AFFICHAGE DES ÉLEVAGES =================
 function renderElevages() {
     const container = document.getElementById('elevagesList');
     
@@ -553,7 +554,25 @@ function renderElevages() {
         const localisation = elevage.localisation || 'Non renseignée';
         const superficie = elevage.superficie !== undefined && elevage.superficie !== null ? `${elevage.superficie} ha` : 'Non spécifiée';
         const dateCreation = elevage.created_at ? new Date(elevage.created_at).toLocaleDateString('fr-FR') : 'N/A';
-        const imageUrl = elevage.img_url || "{{ asset('images/img-elevage.jpeg') }}";
+        
+        // ✅ Fonction pour obtenir l'URL complète de l'image
+        function getImageUrl(path) {
+            if (!path) return "{{ asset('images/img-elevage.jpeg') }}";
+            if (path.startsWith('http://') || path.startsWith('https://')) return path;
+            if (path.startsWith('storage/')) {
+                return window.location.origin + '/' + path;
+            }
+            if (path.startsWith('/storage/')) {
+                return window.location.origin + path;
+            }
+            // Si le chemin est juste le nom du fichier (sans dossier)
+            if (!path.includes('/')) {
+                return window.location.origin + '/storage/elevages/' + path;
+            }
+            return window.location.origin + '/storage/' + path;
+        }
+        
+        const imageUrl = getImageUrl(elevage.img_url);
         
         return `
         <div class="elevage-card bg-white rounded shadow-sm border mb-3" data-id="${elevage.id}">
@@ -793,7 +812,24 @@ async function viewElevage(id) {
             document.getElementById('viewSuperficie').textContent = elevage.superficie ? elevage.superficie + ' ha' : 'Non spécifiée';
             document.getElementById('viewDate').textContent = elevage.created_at ? new Date(elevage.created_at).toLocaleDateString('fr-FR') : 'N/A';
             document.getElementById('viewDescription').textContent = elevage.description || 'Aucune description';
-            document.getElementById('viewElevageImage').src = elevage.img_url || "{{ asset('images/img-elevage.jpeg') }}";
+            
+            // ✅ CORRECTION : Générer l'URL complète de l'image
+            let imageUrl = "{{ asset('images/img-elevage.jpeg') }}";
+            if (elevage.img_url) {
+                if (elevage.img_url.startsWith('http://') || elevage.img_url.startsWith('https://')) {
+                    imageUrl = elevage.img_url;
+                } else if (elevage.img_url.startsWith('storage/')) {
+                    imageUrl = window.location.origin + '/' + elevage.img_url;
+                } else if (elevage.img_url.startsWith('/storage/')) {
+                    imageUrl = window.location.origin + elevage.img_url;
+                } else if (!elevage.img_url.includes('/')) {
+                    imageUrl = window.location.origin + '/storage/elevages/' + elevage.img_url;
+                } else {
+                    imageUrl = window.location.origin + '/storage/' + elevage.img_url;
+                }
+            }
+            
+            document.getElementById('viewElevageImage').src = imageUrl;
             
             $('#voirElevageModal').modal('show');
         } else {

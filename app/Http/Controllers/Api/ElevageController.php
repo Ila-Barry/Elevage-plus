@@ -451,9 +451,24 @@ class ElevageController extends Controller
      */
     private function uploadImage($image): string
     {
-        $filename = 'elevage_' . time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
-        $path = $image->storeAs('elevages', $filename, 'public');
-        return $path;
+        try {
+            $filename = 'elevage_' . time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+            
+            // ✅ Stocker dans le dossier elevages
+            $path = $image->store('elevages', 'public');
+            
+            if (!$path) {
+                Log::error('❌ Échec de sauvegarde de l\'image');
+                return '';
+            }
+            
+            Log::info('✅ Image sauvegardée', ['path' => $path]);
+            
+            return $path; // Retourne "elevages/nom_fichier.png"
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur upload image: ' . $e->getMessage());
+            return '';
+        }
     }
 
     /**
