@@ -550,11 +550,8 @@ class AuthController extends Controller
         $filename = time() . '_' . uniqid() . '.' . $photo->getClientOriginalExtension();
         $path = 'avatars/' . $filename;
         
-        $manager = new ImageManager(new Driver());
-        $image = $manager->read($photo->getPathname());
-        $image->cover(300, 300);
-        
-        Storage::disk('public')->put($path, (string) $image->encode());
+        // ✅ Stocker l'image directement sans redimensionnement (solution de contournement)
+        Storage::disk('public')->put($path, file_get_contents($photo));
         
         return $path;
     }

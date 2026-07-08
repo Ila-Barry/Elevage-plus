@@ -421,9 +421,7 @@ async function updatePhoto(file) {
     }
 }
 
-// ================= ENREGISTREMENT DU PROFIL =================
 async function saveProfile() {
-    // Récupérer les valeurs
     const fullname = document.getElementById('fullname').value.trim();
     const email = document.getElementById('email').value.trim();
     const telephone = document.getElementById('telephone').value.trim();
@@ -431,66 +429,56 @@ async function saveProfile() {
     const livestockType = document.getElementById('livestockType').value;
     const bio = document.getElementById('bio').value.trim();
     
-    // Validation
     if (!fullname) {
         showToast('Veuillez saisir votre nom complet', 'warning');
         return;
     }
-    
     if (!email) {
         showToast('Veuillez saisir votre email', 'warning');
         return;
     }
-    
     if (!email.includes('@')) {
         showToast('Veuillez saisir un email valide', 'warning');
         return;
     }
-    
     if (!location) {
         showToast('Veuillez saisir votre localisation', 'warning');
         return;
     }
     
-    // Désactiver les boutons
     document.getElementById('saveButton').disabled = true;
-    document.querySelector('.btn-save').disabled = true;
     document.getElementById('saveButton').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
     
     try {
-        let result;
-        
-        // Si une photo a été sélectionnée, l'uploader d'abord
+        // Upload de la photo si présente
         if (profileImageFile) {
-            result = await updatePhoto(profileImageFile);
-            if (result.status === 'success' && result.data) {
-                // Mettre à jour la photo dans l'UI
-                const img = document.getElementById('profileImage');
-                const placeholder = document.getElementById('avatarPlaceholder');
-                if (result.data.photo_url) {
-                    img.src = result.data.photo_url;
-                    img.style.display = 'block';
-                    placeholder.style.display = 'none';
-                    document.getElementById('deletePhotoBtn').style.display = 'inline-block';
-                }
+            const photoResult = await updatePhoto(profileImageFile);
+            if (photoResult.status === 'success' && photoResult.data?.photo_url) {
+                document.getElementById('profileImage').src = photoResult.data.photo_url;
+                document.getElementById('profileImage').style.display = 'block';
+                document.getElementById('avatarPlaceholder').style.display = 'none';
+                document.getElementById('deletePhotoBtn').style.display = 'inline-block';
                 profileImageFile = null;
             }
         }
         
-        // Mettre à jour les informations du profil
+        // ✅ Données à envoyer
         const updateData = {
             name: fullname,
             email: email,
-            telephone: telephone,
             localisation: location,
             type_elevage: livestockType,
             bio: bio
         };
         
-        result = await updateProfile(updateData);
+        // ✅ Ajouter le téléphone seulement s'il contient une valeur
+        if (telephone && telephone.length > 0) {
+            updateData.telephone = telephone;
+        }
+        
+        const result = await updateProfile(updateData);
         
         if (result.status === 'success') {
-            // Mettre à jour les données locales
             initialProfile.name = fullname;
             initialProfile.email = email;
             initialProfile.telephone = telephone;
@@ -499,33 +487,33 @@ async function saveProfile() {
             initialProfile.bio = bio;
             initialProfile.displayName = fullname.toUpperCase();
             
-            // Mettre à jour l'UI
             updateFields();
             hasChanges = false;
             
-            // Mettre à jour le localStorage
             const userStr = localStorage.getItem('user');
             if (userStr) {
                 const userData = JSON.parse(userStr);
                 userData.name = fullname;
                 userData.email = email;
                 userData.telephone = telephone;
-                if (result.data?.photo_url) {
-                    userData.photo_url = result.data.photo_url;
-                }
                 localStorage.setItem('user', JSON.stringify(userData));
             }
             
             showToast('Profil mis à jour avec succès !', 'success');
         } else {
-            showToast(result.message || 'Erreur lors de la mise à jour', 'danger');
+            const errorMsg = result.errors 
+                ? Object.values(result.errors).flat().join(', ')
+                : result.message || 'Erreur lors de la mise à jour';
+            showToast(errorMsg, 'danger');
         }
     } catch (error) {
         console.error('Erreur:', error);
-        showToast(error.message || 'Erreur lors de la mise à jour du profil', 'danger');
+        const errorMsg = error.errors 
+            ? Object.values(error.errors).flat().join(', ')
+            : error.message || 'Erreur lors de la mise à jour';
+        showToast(errorMsg, 'danger');
     } finally {
         document.getElementById('saveButton').disabled = false;
-        document.querySelector('.btn-save').disabled = false;
         document.getElementById('saveButton').innerHTML = '<i class="fas fa-save"></i> Enregistrer';
     }
 }
@@ -541,7 +529,8 @@ function cancelChanges() {
         updateFields();
         hasChanges = false;
         document.getElementById('saveButton').disabled = true;
-        document.querySelector('.btn-save').disabled = true;
+        const saveBtn = document.querySelector('.btn-save');
+        if (saveBtn) saveBtn.disabled = true;
         showToast('Modifications annulées', 'info');
     }
 }
@@ -572,9 +561,23 @@ function detectChanges() {
     if (saveBtn2) saveBtn2.disabled = !hasChanged;
 }
 
+// ================= ANIMATIONS SANS JQUERY =================
+function initAnimations() {
+    document.querySelectorAll('.stat-item').forEach(function(item) {
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-4px)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+}
+
 // ================= INITIALISATION =================
 document.addEventListener('DOMContentLoaded', function() {
     updateFields();
+    initAnimations();
     
     // Écouteurs d'événements pour la détection de changements
     document.getElementById('fullname').addEventListener('input', detectChanges);
@@ -645,18 +648,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     `;
     document.head.appendChild(style);
-});
-
-$(document).ready(function() {
-    // Animation de la carte de statistiques au survol
-    $('.stat-item').hover(
-        function() {
-            $(this).css('transform', 'translateY(-4px)');
-        },
-        function() {
-            $(this).css('transform', 'translateY(0)');
-        }
-    );
 });
 </script>
 @endsection
