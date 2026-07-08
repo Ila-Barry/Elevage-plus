@@ -631,14 +631,16 @@ h1 {
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     min-width: 120px;
 }
 
 .btn-cancel-modal:hover {
-    background: #f8f9fa;
+    background: #6c757d;  /* Fond gris au survol */
+    color: white !important;  /* Texte blanc au survol */
+    border-color: #6c757d;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
 }
 
 /* Bouton "Ajouter" / "Enregistrer" - Vert */
@@ -656,7 +658,7 @@ h1 {
 }
 
 .btn-add-modal:hover {
-    background: #146c43;
+    background: #198754;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
 }
@@ -1036,9 +1038,9 @@ h1 {
 .modal-header .btn-close {
     background: none !important;
     border: none !important;
-    font-size: 28px !important;
+    font-size: 24px !important;
     cursor: pointer !important;
-    color: #dc3545 !important;
+    color: #FFB6C1 !important;
     padding: 0 8px !important;
     line-height: 1 !important;
     opacity: 1 !important;
@@ -1073,24 +1075,6 @@ h1 {
     }
 }
 
-/* Modifier le bouton Annuler (classe Bootstrap) */
-.btn-secondary {
-    background: #6c757d !important;  /* Gris par défaut */
-    border-color: #6c757d !important;
-    color: white !important;
-}
-
-/* OU changer en rouge */
-.btn-secondary {
-    background: #dc3545 !important;
-    border-color: #dc3545 !important;
-    color: white !important;
-}
-
-.btn-secondary:hover {
-    background: #c82333 !important;
-    border-color: #c82333 !important;
-}
 
 /* ======================================================
    CONTENEUR DES BOUTONS D'ACTION
@@ -1138,7 +1122,10 @@ h1 {
     gap: 15px;
 }
 
-/* Bouton "Annuler" - Blanc avec bordure grise */
+/* ======================================================
+   BOUTON "ANNULER" - EFFET SURVOL
+   ====================================================== */
+
 .btn-cancel-modal {
     background: white;
     color: #000000;
@@ -1148,14 +1135,16 @@ h1 {
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     min-width: 120px;
 }
 
 .btn-cancel-modal:hover {
-    background: #f8f9fa;
+    background: #6c757d;  /* Fond gris au survol */
+    color: white !important;  /* Texte blanc au survol */
+    border-color: #6c757d;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
 }
 
 /* Bouton "Ajouter" - Vert */
@@ -1173,7 +1162,7 @@ h1 {
 }
 
 .btn-add-modal:hover {
-    background: #146c43;
+    background: #198754;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
 }

@@ -191,7 +191,7 @@
     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 15px;">
         <button
             type="button"
-            class="btn btn-cancel"
+            class="btn btn-secondary"
             data-bs-dismiss="modal"
             onclick="window.location.reload();"
             style="
@@ -203,11 +203,11 @@
                 font-weight: 600;
                 font-size: 14px;
                 cursor: pointer;
-                transition: all 0.2s ease;
+                transition: all 0.3s ease;
                 min-width: 120px;
             "
-            onmouseover="this.style.background='#f8f9fa'"
-            onmouseout="this.style.background='white'">
+            onmouseover="this.style.background='#6c757d'; this.style.color='white'; this.style.borderColor='#6c757d'"
+            onmouseout="this.style.background='white'; this.style.color='#000000'; this.style.borderColor='#d1d1d1'">
             ❌ Annuler
         </button>
         <button 
