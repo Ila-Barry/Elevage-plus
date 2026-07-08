@@ -1,6 +1,5 @@
 /* public/css/admin/statistique.css */
 
-/* ====== EN-TÊTE + ACTIONS ====== */
 .stats-header {
     display: flex;
     flex-wrap: wrap;
@@ -39,14 +38,14 @@
     background: #f8f9fc;
     border-color: #b7b9cc;
 }
-.stats-header .header-actions .btn-primary {
-    background: #4e73df;
-    border-color: #4e73df;
+.stats-header .header-actions .btn-success {
+    background: #1cc88a;
+    border-color: #1cc88a;
     color: #fff;
 }
-.stats-header .header-actions .btn-primary:hover {
-    background: #2e59d9;
-    border-color: #2e59d9;
+.stats-header .header-actions .btn-success:hover {
+    background: #17a673;
+    border-color: #17a673;
 }
 .stats-header .header-actions .btn i {
     margin-right: 0.3rem;
@@ -55,7 +54,6 @@
     margin-left: 0.4rem;
 }
 
-/* ====== DROPDOWN PERSONNALISÉ "Ce mois" ====== */
 .custom-dropdown {
     position: relative;
     display: inline-block;
@@ -95,8 +93,10 @@
     color: #4e73df;
 }
 
-/* ====== SECTIONS ====== */
 .stats-section {
+    margin-bottom: 2rem;
+}
+.stats-section.full-width {
     margin-bottom: 2.5rem;
 }
 .stats-section h2 {
@@ -109,13 +109,23 @@
     margin-right: 0.6rem;
     color: #4e73df;
 }
+.stats-section h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 1.2rem 0 0.8rem 0;
+}
+.stats-section h4 i {
+    margin-right: 0.5rem;
+    color: #4e73df;
+}
 
-/* ====== ÉVOLUTION (COURBE SVG) ====== */
 .evolution-chart-wrapper {
     background: #fff;
     border-radius: 0.5rem;
     padding: 1.5rem 1rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-bottom: 0;
 }
 .chart-container {
     width: 100%;
@@ -149,11 +159,10 @@
     margin-right: 0.5rem;
 }
 
-/* ====== CARTES STATISTIQUES ====== */
 .stat-card {
     background: #fff;
     border-radius: 0.5rem;
-    padding: 1.2rem 1rem;
+    padding: 1.5rem 1.2rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     text-align: center;
     transition: transform 0.2s;
@@ -165,18 +174,18 @@
 }
 .stat-card .stat-number {
     display: block;
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: #2c3e50;
     line-height: 1.2;
 }
 .stat-card .stat-label {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #6c757d;
     font-weight: 500;
 }
 .stat-card .stat-detail {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #6c757d;
     margin-top: 0.2rem;
 }
@@ -185,19 +194,19 @@
 .stat-card.orange { border-left-color: #f6c23e; }
 .stat-card.purple { border-left-color: #6f42c1; }
 
-/* ====== RÉPARTITION DES RÔLES ====== */
 .role-distribution {
     padding: 0.5rem 0;
 }
 .role-item {
     display: flex;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
 }
 .role-item .role-label {
-    width: 90px;
+    width: 80px;
     font-weight: 500;
     color: #2c3e50;
+    font-size: 0.9rem;
 }
 .role-item .progress {
     flex: 1;
@@ -220,11 +229,10 @@
     color: #2c3e50;
 }
 
-/* ====== MEILLEUR POST ====== */
 .best-post {
     background: #fff;
     border-radius: 0.5rem;
-    padding: 1.5rem 2rem;
+    padding: 1rem 1.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     display: flex;
     justify-content: space-between;
@@ -232,40 +240,40 @@
     flex-wrap: wrap;
 }
 .best-post .post-title {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: #2c3e50;
     display: block;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
 }
 .best-post .post-metrics {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: #6c757d;
 }
 .best-post .post-metrics i {
     margin-right: 0.3rem;
 }
 .best-post .post-metrics span {
-    margin-right: 1.2rem;
+    margin-right: 1rem;
 }
 .best-post .post-badge {
-    font-size: 2.5rem;
+    font-size: 2rem;
     color: #f6c23e;
 }
 
-/* ====== CATÉGORIES POPULAIRES ====== */
 .category-bars {
     padding: 0.5rem 0;
 }
 .category-item {
     display: flex;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
 }
 .category-item .category-label {
-    width: 100px;
+    width: 90px;
     font-weight: 500;
     color: #2c3e50;
+    font-size: 0.9rem;
 }
 .category-item .progress {
     flex: 1;
@@ -282,7 +290,6 @@
     text-align: center;
 }
 
-/* ====== DIAGRAMME CIRCULAIRE (camembert) ====== */
 .pie-chart-wrapper {
     display: inline-block;
     margin: 0 auto;
@@ -297,12 +304,12 @@
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.8rem 1.5rem;
-    margin-top: 0.8rem;
+    margin-top: 0.5rem;
 }
 .pie-legend span {
     display: inline-flex;
     align-items: center;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #2c3e50;
     font-weight: 500;
 }
@@ -314,7 +321,6 @@
     margin-right: 0.4rem;
 }
 
-/* ====== ACTIVITÉ PAR JOUR ====== */
 .activity-chart {
     background: #fff;
     border-radius: 0.5rem;
@@ -336,8 +342,8 @@
 }
 .bar-wrapper .bar {
     width: 100%;
-    max-width: 45px;
-    background: #4e73df;
+    max-width: 40px;
+    background: #1cc88a;
     border-radius: 4px 4px 0 0;
     min-height: 10px;
     display: flex;
@@ -348,18 +354,17 @@
 }
 .bar-wrapper .bar span {
     color: #fff;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 .bar-wrapper .day-label {
     margin-top: 0.4rem;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 500;
     color: #6c757d;
 }
 
-/* ====== TABLEAU TOP 10 ====== */
 .table {
     background: #fff;
     border-radius: 0.5rem;
@@ -388,8 +393,10 @@
     font-size: 0.85rem;
     padding: 0.4rem 0.7rem;
     border-radius: 50rem;
-    background: #4e73df;
     color: #fff;
+}
+.table .badge.bg-success {
+    background: #1cc88a !important;
 }
 .table .btn-sm {
     padding: 0.2rem 0.5rem;
@@ -400,15 +407,6 @@
     text-decoration: none;
     cursor: pointer;
 }
-.table .btn-outline-primary {
-    color: #4e73df;
-    border-color: #4e73df;
-    background: transparent;
-}
-.table .btn-outline-primary:hover {
-    background: #4e73df;
-    color: #fff;
-}
 .table .btn-outline-success {
     color: #1cc88a;
     border-color: #1cc88a;
@@ -418,26 +416,16 @@
     background: #1cc88a;
     color: #fff;
 }
-.table .btn-outline-info {
-    color: #36b9cc;
-    border-color: #36b9cc;
-    background: transparent;
-}
-.table .btn-outline-info:hover {
-    background: #36b9cc;
-    color: #fff;
-}
 
-/* ====== RAPPORT MENSUEL ====== */
 .report-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1rem;
 }
 .report-item {
     background: #fff;
     border-radius: 0.5rem;
-    padding: 1.2rem 1.2rem;
+    padding: 1rem 1.2rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     display: flex;
     align-items: center;
@@ -448,13 +436,13 @@
     transform: translateY(-2px);
 }
 .report-icon {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     flex-shrink: 0;
 }
 .report-icon.success {
@@ -474,25 +462,24 @@
 }
 .report-content .report-label {
     display: block;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
     color: #2c3e50;
     margin-bottom: 0.2rem;
 }
 .report-content .report-value {
     display: block;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
     color: #2c3e50;
 }
 .report-content .report-value small {
     font-weight: 400;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #6c757d;
     margin-left: 0.3rem;
 }
 
-/* ====== RESPONSIVE ====== */
 @media (max-width: 992px) {
     .stats-header {
         flex-direction: column;
@@ -505,21 +492,20 @@
         flex-wrap: wrap;
     }
 }
-
 @media (max-width: 768px) {
-    .stat-card {
-        padding: 1rem 0.8rem;
+    .stats-section h2 {
+        font-size: 1.2rem;
     }
     .stat-card .stat-number {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
     }
     .role-item .role-label {
         width: 70px;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
     }
     .category-item .category-label {
         width: 70px;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
     }
     .best-post {
         flex-direction: column;
@@ -535,10 +521,6 @@
     .chart-legend {
         gap: 1rem;
     }
-    .table-responsive {
-        border-radius: 0.5rem;
-        overflow-x: auto;
-    }
     .report-grid {
         grid-template-columns: 1fr;
     }
@@ -546,14 +528,10 @@
         width: 140px;
         height: 140px;
     }
-    .pie-legend {
-        gap: 0.5rem 1rem;
-    }
     .pie-legend span {
         font-size: 0.8rem;
     }
 }
-
 @media (max-width: 576px) {
     .stats-header .header-left h1 {
         font-size: 1.4rem;
@@ -584,10 +562,9 @@
     }
     .bar-container {
         height: 120px;
-        gap: 0.2rem;
     }
     .bar-wrapper .bar {
-        max-width: 30px;
+        max-width: 28px;
     }
     .stats-header .header-actions .btn {
         font-size: 0.8rem;
@@ -595,7 +572,7 @@
     }
     .table thead th,
     .table tbody td {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         padding: 0.4rem 0.3rem;
     }
     .table .badge {
@@ -610,18 +587,18 @@
         padding: 0.8rem;
     }
     .report-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 1.1rem;
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
     }
     .report-content .report-value {
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
     .pie-chart-wrapper svg {
         width: 120px;
         height: 120px;
     }
     .pie-legend span {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
     }
 }

@@ -59,7 +59,7 @@
         <div class="page-header d-flex flex-wrap align-items-center justify-content-between">
             <div>
                 <h1 class="page-title">
-                    <i class="fas fa-newspaper me-2 text-primary"></i>Gestion des publications
+                    <i class="fas fa-newspaper me-2 text-primary"></i> Gestion des publications
                 </h1>
                 <p class="page-subtitle text-muted">
                     Gérez l'ensemble des articles et actualités de votre élevage
@@ -328,5 +328,159 @@
             </div>
         </div>
     </div>
+    @push('scripts')
+<script>
+$(document).ready(function() {
+    const token = localStorage.getItem('access_token');
 
+    if (!token) {
+        window.location.href = '/auth/login';
+        return;
+    }
+
+    // Charger les publications
+    function loadPublications(filters = {}) {
+        $.ajax({
+            url: '/api/admin/publications',
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json'
+            },
+            data: filters,
+            success: function(response) {
+                if (response.success) {
+                    const publications = response.data.data;
+                    const tbody = $('table tbody');
+                    tbody.empty();
+
+                    if (publications.length === 0) {
+                        tbody.append(`
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="fas fa-inbox fa-2x d-block mb-2"></i>
+                                    Aucune publication trouvée.
+                                </td>
+                            </tr>
+                        `);
+                        return;
+                    }
+
+                    publications.forEach(function(pub, index) {
+                        const statusClass = pub.statut === 'publiee' ? 'publie' : pub.statut;
+                        const statusLabel = pub.statut === 'publiee' ? 'Publié' :
+                                           pub.statut === 'bloquee' ? 'Bloqué' : 'En attente';
+                        const date = new Date(pub.created_at).toLocaleDateString('fr-FR');
+
+                        tbody.append(`
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="pub-thumb me-2">
+                                            <i class="fas fa-image text-muted"></i>
+                                        </div>
+                                        <span class="fw-semibold">${pub.titre}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge-category badge-${pub.categorie}">
+                                        ${pub.categorie}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge-status badge-${statusClass}">
+                                        ${statusLabel}
+                                    </span>
+                                </td>
+                                <td>${date}</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-action view" title="Voir">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn-action edit" title="Modifier">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                        <button class="btn-action delete" title="Supprimer"
+                                            onclick="deletePublication(${pub.id})">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `);
+                    });
+
+                    // Mise à jour pagination
+                    if (response.data.meta) {
+                        const meta = response.data.meta;
+                        $('.info-text strong').first().text(meta.from || 0);
+                        $('.info-text strong').eq(1).text(meta.to || 0);
+                        $('.info-text strong').last().text(meta.total || 0);
+                    }
+                }
+            },
+            error: function(xhr) {
+                console.error('Erreur:', xhr.responseJSON);
+                if (xhr.status === 401) window.location.href = '/auth/login';
+            }
+        });
+    }
+
+    // Charger les statistiques
+    function loadStats() {
+        $.ajax({
+            url: '/api/admin/dashboard/stats',
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                if (response.success) {
+                    const pubs = response.data.publications;
+                    // Total publications
+                    $('.stat-value').first().text(pubs.total);
+                }
+            }
+        });
+    }
+
+    // Supprimer une publication
+    window.deletePublication = function(id) {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer cette publication ?')) return;
+
+        $.ajax({
+            url: `/api/admin/publications/${id}`,
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json'
+            },
+            success: function() {
+                loadPublications();
+                loadStats();
+                alert('Publication supprimée avec succès !');
+            },
+            error: function(xhr) {
+                console.error('Erreur:', xhr.responseJSON);
+            }
+        });
+    };
+
+    // Bouton filtrer
+    $('.btn-filter').on('click', function() {
+        const search = $('#searchPublications').val();
+        const categorie = $('select.filter-select').first().val();
+        const statut = $('select.filter-select').last().val();
+        loadPublications({ search, categorie, statut });
+    });
+
+    // Chargement initial
+    loadStats();
+    loadPublications();
+});
+</script>
+@endpush
 @endsection
