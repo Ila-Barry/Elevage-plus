@@ -51,18 +51,22 @@
             <button class="filter-btn" data-filter="success">
                 <i class="fas fa-check-circle"></i>
                 <span>Succès</span>
+                <span class="filter-count" id="successCount">0</span>
             </button>
             <button class="filter-btn" data-filter="warning">
                 <i class="fas fa-exclamation-triangle"></i>
                 <span>Alertes</span>
+                <span class="filter-count" id="warningCount">0</span>
             </button>
             <button class="filter-btn" data-filter="danger">
                 <i class="fas fa-times-circle"></i>
                 <span>Urgents</span>
+                <span class="filter-count" id="dangerCount">0</span>
             </button>
             <button class="filter-btn" data-filter="info">
                 <i class="fas fa-info-circle"></i>
                 <span>Infos</span>
+                <span class="filter-count" id="infoCount">0</span>
             </button>
         </div>
 
@@ -77,7 +81,7 @@
                 <i class="fas fa-bell-slash"></i>
             </div>
             <h3>Aucune notification</h3>
-            <p>Vous n'avez aucune notification pour le moment.</p>
+            <p id="emptyMessage">Vous n'avez aucune notification pour le moment.</p>
         </div>
 
         <!-- Pagination -->
@@ -120,12 +124,18 @@ const CONFIG = {
 
 const state = {
     notifications: [],
+    allNotifications: [], // Toutes les notifications en cache
     currentFilter: 'all',
     currentPage: 1,
     totalPages: 1,
     perPage: 15,
     total: 0,
     unreadCount: 0,
+    readCount: 0,
+    successCount: 0,
+    warningCount: 0,
+    dangerCount: 0,
+    infoCount: 0,
     isLoading: false,
     pollingInterval: null,
     notificationPollingInterval: null,
@@ -178,19 +188,19 @@ function formatDate(dateString) {
 }
 
 // ============================================================
-// MISE À JOUR DU BADGE (CORRECTION)
+// MISE À JOUR DU BADGE - UNIQUEMENT POUR LES NON LUES
 // ============================================================
 
-function updateNotificationBadge(count) {
-    // Mettre à jour le badge dans le menu principal
+function updateNotificationBadge() {
+    const count = state.unreadCount;
+    
     const badgeElements = document.querySelectorAll('.notification-badge, .menu-notification-badge');
     badgeElements.forEach(el => {
         if (count > 0) {
             el.textContent = count;
             el.style.display = 'inline-block';
-            // Animation
             el.classList.remove('pulse');
-            void el.offsetWidth; // Force reflow
+            void el.offsetWidth;
             el.classList.add('pulse');
         } else {
             el.textContent = '0';
@@ -198,7 +208,6 @@ function updateNotificationBadge(count) {
         }
     });
 
-    // Mettre à jour le titre de la page
     if (count > 0) {
         document.title = `(${count}) Notifications - Élevage+`;
     } else {
@@ -211,10 +220,8 @@ function updateNotificationBadge(count) {
 // ============================================================
 
 async function apiCall(endpoint, options = {}) {
-    // Vérifier le token avant chaque appel
     if (!CONFIG.TOKEN) {
         logError('❌ Token manquant pour l\'appel API', endpoint);
-        // Tentative de récupération du token depuis le localStorage
         const raw = localStorage.getItem('access_token');
         CONFIG.TOKEN = raw ? raw.replace(/^"(.*)"$/, '$1').trim() : null;
         if (!CONFIG.TOKEN) {
@@ -247,13 +254,11 @@ async function apiCall(endpoint, options = {}) {
     try {
         const response = await fetch(url, config);
         
-        // Gestion spéciale pour 401 (token expiré)
         if (response.status === 401) {
             logError('🔑 Token expiré, tentative de rafraîchissement...');
             try {
                 const refreshResult = await refreshToken();
                 if (refreshResult) {
-                    // Réessayer la requête avec le nouveau token
                     config.headers.Authorization = 'Bearer ' + CONFIG.TOKEN;
                     const retryResponse = await fetch(url, config);
                     const retryData = await retryResponse.json();
@@ -263,7 +268,6 @@ async function apiCall(endpoint, options = {}) {
                 }
             } catch (refreshError) {
                 logError('❌ Échec du rafraîchissement du token', refreshError);
-                // Rediriger vers la page de connexion
                 window.location.href = '/auth/login';
                 throw new Error('Session expirée, veuillez vous reconnecter');
             }
@@ -287,7 +291,6 @@ async function apiCall(endpoint, options = {}) {
     }
 }
 
-// Fonction de rafraîchissement du token
 async function refreshToken() {
     try {
         const response = await fetch(`${CONFIG.API_URL}/auth/refresh`, {
@@ -317,6 +320,39 @@ async function refreshToken() {
 }
 
 // ============================================================
+// RÉCUPÉRATION DES STATISTIQUES
+// ============================================================
+
+async function fetchNotificationStats() {
+    try {
+        const result = await apiCall('/notifications/stats');
+        if (result.status === 'success' || result.success === true) {
+            const stats = result.data;
+            return {
+                total: stats.total || 0,
+                unread: stats.unread || 0,
+                read: stats.read || 0
+            };
+        }
+        return { total: 0, unread: 0, read: 0 };
+    } catch (error) {
+        logError('Erreur récupération stats', error);
+        return { total: 0, unread: 0, read: 0 };
+    }
+}
+
+// ============================================================
+// FILTRAGE DES NOTIFICATIONS PAR TYPE
+// ============================================================
+
+function filterNotificationsByType(notifications, type) {
+    if (type === 'all') return notifications;
+    if (type === 'unread') return notifications.filter(n => !n.read_at && !n.is_read);
+    if (type === 'read') return notifications.filter(n => n.read_at || n.is_read);
+    return notifications.filter(n => n.data?.type === type || n.type === type);
+}
+
+// ============================================================
 // CHARGEMENT DES NOTIFICATIONS
 // ============================================================
 
@@ -339,84 +375,55 @@ async function loadNotifications(page = 1, filter = 'all') {
     `;
 
     try {
-        let endpoint = '/notifications';
-        let params = `page=${page}&per_page=${state.perPage}`;
-
-        if (filter === 'unread') {
-            endpoint = '/notifications/unread';
-        } else if (filter !== 'all' && ['success', 'warning', 'danger', 'info'].includes(filter)) {
-            params += `&type=${filter}`;
-        }
-
-        const result = await apiCall(`${endpoint}?${params}`);
-
-        console.log('🔍 RÉPONSE COMPLÈTE:', JSON.stringify(result, null, 2));
-
-        // ✅ CORRECTION : Vérifier "success" au lieu de "status"
-        if (result.success === true || result.status === 'success') {
+        // Récupérer toutes les notifications
+        const result = await apiCall(`/notifications?page=1&per_page=100`);
+        
+        if (result.status === 'success' || result.success === true) {
             const responseData = result.data;
+            let allNotifications = [];
             
-            console.log('🔍 responseData:', responseData);
-            
-            // ✅ CORRECTION : La structure est data.data
-            let notifications = [];
-            let total = 0;
-            let lastPage = 1;
-            let unreadCount = 0;
-
-            // La structure correcte est: result.data.data (tableau)
             if (responseData && responseData.data && Array.isArray(responseData.data)) {
-                notifications = responseData.data;
-                total = responseData.meta?.total || responseData.data.length;
-                lastPage = responseData.meta?.last_page || 1;
-                unreadCount = responseData.meta?.unread_count || 0;
-                console.log('✅ Cas 1: responseData.data est un tableau');
+                allNotifications = responseData.data;
+                state.total = responseData.meta?.total || responseData.data.length;
+            } else if (Array.isArray(responseData)) {
+                allNotifications = responseData;
+                state.total = responseData.length;
             }
-            // Fallback: si responseData est un tableau
-            else if (Array.isArray(responseData)) {
-                notifications = responseData;
-                total = responseData.length;
-                lastPage = 1;
-                unreadCount = responseData.filter(n => !n.read_at).length;
-                console.log('✅ Cas 2: responseData est un tableau');
-            }
-            // Fallback: si responseData est un objet avec des clés numériques
-            else if (responseData && typeof responseData === 'object') {
-                const values = Object.values(responseData);
-                if (values.length > 0 && values[0] && (values[0].id || values[0].data)) {
-                    notifications = values;
-                    total = values.length;
-                    lastPage = 1;
-                    unreadCount = values.filter(n => !n.read_at).length;
-                    console.log('✅ Cas 3: Objet avec clés numériques');
-                }
-            }
-
-            console.log('📊 RÉSULTAT FINAL:');
-            console.log('  - Notifications:', notifications);
-            console.log('  - Total:', total);
-            console.log('  - LastPage:', lastPage);
-            console.log('  - UnreadCount:', unreadCount);
-            console.log('  - Première notification:', notifications.length > 0 ? notifications[0] : 'Aucune');
-
-            state.notifications = notifications;
-            state.total = total;
-            state.totalPages = lastPage;
-            state.unreadCount = unreadCount;
-
-            // Mettre à jour le badge
-            updateNotificationBadge(state.unreadCount);
             
-            renderNotifications();
-            updateCounters();
+            // 🔥 Calculer les statistiques sur TOUTES les notifications
+            state.unreadCount = allNotifications.filter(n => !n.read_at && !n.is_read).length;
+            state.readCount = allNotifications.filter(n => n.read_at || n.is_read).length;
+            
+            // 🔥 Statistiques par type
+            state.successCount = allNotifications.filter(n => (n.data?.type || n.type) === 'success').length;
+            state.warningCount = allNotifications.filter(n => (n.data?.type || n.type) === 'warning').length;
+            state.dangerCount = allNotifications.filter(n => (n.data?.type || n.type) === 'danger').length;
+            state.infoCount = allNotifications.filter(n => (n.data?.type || n.type) === 'info').length;
+            
+            // 🔥 Appliquer le filtre pour l'affichage
+            let filteredNotifications = filterNotificationsByType(allNotifications, filter);
+            
+            // Pagination manuelle
+            const start = (page - 1) * state.perPage;
+            const end = start + state.perPage;
+            const paginated = filteredNotifications.slice(start, end);
+            
+            state.notifications = paginated;
+            state.totalPages = Math.ceil(filteredNotifications.length / state.perPage) || 1;
+            
+            // Mettre à jour le badge (UNIQUEMENT non lues)
+            updateNotificationBadge();
+            
+            // Mettre à jour tous les compteurs
+            updateAllCounters();
+            
+            renderNotifications(filteredNotifications.length);
             updatePagination();
         } else {
-            console.log('❌ Erreur dans la réponse:', result);
             showToast(result.message || 'Erreur lors du chargement', 'danger');
-            renderNotifications();
+            renderNotifications(0);
         }
     } catch (error) {
-        console.error('❌ Erreur fatale:', error);
         logError('Erreur chargement notifications', error);
         if (error.message === 'Non authentifié') {
             showToast('Session expirée, veuillez vous reconnecter', 'danger');
@@ -424,7 +431,7 @@ async function loadNotifications(page = 1, filter = 'all') {
         } else {
             showToast('Erreur lors du chargement des notifications', 'danger');
         }
-        renderNotifications();
+        renderNotifications(0);
     } finally {
         state.isLoading = false;
     }
@@ -434,7 +441,7 @@ async function loadNotifications(page = 1, filter = 'all') {
 // RENDU DES NOTIFICATIONS
 // ============================================================
 
-function renderNotifications() {
+function renderNotifications(totalCount) {
     const container = document.getElementById('notificationsList');
     const emptyDiv = document.getElementById('emptyNotifications');
 
@@ -443,6 +450,17 @@ function renderNotifications() {
     if (state.notifications.length === 0) {
         container.style.display = 'none';
         emptyDiv.style.display = 'flex';
+        
+        const filterLabels = {
+            'all': 'Vous n\'avez aucune notification.',
+            'unread': 'Vous n\'avez aucune notification non lue.',
+            'read': 'Vous n\'avez aucune notification lue.',
+            'success': 'Vous n\'avez aucune notification de succès.',
+            'warning': 'Vous n\'avez aucune alerte.',
+            'danger': 'Vous n\'avez aucune notification urgente.',
+            'info': 'Vous n\'avez aucune notification d\'information.'
+        };
+        document.getElementById('emptyMessage').textContent = filterLabels[state.currentFilter] || 'Aucune notification trouvée.';
         return;
     }
 
@@ -451,14 +469,45 @@ function renderNotifications() {
 
     container.innerHTML = state.notifications.map(notification => {
         const isRead = notification.read_at !== null || notification.is_read === true;
-        const type = notification.data?.type || notification.type || 'info';
-        const url = notification.data?.url || notification.url || '#';
-        const title = notification.data?.title || notification.title || 'Notification';
-        const message = notification.data?.message || notification.message || '';
+        
+        // 🔥 Récupérer le type depuis la structure de données
+        let type = 'info';
+        if (notification.data && notification.data.type) {
+            type = notification.data.type;
+        } else if (notification.type) {
+            type = notification.type;
+        }
+        
+        // 🔥 Récupérer le titre
+        let title = 'Notification';
+        if (notification.data && notification.data.title) {
+            title = notification.data.title;
+        } else if (notification.title) {
+            title = notification.title;
+        }
+        
+        // 🔥 Récupérer le message
+        let message = '';
+        if (notification.data && notification.data.message) {
+            message = notification.data.message;
+        } else if (notification.message) {
+            message = notification.message;
+        }
+        
+        // 🔥 Récupérer l'URL
+        let url = '#';
+        if (notification.data && notification.data.url) {
+            url = notification.data.url;
+        } else if (notification.url) {
+            url = notification.url;
+        }
+        
         const time = formatDate(notification.created_at);
         const actions = notification.data?.actions || [];
 
+        // 🔥 Déterminer l'icône
         const iconClass = getIconClass(type);
+        const iconType = getIconType(type);
 
         return `
             <div class="notification-item ${isRead ? '' : 'unread'}" 
@@ -466,7 +515,7 @@ function renderNotifications() {
                  data-url="${url}"
                  data-type="${type}">
                 <div class="notification-icon ${iconClass}">
-                    <i class="${getIconType(type)}"></i>
+                    <i class="fas ${iconType}"></i>
                 </div>
                 <div class="notification-content">
                     <div class="notification-header">
@@ -505,7 +554,6 @@ function renderNotifications() {
             const id = this.dataset.id;
             const url = this.dataset.url;
             
-            // Marquer comme lue si non lue
             if (this.classList.contains('unread')) {
                 markAsRead(id, false);
             }
@@ -518,7 +566,7 @@ function renderNotifications() {
 }
 
 // ============================================================
-// FONCTIONS D'ICÔNES
+// FONCTIONS D'ICÔNES 
 // ============================================================
 
 function getIconClass(type) {
@@ -555,8 +603,48 @@ function getIconType(type) {
         'report': 'fa-flag',
         'welcome': 'fa-hand-peace',
         'user': 'fa-user-plus',
+        'created': 'fa-plus-circle',
+        'updated': 'fa-edit',
+        'deleted': 'fa-trash',
+        'liked': 'fa-heart',
+        'commented': 'fa-comment',
+        'shared': 'fa-share-alt',
+        'stock_entree': 'fa-arrow-down',
+        'stock_sortie': 'fa-arrow-up',
+        'stock_critique': 'fa-exclamation-triangle',
+        'stock_rupture': 'fa-times-circle',
+        'stock_expiration': 'fa-clock',
+        'reminder': 'fa-bell',
+        'new_message': 'fa-envelope',
+        'message_read': 'fa-check-double',
+        'task_reminder': 'fa-bell',
     };
+    
     return icons[type] || 'fa-bell';
+}
+
+// ============================================================
+// MISE À JOUR DE TOUS LES COMPTEURS
+// ============================================================
+
+function updateAllCounters() {
+    // Badge totalNotifCount : UNIQUEMENT les NON LUES
+    document.getElementById('totalNotifCount').textContent = state.unreadCount || 0;
+    
+    // allCount : TOTAL de toutes les notifications
+    document.getElementById('allCount').textContent = state.total || 0;
+    
+    // unreadCount : UNIQUEMENT les NON LUES
+    document.getElementById('unreadCount').textContent = state.unreadCount || 0;
+    
+    // readCount : UNIQUEMENT les LUES
+    document.getElementById('readCount').textContent = state.readCount || 0;
+    
+    // Compteurs par type
+    document.getElementById('successCount').textContent = state.successCount || 0;
+    document.getElementById('warningCount').textContent = state.warningCount || 0;
+    document.getElementById('dangerCount').textContent = state.dangerCount || 0;
+    document.getElementById('infoCount').textContent = state.infoCount || 0;
 }
 
 // ============================================================
@@ -567,7 +655,6 @@ function handleAction(notificationId, label, url) {
     event.stopPropagation();
     log(`📌 Action: ${label} sur la notification ${notificationId}`);
     
-    // Marquer comme lue avant de rediriger
     markAsRead(notificationId, false);
     
     if (url && url !== '#') {
@@ -589,8 +676,7 @@ async function markAsRead(notificationId, showToastMsg = true) {
             method: 'POST'
         });
 
-        if (result.status === 'success') {
-            // Mettre à jour localement
+        if (result.status === 'success' || result.success === true) {
             const item = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
             if (item) {
                 item.classList.remove('unread');
@@ -601,12 +687,12 @@ async function markAsRead(notificationId, showToastMsg = true) {
                     markBtn.disabled = true;
                 }
                 
-                // Mettre à jour le compteur
                 state.unreadCount = Math.max(0, state.unreadCount - 1);
-                updateNotificationBadge(state.unreadCount);
+                state.readCount = state.readCount + 1;
+                
+                updateNotificationBadge();
+                updateAllCounters();
             }
-            
-            updateCounters();
             
             if (showToastMsg) {
                 showToast('Notification marquée comme lue', 'success');
@@ -630,8 +716,7 @@ async function markAllAsRead() {
             method: 'POST'
         });
 
-        if (result.status === 'success') {
-            // Mettre à jour localement
+        if (result.status === 'success' || result.success === true) {
             document.querySelectorAll('.notification-item.unread').forEach(item => {
                 item.classList.remove('unread');
                 const markBtn = item.querySelector('.mark-read-btn');
@@ -642,35 +727,17 @@ async function markAllAsRead() {
                 }
             });
             
+            state.readCount = state.readCount + state.unreadCount;
             state.unreadCount = 0;
-            updateNotificationBadge(0);
-            updateCounters();
+            
+            updateNotificationBadge();
+            updateAllCounters();
             showToast('Toutes les notifications ont été marquées comme lues', 'success');
         }
     } catch (error) {
         logError('Erreur marquage tout comme lu', error);
         showToast('Erreur lors du marquage', 'danger');
     }
-}
-
-// ============================================================
-// METTRE À JOUR LES COMPTEURS
-// ============================================================
-
-function updateCounters() {
-    const total = state.notifications.length;
-    const unread = document.querySelectorAll('.notification-item.unread').length;
-    const read = total - unread;
-
-    const totalBadge = document.getElementById('totalNotifCount');
-    const allCount = document.getElementById('allCount');
-    const unreadCount = document.getElementById('unreadCount');
-    const readCount = document.getElementById('readCount');
-    
-    if (totalBadge) totalBadge.textContent = total;
-    if (allCount) allCount.textContent = total;
-    if (unreadCount) unreadCount.textContent = unread;
-    if (readCount) readCount.textContent = read;
 }
 
 // ============================================================
@@ -787,59 +854,18 @@ function showToast(message, type = 'info') {
 
 async function checkNewNotifications() {
     try {
-        const result = await apiCall('/notifications/unread');
-        if (result.status === 'success') {
-            let unreadData = result.data;
-            let count = 0;
-            
-            if (Array.isArray(unreadData)) {
-                count = unreadData.length;
-            } else if (unreadData && unreadData.data) {
-                count = unreadData.data.length;
-            } else if (unreadData && typeof unreadData === 'object' && 'count' in unreadData) {
-                count = unreadData.count;
-            }
-            
-            // Mettre à jour le badge
-            if (count > 0) {
-                updateNotificationBadge(count);
-                
-                // Si la page est cachée, afficher une notification toast
-                if (document.hidden) {
-                    const latest = Array.isArray(unreadData) ? unreadData[0] : 
-                                   (unreadData.data ? unreadData.data[0] : null);
-                    if (latest) {
-                        const title = latest.data?.title || latest.title || 'Nouvelle notification';
-                        const message = latest.data?.message || latest.message || '';
-                        showToast(`${title}: ${message}`, 'info');
-                    } else {
-                        showToast(`Vous avez ${count} nouvelle(s) notification(s)`, 'info');
-                    }
-                }
-                
-                // Recharger la liste si on est sur la page
-                if (document.getElementById('notificationsList') && !document.hidden) {
-                    loadNotifications(state.currentPage, state.currentFilter);
-                }
-            } else {
-                // Pas de nouvelles notifications
-                if (document.hidden) {
-                    // Ne rien faire
-                }
-            }
-        }
+        // Recharger complètement les données
+        await loadNotifications(state.currentPage, state.currentFilter);
     } catch (error) {
-        // Silencieux
         logError('Erreur vérification nouvelles notifications', error);
     }
 }
 
 // ============================================================
-// POLLING - RÉCUPÉRATION EN TEMPS RÉEL
+// POLLING
 // ============================================================
 
 function startAllPolling() {
-    // Polling pour les nouvelles notifications (15 secondes)
     if (state.notificationPollingInterval) {
         clearInterval(state.notificationPollingInterval);
     }
@@ -849,7 +875,6 @@ function startAllPolling() {
         }
     }, 15000);
 
-    // Polling pour rafraîchir la liste (30 secondes)
     if (state.pollingInterval) {
         clearInterval(state.pollingInterval);
     }
@@ -872,7 +897,7 @@ function stopAllPolling() {
 }
 
 // ============================================================
-// SERVICE WORKER POUR NOTIFICATIONS PUSH
+// SERVICE WORKER
 // ============================================================
 
 function registerServiceWorker() {
@@ -885,7 +910,6 @@ function registerServiceWorker() {
         .then(registration => {
             log('✅ Service Worker enregistré avec succès', registration);
             
-            // Vérifier la permission des notifications
             if ('Notification' in window && Notification.permission === 'granted') {
                 subscribeToPushNotifications();
             }
@@ -895,50 +919,17 @@ function registerServiceWorker() {
         });
 }
 
-function requestNotificationPermission() {
-    if (!('Notification' in window)) {
-        log('⚠️ Les notifications ne sont pas supportées');
-        return;
-    }
-    
-    if (Notification.permission === 'granted') {
-        log('✅ Permission notifications déjà accordée');
-        subscribeToPushNotifications();
-        return;
-    }
-    
-    if (Notification.permission === 'denied') {
-        log('⚠️ Permission notifications refusée');
-        showToast('Veuillez autoriser les notifications dans les paramètres de votre navigateur', 'warning');
-        return;
-    }
-    
-    // Demander la permission
-    Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-            log('✅ Permission notifications accordée');
-            showToast('Notifications activées !', 'success');
-            subscribeToPushNotifications();
-        } else {
-            log('⚠️ Permission notifications refusée');
-            showToast('Pour recevoir les notifications, veuillez autoriser les notifications.', 'warning');
-        }
-    });
-}
-
 function subscribeToPushNotifications() {
     if (!('serviceWorker' in navigator)) return;
     if (!('PushManager' in window)) return;
     
     navigator.serviceWorker.ready.then(registration => {
-        // Vérifier si déjà abonné
         registration.pushManager.getSubscription().then(subscription => {
             if (subscription) {
                 log('✅ Déjà abonné aux notifications push', subscription);
                 return;
             }
             
-            // S'abonner
             const vapidPublicKey = document.querySelector('meta[name="vapid-public-key"]')?.content || '';
             if (!vapidPublicKey) {
                 log('⚠️ Clé VAPID publique non trouvée');
@@ -953,7 +944,6 @@ function subscribeToPushNotifications() {
             })
             .then(subscription => {
                 log('✅ Abonnement push réussi', subscription);
-                // Envoyer la subscription au serveur
                 return saveSubscription(subscription);
             })
             .then(response => {
@@ -1001,9 +991,7 @@ async function saveSubscription(subscription) {
 document.addEventListener('DOMContentLoaded', function() {
     log('🚀 Initialisation de la page Notifications');
     
-    // Vérifier l'authentification
     if (!CONFIG.TOKEN) {
-        // Essayer de récupérer depuis le localStorage
         try {
             const raw = localStorage.getItem('access_token');
             CONFIG.TOKEN = raw ? raw.replace(/^"(.*)"$/, '$1').trim() : null;
@@ -1019,19 +1007,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Charger les notifications
     loadNotifications(1, 'all');
-    
-    // Configurer les filtres
     setupFilters();
     
-    // Événement "Tout marquer comme lu"
     const markAllBtn = document.getElementById('markAllReadBtn');
     if (markAllBtn) {
         markAllBtn.addEventListener('click', markAllAsRead);
     }
     
-    // Événement "Paramètres"
     const settingsBtn = document.getElementById('notificationSettingsBtn');
     if (settingsBtn) {
         settingsBtn.addEventListener('click', function() {
@@ -1039,7 +1022,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Pagination
     const prevBtn = document.getElementById('prevPageBtn');
     const nextBtn = document.getElementById('nextPageBtn');
     if (prevBtn) {
@@ -1053,30 +1035,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Démarrer le polling
     startAllPolling();
-    
-    // Enregistrer le service worker pour les notifications push
     registerServiceWorker();
     
-    // Gestion de la visibilité de la page
     document.addEventListener('visibilitychange', function() {
         if (document.hidden) {
             stopAllPolling();
         } else {
             startAllPolling();
-            // Rafraîchir immédiatement
             checkNewNotifications();
             loadNotifications(state.currentPage, state.currentFilter);
         }
     });
     
-    // Nettoyage avant de quitter
     window.addEventListener('beforeunload', function() {
         stopAllPolling();
     });
     
-    // Gestion des erreurs réseau
     window.addEventListener('online', function() {
         log('🌐 Réseau rétabli, rechargement des notifications');
         showToast('Connexion rétablie', 'success');
@@ -1090,7 +1065,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     log('✅ Page Notifications initialisée avec succès');
 });
-</script>
 </script>
 @endpush
 @endsection
