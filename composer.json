@@ -9,7 +9,7 @@
         "guzzlehttp/guzzle": "7.12.1",
         "guzzlehttp/psr7": "2.12.1",
         "intervention/image": "^3.11",
-        "laravel-notification-channels/webpush": "^9.0",
+        "laravel-notification-channels/webpush": "*",
         "laravel/framework": "10.50.2",
         "laravel/sanctum": "^3.2",
         "laravel/tinker": "^2.8",

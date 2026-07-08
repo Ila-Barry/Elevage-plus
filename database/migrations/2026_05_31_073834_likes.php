@@ -20,10 +20,6 @@ return new class extends Migration
             
             // Empêcher un utilisateur de liker plusieurs fois la même publication
             $table->unique(['publication_id', 'user_id']);
-            
-
-            // Empêcher un utilisateur de liker plusieurs fois la même publication
-            $table->unique(['publication_id', 'user_id']);
 
             // Index pour les performances
             $table->index('publication_id');
