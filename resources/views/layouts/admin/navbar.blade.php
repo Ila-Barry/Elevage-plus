@@ -40,8 +40,7 @@
                         <button class="btn dropdown-toggle profile-button"
                                 type="button"
                                 id="profileDropdown"
-                                data-toggle="dropdown"
-                                aria-haspopup="true"
+                                data-bs-toggle="dropdown"  
                                 aria-expanded="false">
                             <img src="https://i.pravatar.cc/100?u=admin" alt="profile" class="profile-image">
                             <span class="profile-name d-none d-lg-inline">Admin Système</span>
@@ -98,7 +97,7 @@
         });
 
         // === FERMER LA SIDEBAR ===
-        $('#closeSidebar').on('click', function() {
+        $(document).on('click', '#closeSidebar', function() {
             $('#sidebar').removeClass('open');
             $('#menuToggleBtn').find('i').removeClass('fa-times').addClass('fa-bars');
             $('#sidebar-overlay').fadeOut(200);
@@ -121,17 +120,16 @@
             }
         });
 
-        // === FERMER LA SIDEBAR EN CLIQUANT À L'EXTÉRIEUR (CORRIGÉ POUR LE PROFIL) ===
+        // === CORRECTION : FERMER LA SIDEBAR EN CLIQUANT EN DEHORS ===
         $(document).on('click', function(event) {
             if ($(window).width() <= 768) {
                 var sidebar = $('#sidebar');
                 var toggleBtn = $('#menuToggleBtn');
                 var overlay = $('#sidebar-overlay');
                 
-                // On ignore le clic si c'est sur la sidebar, le bouton menu, OU le dropdown du profil
                 if (!$(event.target).closest('#sidebar').length && 
                     !$(event.target).closest('#menuToggleBtn').length &&
-                    !$(event.target).closest('#profileDropdown').length && 
+                    !$(event.target).closest('.profile-dropdown').length &&
                     sidebar.hasClass('open')) {
                     
                     sidebar.removeClass('open');
@@ -143,7 +141,7 @@
             }
         });
 
-        // === GÉRER LE REDIMENSIONNEMENT ===
+        // === CORRECTION : GÉRER LE REDIMENSIONNEMENT ===
         $(window).on('resize', function() {
             if ($(window).width() > 768) {
                 $('#sidebar').removeClass('open');
@@ -152,10 +150,58 @@
             }
         });
 
-        // === NAVBAR TOGGLER (CORRIGÉ POUR UTILISER LE COMPORTEMENT NATIF BOOTSTRAP) ===
+        // === CORRECTION : NAVBAR TOGGLER RESPONSIVE ===
         $('.navbar-toggler').on('click', function() {
-            $('#mainNavbar').toggleClass('show');
+            $('#mainNavbar').collapse('toggle');
         });
+
+        // === CORRECTION : BOOTSTRAP DROPDOWN MANUEL ===
+        // Solution de repli si Bootstrap dropdown ne fonctionne pas
+        $('.profile-dropdown .dropdown-toggle').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var menu = $(this).siblings('.dropdown-menu');
+            var isOpen = menu.hasClass('show');
+            
+            // Fermer tous les autres dropdowns
+            $('.profile-dropdown .dropdown-menu').removeClass('show');
+            
+            if (!isOpen) {
+                menu.addClass('show');
+                $(this).attr('aria-expanded', 'true');
+            } else {
+                $(this).attr('aria-expanded', 'false');
+            }
+        });
+
+        // Fermer le dropdown quand on clique ailleurs
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.profile-dropdown').length) {
+                $('.profile-dropdown .dropdown-menu').removeClass('show');
+                $('.profile-dropdown .dropdown-toggle').attr('aria-expanded', 'false');
+            }
+        });
+
+        // === CORRECTION : CSS du dropdown manuel ===
+        // Ajout des styles si nécessaire
+        $('<style>')
+            .prop('type', 'text/css')
+            .html(`
+                .profile-dropdown .dropdown-menu.show {
+                    display: block !important;
+                }
+                @media (max-width: 991.98px) {
+                    .profile-dropdown .dropdown-menu {
+                        position: relative !important;
+                        width: 100% !important;
+                        margin-top: 8px !important;
+                    }
+                    .profile-dropdown .dropdown-menu.show {
+                        display: block !important;
+                    }
+                }
+            `)
+            .appendTo('head');
     });
 </script>
 @endpush
