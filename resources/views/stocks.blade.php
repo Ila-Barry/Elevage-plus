@@ -25,9 +25,6 @@
                 <button class="btn btn-report" id="generateReport">
                     <i class="fas fa-chart-bar"></i> Rapport
                 </button>
-                <button class="btn btn-export" id="exportData">
-                    <i class="fas fa-file-export"></i> Exporter
-                </button>
             </div>
 
             <!-- ===== BARRE RECHERCHE + FILTRE ===== -->
@@ -36,6 +33,9 @@
                     <i class="fas fa-search"></i>
                     <input type="text" id="searchInput" placeholder="Rechercher un produit...">
                 </div>
+                <button class="btn-search" id="searchButton">
+                    <i class="fas fa-search"></i> Rechercher
+                </button>
                 <select class="filter-cat" id="filterCategory">
                     <option value="all">Toutes les catégories</option>
                     <option value="aliment">Aliments</option>
@@ -124,6 +124,7 @@
             <form id="addProductForm" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body">
+                    <!-- ... contenu existant inchangé ... -->
                     <div class="form-group">
                         <label>Nom du produit *</label>
                         <input type="text" class="form-control" id="addProductName" placeholder="Ex: Aliment vache premium" required>
@@ -176,8 +177,12 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-success" id="addSubmitBtn">Ajouter</button>
+                    <button type="button" class="btn-cancel-modal" data-dismiss="modal" onclick="closeModalSafe('modalAjoutProduit')">
+                        ❌ Annuler
+                    </button>
+                    <button type="submit" class="btn-add-modal" id="addSubmitBtn">
+                        ✅ Ajouter
+                    </button>
                 </div>
             </form>
         </div>
@@ -197,6 +202,7 @@
             <div id="movementError" class="alert alert-danger" style="display: none;"></div>
             <form id="movementForm">
                 <div class="modal-body">
+                    <!-- ... contenu existant inchangé ... -->
                     <div class="form-row mb-3">
                         <div class="col-md-6">
                             <label><strong>Produit</strong></label>
@@ -253,8 +259,12 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-success" id="mvtSubmitBtn">Valider</button>
+                    <button type="button" class="btn-cancel-modal" data-dismiss="modal" onclick="closeModalSafe('modalMouvement')">
+                        ❌ Annuler
+                    </button>
+                    <button type="submit" class="btn-add-modal" id="mvtSubmitBtn">
+                        ✅ Valider
+                    </button>
                 </div>
             </form>
         </div>
@@ -275,7 +285,9 @@
                 <!-- Rempli par JavaScript -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                <button type="button" class="btn-cancel-modal" data-dismiss="modal" onclick="closeModalSafe('modalVoir')" style="border-color: #6c757d; color: #6c757d; min-width: 100px;">
+                    Fermer
+                </button>
             </div>
         </div>
     </div>
@@ -297,6 +309,7 @@
                 @method('PUT')
                 <input type="hidden" id="editProductId">
                 <div class="modal-body">
+                    <!-- ... contenu existant inchangé ... -->
                     <div class="form-group">
                         <label>Nom du produit *</label>
                         <input type="text" class="form-control" id="editProductName" required>
@@ -343,8 +356,12 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-warning" id="editSubmitBtn">Enregistrer</button>
+                    <button type="button" class="btn-cancel-modal" data-dismiss="modal" onclick="closeModalSafe('modalModifier')">
+                        ❌ Annuler
+                    </button>
+                    <button type="submit" class="btn-add-modal" id="editSubmitBtn">
+                        ✅ Enregistrer
+                    </button>
                 </div>
             </form>
         </div>
@@ -457,6 +474,132 @@ async function fetchWithAuth(url, options = {}) {
     }
     return result;
 }
+
+// ================= BOUTON RAPPORT =================
+document.getElementById('generateReport').addEventListener('click', function() {
+    generateReport();
+});
+
+function generateReport() {
+    if (!products || products.length === 0) {
+        showToast('Aucun produit disponible', 'warning');
+        return;
+    }
+
+    // Créer le HTML du rapport
+    let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Rapport de Stock</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            h1 { color: #28a745; text-align: center; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .stats { display: flex; justify-content: space-around; margin: 20px 0; }
+            .stat { text-align: center; padding: 10px; border: 1px solid #ddd; border-radius: 8px; min-width: 100px; }
+            .stat-value { font-size: 24px; font-weight: bold; }
+            .stat-label { color: #666; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th { background: #28a745; color: white; padding: 10px; text-align: left; }
+            td { padding: 10px; border-bottom: 1px solid #ddd; }
+            .critical { color: #dc3545; }
+            .low { color: #ffc107; }
+            .good { color: #28a745; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+            @media print {
+                .no-print { display: none; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>📊 RAPPORT DE STOCK</h1>
+            <p>Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
+        </div>
+    `;
+
+    // Statistiques
+    const total = products.length;
+    const critical = products.filter(p => getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'critical').length;
+    const low = products.filter(p => getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'low').length;
+    const good = products.filter(p => getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'good' || getStockStatus(p.quantite || 0, p.seuil_alerte || 50).status === 'medium').length;
+
+    html += `
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value">${total}</div>
+                <div class="stat-label">Total produits</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" style="color: #dc3545;">${critical}</div>
+                <div class="stat-label">Stock critique</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" style="color: #ffc107;">${low}</div>
+                <div class="stat-label">Stock faible</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" style="color: #28a745;">${good}</div>
+                <div class="stat-label">Stock bon</div>
+            </div>
+        </div>
+    `;
+
+    // Tableau des produits
+    html += `
+        <table>
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Catégorie</th>
+                    <th>Quantité</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    products.forEach(p => {
+        const status = getStockStatus(p.quantite || 0, p.seuil_alerte || 50);
+        const statusClass = status.status;
+        html += `
+            <tr>
+                <td>${p.nom || 'Sans nom'}</td>
+                <td>${p.categorie_label || p.categorie || 'N/A'}</td>
+                <td>${p.quantite || 0} ${p.unite || ''}</td>
+                <td class="${statusClass}">${status.label}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+            </tbody>
+        </table>
+        <div class="footer">
+            <p>Rapport généré par Elevage+ - ${new Date().toISOString().split('T')[0]}</p>
+        </div>
+        <div style="text-align: center; margin-top: 20px;" class="no-print">
+            <button onclick="window.print()" style="padding: 10px 30px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
+                🖨️ Imprimer / PDF
+            </button>
+            <button onclick="window.close()" style="padding: 10px 30px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; margin-left: 10px;">
+                Fermer
+            </button>
+        </div>
+    </body>
+    </html>
+    `;
+
+    // Ouvrir dans une nouvelle fenêtre
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    
+    showToast('Rapport généré avec succès !', 'success');
+}
+
+
 
 // ================= FONCTIONS API =================
 async function fetchElevages() {
@@ -591,22 +734,54 @@ function openModalSafe(modalId) {
     }
 }
 
+// ================= FERMETURE ROBUSTE DES MODALES =================
 function closeModalSafe(modalId) {
     const modalElement = document.getElementById(modalId);
-    if (!modalElement) return;
-
-    if (window.bootstrap && bootstrap.Modal) {
-        const modalInstance = bootstrap.Modal.getInstance(modalElement);
-        if (modalInstance) modalInstance.hide();
-    } else if (window.$ && typeof $.fn.modal === 'function') {
-        $(modalElement).modal('hide');
-    } else {
-        modalElement.style.display = 'none';
-        modalElement.classList.remove('show');
-        document.body.classList.remove('modal-open');
-        const backdrop = document.querySelector('.modal-backdrop');
-        if (backdrop) backdrop.remove();
+    if (!modalElement) {
+        console.warn(`⚠️ Modale #${modalId} introuvable.`);
+        return;
     }
+
+    // Essayer avec Bootstrap
+    if (window.bootstrap && bootstrap.Modal) {
+        try {
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (modalInstance) {
+                modalInstance.hide();
+                return;
+            }
+            // Si pas d'instance, en créer une et la fermer
+            const newInstance = new bootstrap.Modal(modalElement);
+            newInstance.hide();
+            return;
+        } catch (e) {
+            console.warn('⚠️ Erreur Bootstrap:', e);
+        }
+    }
+
+    // Essayer avec jQuery
+    if (window.$ && typeof $.fn.modal === 'function') {
+        try {
+            $(modalElement).modal('hide');
+            return;
+        } catch (e) {
+            console.warn('⚠️ Erreur jQuery:', e);
+        }
+    }
+
+    // Fallback manuel
+    modalElement.classList.remove('show');
+    modalElement.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    
+    // Supprimer les backdrops
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+        backdrop.remove();
+    });
+    
+    // Remettre le scroll
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
 }
 
 // ================= FONCTIONS D'AFFICHAGE =================
@@ -657,12 +832,18 @@ function renderTable() {
                         ${p.nom || 'Sans nom'}
                     </div>
                 </td>
-                <td>${p.categorie_label || p.categorie || 'Non catégorisé'}</td>
                 <td>
-                    ${p.quantite || 0} ${p.unite || ''}<br>
-                    <span class="stock-status status-${status.status}">
-                        <i class="fas ${status.icon}"></i> ${status.label}
+                    <span class="categorie-badge categorie-${p.categorie}">
+                        ${p.categorie_label || p.categorie || 'Non catégorisé'}
                     </span>
+                </td>
+                <td>
+                    <div class="quantite-cell">
+                        <span class="quantite-valeur">${p.quantite || 0} ${p.unite || ''}</span>
+                        <span class="stock-status status-${status.status}">
+                            <i class="fas ${status.icon}"></i> ${status.label}
+                        </span>
+                    </div>
                 </td>
                 <td>
                     <div class="actions">
@@ -1018,11 +1199,7 @@ document.getElementById('btnSupprimerConfirmer').addEventListener('click', async
 });
 
 // ================= RECHERCHE ET FILTRES =================
-document.getElementById('searchInput').addEventListener('input', function() {
-    if (this.value.trim().length >= 2 || this.value.trim().length === 0) {
-        renderTable();
-    }
-});
+
 document.getElementById('filterCategory').addEventListener('change', renderTable);
 document.getElementById('filterStatus').addEventListener('change', renderTable);
 
@@ -1033,6 +1210,160 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     loadData();
+});
+
+// ======================================================
+// GESTION DE LA RECHERCHE - VERSION CORRECTE
+// ======================================================
+
+// Recherche avec le bouton
+document.getElementById('searchButton').addEventListener('click', function() {
+    performSearch();
+});
+
+// Recherche avec la touche Entrée
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        performSearch();
+    }
+});
+
+// Quand on vide le champ, on recharge tout
+document.getElementById('searchInput').addEventListener('input', function() {
+    if (this.value.trim().length === 0) {
+        renderTable();
+    }
+});
+
+// Fonction principale de recherche
+function performSearch() {
+    const searchTerm = document.getElementById('searchInput').value.trim();
+    
+    if (searchTerm.length === 0) {
+        renderTable();
+        showToast('Veuillez saisir un terme de recherche', 'warning');
+        return;
+    }
+    
+    // Filtrer les produits
+    const filtered = products.filter(p => {
+        const nom = (p.nom || '').toLowerCase();
+        const categorie = (p.categorie_label || p.categorie || '').toLowerCase();
+        const description = (p.description || '').toLowerCase();
+        const search = searchTerm.toLowerCase();
+        
+        return nom.includes(search) || 
+               categorie.includes(search) || 
+               description.includes(search);
+    });
+    
+    // Mettre à jour l'affichage
+    if (filtered.length === 0) {
+        showToast('Aucun produit trouvé pour "' + searchTerm + '"', 'info');
+    } else {
+        showToast(filtered.length + ' produit(s) trouvé(s)', 'success');
+    }
+    
+    renderFilteredTable(filtered);
+}
+
+// Fonction pour afficher les résultats filtrés
+function renderFilteredTable(filtered) {
+    const tbody = document.getElementById('stocksTableBody');
+    if (!tbody) return;
+    
+    if (filtered.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center py-4">
+                    <i class="fas fa-search" style="font-size: 24px; color: #6c757d;"></i>
+                    <p class="mt-2" style="color: #6c757d;">Aucun produit correspondant</p>
+                </td>
+            </tr>
+        `;
+        updateStats(filtered);
+        return;
+    }
+    
+    tbody.innerHTML = filtered.map(p => {
+        const status = getStockStatus(p.quantite || 0, p.seuil_alerte || 50);
+        return `
+            <tr data-id="${p.id}">
+                <td>
+                    <div class="prod-cell">
+                        <span class="prod-icon"><i class="fas fa-box"></i></span>
+                        ${p.nom || 'Sans nom'}
+                    </div>
+                </td>
+                <td>
+                    <span class="categorie-badge categorie-${p.categorie}">
+                        ${p.categorie_label || p.categorie || 'Non catégorisé'}
+                    </span>
+                </td>
+                <td>
+                    <div class="quantite-cell">
+                        <span class="quantite-valeur">${p.quantite || 0} ${p.unite || ''}</span>
+                        <span class="stock-status status-${status.status}">
+                            <i class="fas ${status.icon}"></i> ${status.label}
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <div class="actions">
+                        <button class="btn-action btn-plus" onclick="openMovementModal(${p.id})" title="Ajouter un mouvement">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="btn-action btn-eye" onclick="viewProduct(${p.id})" title="Voir les détails">
+                            <i class="far fa-eye"></i>
+                        </button>
+                        <button class="btn-action btn-edit" onclick="openEditModal(${p.id})" title="Modifier">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button class="btn-action btn-del" onclick="openDeleteModal(${p.id})" title="Supprimer">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    updateStats(filtered);
+}
+
+// ================= FERMETURE DES MODALES =================
+// Fermeture manuelle des modales pour garantir le fonctionnement
+
+// 1. Pour le bouton "Annuler" et la croix de chaque modale
+document.querySelectorAll('.modal .close, .modal .btn-secondary').forEach(element => {
+    element.addEventListener('click', function(e) {
+        e.preventDefault();
+        const modal = this.closest('.modal');
+        if (modal) {
+            closeModalSafe(modal.id);
+        }
+    });
+});
+
+// 2. Fermeture en cliquant en dehors de la modale
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModalSafe(this.id);
+        }
+    });
+});
+
+// 3. Fermeture avec la touche Echap
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const openModals = document.querySelectorAll('.modal.show');
+        if (openModals.length > 0) {
+            const lastModal = openModals[openModals.length - 1];
+            closeModalSafe(lastModal.id);
+        }
+    }
 });
 </script>
 

@@ -187,16 +187,51 @@
                         <textarea class="form-control" id="addDescription" rows="3" placeholder="Ajouter une description..."></textarea>
                     </div>
 
-                    <div class="d-flex justify-content-center gap-3">
-                        <button
-                            type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal"
-                            onclick="window.location.reload();">
-                            ❌ Annuler
-                        </button>
-                        <button type="submit" class="btn btn-success" id="addSubmitBtn">✅ Ajouter</button>
-                    </div>
+                    <div class="modal-footer" style="border-top: none; padding: 16px 24px 24px 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 15px;">
+        <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+            onclick="window.location.reload();"
+            style="
+                background: white;
+                color: #000000;
+                border: 2px solid #d1d1d1;
+                padding: 10px 30px;
+                border-radius: 10px;
+                font-weight: 600;
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                min-width: 120px;
+            "
+            onmouseover="this.style.background='#6c757d'; this.style.color='white'; this.style.borderColor='#6c757d'"
+            onmouseout="this.style.background='white'; this.style.color='#000000'; this.style.borderColor='#d1d1d1'">
+            ❌ Annuler
+        </button>
+        <button 
+            type="submit" 
+            class="btn btn-success" 
+            id="addSubmitBtn"
+            style="
+                background: #198754;
+                color: white;
+                border: none;
+                padding: 10px 30px;
+                border-radius: 10px;
+                font-weight: 600;
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-width: 120px;
+            "
+            onmouseover="this.style.background='#146c43'"
+            onmouseout="this.style.background='#198754'">
+            ✅ Ajouter
+        </button>
+    </div>
+</div>
                 </form>
             </div>
         </div>
@@ -277,15 +312,22 @@
                         </select>
                     </div>
 
-                    <div class="d-flex justify-content-center gap-3">
-                        <button
-                            type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal"
-                            onclick="window.location.reload();">
-                            Annuler
-                        </button>
-                        <button type="submit" class="btn btn-success" id="editSubmitBtn">Enregistrer</button>
+                    <div class="modal-footer" style="border-top: none; padding: 16px 24px 24px 24px;">
+                        <div class="btn-container">
+                            <button
+                                type="button"
+                                class="btn-cancel-modal"
+                                data-bs-dismiss="modal"
+                                onclick="window.location.reload();">
+                                ❌ Annuler
+                            </button>
+                            <button 
+                                type="submit" 
+                                class="btn-add-modal" 
+                                id="editSubmitBtn">
+                                ✅ Enregistrer
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -877,14 +919,13 @@ function renderTaskLists() {
     if (upcomingList) {
         const today = new Date().toISOString().split('T')[0];
         
-        // Filtre les tâches à venir (date > aujourd'hui) et non terminées
         const upcomingTasks = tasks
             .filter(t => {
                 const taskDate = (t.date_planifiee ?? '').substring(0, 10);
                 return taskDate > today && !(t.terminee == 1);
             })
             .sort((a, b) => new Date(a.date_planifiee) - new Date(b.date_planifiee))
-            .slice(0, 10); // Limite à 10 tâches
+            .slice(0, 10);
         
         console.log('📋 Tâches à venir:', upcomingTasks.length);
         
@@ -925,7 +966,6 @@ function renderTaskLists() {
         const today = new Date();
         const todayStr = today.toISOString().split('T')[0];
         
-        // Met à jour la date
         if (todayDateSpan) {
             todayDateSpan.textContent = today.toLocaleDateString('fr-FR', {
                 weekday: 'long',
@@ -934,7 +974,6 @@ function renderTaskLists() {
             });
         }
         
-        // Filtre les tâches du jour
         const todayTasks = tasks.filter(t => {
             const taskDate = (t.date_planifiee ?? '').substring(0, 10);
             return taskDate === todayStr;
@@ -970,27 +1009,18 @@ function renderTaskLists() {
                     </div>
                     
                     <div class="task-actions">
-                        ${t.terminee == 1 ? 
-                            `<button class="btn-success-task" onclick="toggleTask(${t.id})">
-                                <i class="fas fa-undo"></i> Réouvrir
-                            </button>` :
-                            `<button class="btn-success-task" onclick="toggleTask(${t.id})">
-                                <i class="fas fa-check"></i> Terminer
-                            </button>`
-                        }
+                        <button class="btn-hide-task" onclick="toggleTask(${t.id})">
+                            ✅ Masquer fait
+                        </button>
                         <button class="btn-edit-task" onclick="openEditModal(${t.id})">
-                            <i class="fas fa-edit"></i> Modifier
-                        </button>
-                        <button class="btn-delete-task" onclick="openDeleteModal(${t.id}, '${t.titre || t.type}')">
-                            <i class="fas fa-trash"></i> Supprimer
-                        </button>
+    <i class="fas fa-pen" style="color: #dc3545;"></i> Modifier
+</button>
                     </div>
                 </div>
             `).join('');
         }
     }
 }
-
 // =====================================================
 // 📊 STATISTIQUES - COMPTEURS EN HAUT DE PAGE
 // =====================================================

@@ -40,6 +40,8 @@
 
         <a href="{{ url('admin/signalement') }}" class="sidebar-item {{ request()->is('admin/signalement*') ? 'active' : '' }}">
             <i class="fas fa-flag"></i>
+        <a href="{{ url('admin/signale') }}" class="sidebar-item">
+            <i class="fas fa-tasks"></i>
             <span>Signalements</span>
         </a>
 
