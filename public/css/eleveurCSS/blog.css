@@ -10,11 +10,8 @@
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
-<<<<<<< HEAD
     padding: 15px 20px;
-=======
     padding: 10px 16px;
->>>>>>> 0a62184b9e327505c9e5c7a4121fc5f148a77017
     font-family: 'Inter', sans-serif;
     box-sizing: border-box;
     background: #f8f9fc;
@@ -258,9 +255,7 @@
 }
 
 /* ================= GALERIE ================= */
-<<<<<<< HEAD
 .image-row {
-=======
 /* REPRODUCTION EXACTE DE LA GRILLE DE 4 IMAGES (2x2 Compacte) */
 .post-images-grid-2x2 {
     display: grid;
@@ -432,7 +427,6 @@
 }
 
 .extra-grid {
->>>>>>> 0a62184b9e327505c9e5c7a4121fc5f148a77017
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
@@ -1929,5 +1923,4 @@
 @keyframes sharePulse {
     0%, 100% { transform: scale(1) rotate(0deg); }
     50% { transform: scale(1.2) rotate(15deg); }
->>>>>>> 0a62184b9e327505c9e5c7a4121fc5f148a77017
 }
