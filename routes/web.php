@@ -75,37 +75,64 @@ Route::middleware(['auth'])->group(function () {
         return view('auth/parametre', compact('user', 'stats'));
     });
     
+    // ========== ROUTES PRINCIPALES ==========
     Route::get('/elevages', function () {
-        $user = Auth::user();
-        if (!$user) {
-            return redirect()->route('web.login');
-        }
-        return view('elevages', compact('user'));
+        return view('elevages');
     });
+    
+    // ✅ ROUTE POUR VOIR UN ÉLEVAGE SPÉCIFIQUE
+    Route::get('/elevages/{id}', function ($id) {
+        return view('elevages', compact('id'));
+    })->name('elevages.show');
     
     Route::get('/animaux', function () {
         return view('animaux');
     });
     
+    // ✅ ROUTE POUR VOIR UN ANIMAL SPÉCIFIQUE
+    Route::get('/animaux/{id}', function ($id) {
+        return view('animaux', compact('id'));
+    })->name('animaux.show');
+    
     Route::get('/taches', function () {
         return view('taches');
     });
+    
+    // ✅ ROUTE POUR VOIR UNE TÂCHE SPÉCIFIQUE
+    Route::get('/taches/{id}', function ($id) {
+        return view('taches', compact('id'));
+    })->name('taches.show');
     
     Route::get('/stocks', function () {
         return view('stocks');
     });
     
+    // ✅ ROUTE POUR VOIR UN PRODUIT SPÉCIFIQUE
+    Route::get('/stocks/{id}', function ($id) {
+        return view('stocks', compact('id'));
+    })->name('stocks.show');
+    
     Route::get('/blog', function () {
         return view('blog');
     });
+    
+    // ✅ ROUTE POUR VOIR UN ARTICLE SPÉCIFIQUE
+    Route::get('/blog/{id}', function ($id) {
+        return view('blog', compact('id'));
+    })->name('blog.show');
     
     Route::get('/messages', function () {
         return view('messages');
     });
     
+    // ✅ ROUTE POUR VOIR UNE CONVERSATION SPÉCIFIQUE
+    Route::get('/messagerie', function () {
+        return view('messages');
+    })->name('messagerie');
+    
     Route::get('/notification', function () {
         return view('notification');
-    });
+    })->name('notifications');
 }); // Fin du groupe auth
 
 // ========== ROUTES ADMIN (AUTHENTIFIÉ + ADMIN) ==========

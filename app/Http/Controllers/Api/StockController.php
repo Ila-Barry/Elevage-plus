@@ -14,6 +14,9 @@ use App\Events\StockCritique;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\StockNotification;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Contrôleur StockController
@@ -125,12 +128,36 @@ class StockController extends Controller
                 'date_mouvement' => $request->date_mouvement,
             ]);
             
+            // 🔔 NOTIFICATION D'ENTRÉE DE STOCK
+            try {
+                Log::info('📤 Envoi notification entrée stock', [
+                    'user_id' => $user->id,
+                    'produit_id' => $produit->id,
+                    'quantite' => $quantite,
+                    'motif' => $request->motif
+                ]);
+                
+                $user->notify(new StockNotification($produit, 'stock_entree', $mouvement));
+                
+                // Notifier les admins
+                $admins = User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    if ($admin->id !== $user->id) {
+                        $admin->notify(new StockNotification($produit, 'stock_entree', $mouvement));
+                    }
+                }
+                
+                Log::info('✅ Notification entrée stock envoyée');
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur notification entrée stock', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+            
             DB::commit();
             
-            // Vérifier si le stock est critique
-            if ($produit->is_critique) {
-                event(new StockCritique($produit));
-            }
+            // Vérifier les alertes de stock
+            $this->checkStockAlert($produit, $user);
             
             return $this->successResponse(
                 new MouvementStockResource($mouvement->load('produit', 'user')),
@@ -139,7 +166,7 @@ class StockController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur ajout stock: ' . $e->getMessage());
+            Log::error('Erreur ajout stock: ' . $e->getMessage());
             return $this->errorResponse($e->getMessage(), 422);
         }
     }
@@ -174,12 +201,36 @@ class StockController extends Controller
                 'date_mouvement' => $request->date_mouvement,
             ]);
             
+            // 🔔 NOTIFICATION DE SORTIE DE STOCK
+            try {
+                Log::info('📤 Envoi notification sortie stock', [
+                    'user_id' => $user->id,
+                    'produit_id' => $produit->id,
+                    'quantite' => $quantite,
+                    'motif' => $request->motif
+                ]);
+                
+                $user->notify(new StockNotification($produit, 'stock_sortie', $mouvement));
+                
+                // Notifier les admins
+                $admins = User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    if ($admin->id !== $user->id) {
+                        $admin->notify(new StockNotification($produit, 'stock_sortie', $mouvement));
+                    }
+                }
+                
+                Log::info('✅ Notification sortie stock envoyée');
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur notification sortie stock', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+            
             DB::commit();
             
-            // Vérifier si le stock est critique
-            if ($produit->is_critique) {
-                event(new StockCritique($produit));
-            }
+            // Vérifier les alertes de stock
+            $this->checkStockAlert($produit, $user);
             
             return $this->successResponse(
                 new MouvementStockResource($mouvement->load('produit', 'user')),
@@ -188,8 +239,44 @@ class StockController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur retrait stock: ' . $e->getMessage());
+            Log::error('Erreur retrait stock: ' . $e->getMessage());
             return $this->errorResponse($e->getMessage(), 422);
+        }
+    }
+
+    /**
+     * Vérifier et envoyer des alertes de stock
+     */
+    protected function checkStockAlert(Produit $produit, User $user): void
+    {
+        try {
+            // Rupture de stock
+            if ($produit->quantite <= 0) {
+                Log::warning('🚨 Rupture de stock', [
+                    'produit_id' => $produit->id,
+                    'produit_nom' => $produit->nom
+                ]);
+                
+                $user->notify(new StockNotification($produit, 'stock_rupture'));
+                return;
+            }
+            
+            // Stock critique
+            if ($produit->quantite <= $produit->seuil_alerte && $produit->seuil_alerte > 0) {
+                Log::warning('⚠️ Stock critique', [
+                    'produit_id' => $produit->id,
+                    'produit_nom' => $produit->nom,
+                    'quantite' => $produit->quantite,
+                    'seuil' => $produit->seuil_alerte
+                ]);
+                
+                $user->notify(new StockNotification($produit, 'stock_critique'));
+            }
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur vérification stock', [
+                'produit_id' => $produit->id,
+                'error' => $e->getMessage()
+            ]);
         }
     }
 

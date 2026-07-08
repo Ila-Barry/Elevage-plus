@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use App\Notifications\PublicationNotification;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class PublicationController extends Controller
 {
@@ -54,14 +57,11 @@ class PublicationController extends Controller
     public function store(Request $request)
     {
         try {
+            $user = Auth::user();
+            
             \Log::info('📝 Tentative de création de publication', [
-                'user_id' => Auth::id(),
+                'user_id' => $user->id,
                 'titre' => $request->titre,
-                'files' => [
-                    'images' => $request->hasFile('images') ? count($request->file('images')) : 0,
-                    'videos' => $request->hasFile('videos') ? count($request->file('videos')) : 0,
-                    'documents' => $request->hasFile('documents') ? count($request->file('documents')) : 0,
-                ]
             ]);
 
             $validator = Validator::make($request->all(), [
@@ -74,7 +74,6 @@ class PublicationController extends Controller
             ]);
 
             if ($validator->fails()) {
-                \Log::warning('⚠️ Erreur de validation publication', $validator->errors()->toArray());
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Erreur de validation',
@@ -82,25 +81,15 @@ class PublicationController extends Controller
                 ], 422);
             }
 
-            \Log::info('📤 Upload des fichiers...');
-            
             $images = $this->uploadMultipleFiles($request->file('images'), 'uploads/publications/images');
             $videos = $this->uploadMultipleFiles($request->file('videos'), 'uploads/publications/videos');
             $documents = $this->uploadMultipleDocuments($request->file('documents'), 'uploads/publications/documents');
 
-            \Log::info('✅ Fichiers uploadés', [
-                'images' => count($images),
-                'videos' => count($videos),
-                'documents' => count($documents)
-            ]);
-
-            \Log::info('💾 Création de la publication...');
-            
             $publication = Publication::create([
                 'titre' => $request->titre,
                 'categorie' => $request->categorie,
                 'contenu' => $request->contenu,
-                'user_id' => Auth::id(),
+                'user_id' => $user->id,
                 'images' => $images,
                 'videos' => $videos,
                 'documents' => $documents,
@@ -109,25 +98,47 @@ class PublicationController extends Controller
 
             $publication->load('user');
 
-            \Log::info('✅ Publication créée avec succès', ['id' => $publication->id]);
+            // 🔔 NOTIFICATION DE CRÉATION
+            try {
+                Log::info('📤 Envoi notification création publication', [
+                    'user_id' => $user->id,
+                    'publication_id' => $publication->id,
+                    'titre' => $publication->titre
+                ]);
+
+                // Notifier l'auteur
+                $user->notify(new PublicationNotification($publication, PublicationNotification::TYPE_CREATED));
+
+                // Notifier les admins
+                $admins = User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    if ($admin->id !== $user->id) {
+                        $admin->notify(new PublicationNotification($publication, PublicationNotification::TYPE_CREATED));
+                    }
+                }
+
+                Log::info('✅ Notification création publication envoyée');
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur notification création publication', [
+                    'error' => $e->getMessage()
+                ]);
+            }
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Article publié avec succès !',
                 'data' => $this->formatPublication($publication)
             ], 201);
-            
+
         } catch (\Exception $e) {
-            \Log::error('❌ ERREUR CRÉATION PUBLICATION: ' . $e->getMessage());
-            \Log::error($e->getTraceAsString());
-            
+            Log::error('❌ ERREUR CRÉATION PUBLICATION: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Erreur lors de la création: ' . $e->getMessage(),
-                'trace' => config('app.debug') ? $e->getTraceAsString() : null
+                'message' => 'Erreur lors de la création: ' . $e->getMessage()
             ], 500);
         }
     }
+
 
     /**
      * Mettre à jour une publication
@@ -160,6 +171,10 @@ class PublicationController extends Controller
             ], 422);
         }
 
+        $user = Auth::user();
+        $oldTitre = $publication->titre;
+
+        // Gestion des fichiers (comme avant)
         $images = is_array($publication->images) ? $publication->images : [];
         $videos = is_array($publication->videos) ? $publication->videos : [];
         $documents = is_array($publication->documents) ? $publication->documents : [];
@@ -201,12 +216,31 @@ class PublicationController extends Controller
         $publication->update($updateData);
         $publication->load('user');
 
+        // 🔔 NOTIFICATION DE MODIFICATION
+        try {
+            Log::info('📤 Envoi notification modification publication', [
+                'user_id' => $user->id,
+                'publication_id' => $publication->id,
+                'old_titre' => $oldTitre,
+                'new_titre' => $publication->titre
+            ]);
+
+            $user->notify(new PublicationNotification($publication, PublicationNotification::TYPE_UPDATED));
+
+            Log::info('✅ Notification modification publication envoyée');
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur notification modification publication', [
+                'error' => $e->getMessage()
+            ]);
+        }
+
         return response()->json([
             'status' => 'success',
             'message' => 'Publication mise à jour avec succès !',
             'data' => $this->formatPublication($publication)
         ]);
     }
+
 
     /**
      * Supprimer une publication
@@ -222,9 +256,30 @@ class PublicationController extends Controller
             ], 403);
         }
 
+        $user = Auth::user();
+        $titre = $publication->titre;
+
         $this->deleteMultipleFiles($publication->getAttributes()['images'] ?? [], 'public');
         $this->deleteMultipleFiles($publication->getAttributes()['videos'] ?? [], 'public');
         $this->deleteMultipleDocuments($publication->getAttributes()['documents'] ?? [], 'public');
+
+        // 🔔 NOTIFICATION DE SUPPRESSION (avant la suppression)
+        try {
+            Log::info('📤 Envoi notification suppression publication', [
+                'user_id' => $user->id,
+                'publication_id' => $publication->id,
+                'titre' => $titre
+            ]);
+
+            $publicationClone = clone $publication;
+            $user->notify(new PublicationNotification($publicationClone, PublicationNotification::TYPE_DELETED));
+
+            Log::info('✅ Notification suppression publication envoyée');
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur notification suppression publication', [
+                'error' => $e->getMessage()
+            ]);
+        }
 
         $publication->delete();
 
@@ -379,6 +434,7 @@ class PublicationController extends Controller
     public function addComment(Request $request, $id)
     {
         $publication = Publication::findOrFail($id);
+        $user = Auth::user();
         
         $validator = Validator::make($request->all(), [
             'contenu' => 'required|string|min:1|max:5000',
@@ -395,13 +451,39 @@ class PublicationController extends Controller
 
         $commentaire = Commentaire::create([
             'publication_id' => $publication->id,
-            'user_id' => Auth::id(),
+            'user_id' => $user->id,
             'parent_id' => $request->parent_id,
             'contenu' => $request->contenu,
         ]);
 
         $publication->increment('nbr_commentaires');
         $commentaire->load('user');
+
+        // 🔔 NOTIFICATION DE COMMENTAIRE (uniquement si ce n'est pas l'auteur)
+        if ($publication->user_id !== $user->id) {
+            try {
+                Log::info('📤 Envoi notification commentaire publication', [
+                    'publication_id' => $publication->id,
+                    'commentateur_id' => $user->id,
+                    'auteur_id' => $publication->user_id
+                ]);
+
+                $auteur = User::find($publication->user_id);
+                if ($auteur) {
+                    $auteur->notify(new PublicationNotification(
+                        $publication,
+                        PublicationNotification::TYPE_COMMENTED,
+                        $user,
+                        ['comment_content' => $request->contenu]
+                    ));
+                    Log::info('✅ Notification commentaire envoyée à ' . $auteur->name);
+                }
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur notification commentaire', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
 
         return response()->json([
             'status' => 'success',
@@ -419,6 +501,7 @@ class PublicationController extends Controller
             ]
         ], 201);
     }
+
 
     public function getComments($id)
     {
@@ -497,6 +580,31 @@ class PublicationController extends Controller
             $publication->increment('nbr_likes');
             $liked = true;
             $message = 'Like ajouté';
+
+            // 🔔 NOTIFICATION DE LIKE (uniquement si ce n'est pas l'auteur)
+            if ($publication->user_id !== $user->id) {
+                try {
+                    Log::info('📤 Envoi notification like publication', [
+                        'publication_id' => $publication->id,
+                        'likeur_id' => $user->id,
+                        'auteur_id' => $publication->user_id
+                    ]);
+
+                    $auteur = User::find($publication->user_id);
+                    if ($auteur) {
+                        $auteur->notify(new PublicationNotification(
+                            $publication,
+                            PublicationNotification::TYPE_LIKED,
+                            $user
+                        ));
+                        Log::info('✅ Notification like envoyée à ' . $auteur->name);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('❌ Erreur notification like', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
         }
         
         $publication->refresh();
@@ -510,6 +618,7 @@ class PublicationController extends Controller
             ]
         ]);
     }
+
 
     public function checkLike($id)
     {
@@ -580,6 +689,33 @@ class PublicationController extends Controller
         ]);
 
         $publication->increment('nbr_partages');
+
+        // 🔔 NOTIFICATION DE PARTAGE (uniquement si ce n'est pas l'auteur)
+        if ($publication->user_id !== $user->id) {
+            try {
+                Log::info('📤 Envoi notification partage publication', [
+                    'publication_id' => $publication->id,
+                    'partageur_id' => $user->id,
+                    'auteur_id' => $publication->user_id,
+                    'plateforme' => $request->plateforme
+                ]);
+
+                $auteur = User::find($publication->user_id);
+                if ($auteur) {
+                    $auteur->notify(new PublicationNotification(
+                        $publication,
+                        PublicationNotification::TYPE_SHARED,
+                        $user,
+                        ['platform' => $request->plateforme]
+                    ));
+                    Log::info('✅ Notification partage envoyée à ' . $auteur->name);
+                }
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur notification partage', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
 
         $shareUrl = url('/blog/' . $publication->id);
         

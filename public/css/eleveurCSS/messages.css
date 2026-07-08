@@ -1105,3 +1105,79 @@
 .align-items-center { align-items: center; }
 .justify-content-center { justify-content: center; }
 .gap-2 { gap: 0.5rem; }
+
+
+
+/* ================= TOAST DE NOTIFICATION ================= */
+.custom-toast-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    background: #198754;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(25, 135, 84, 0.3);
+    font-size: 14px;
+    font-weight: 500;
+    transform: translateX(calc(100% + 30px));
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 400px;
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+}
+
+.custom-toast-message.show {
+    transform: translateX(0);
+}
+
+.custom-toast-message .toast-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.custom-toast-message .toast-content i {
+    font-size: 20px;
+    color: white;
+}
+
+.custom-toast-message.info {
+    background: linear-gradient(135deg, #198754, #0d6e3e);
+}
+
+.custom-toast-message.success {
+    background: linear-gradient(135deg, #198754, #0d6e3e);
+}
+
+.custom-toast-message.warning {
+    background: linear-gradient(135deg, #ffc107, #d39e00);
+}
+
+.custom-toast-message.danger {
+    background: linear-gradient(135deg, #dc3545, #a71d2a);
+}
+
+/* Animation pulse pour le badge */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.badge-unread.pulse {
+    animation: pulse 0.5s ease 2;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .custom-toast-message {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        padding: 12px 18px;
+        font-size: 13px;
+    }
+}

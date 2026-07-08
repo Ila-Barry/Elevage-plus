@@ -23,6 +23,8 @@ use App\Http\Controllers\Api\Admin\AdminNewsletterController;
 
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\EmailVerificationNotification;
+use App\Http\Controllers\Api\WebPushController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -83,6 +85,8 @@ Route::middleware(['auth:api'])->prefix('auth')->group(function () {
     
     // Préférences
     Route::put('/notification-preferences', [AuthController::class, 'updateNotificationPreferences']);
+    Route::get('/notification-preferences', [AuthController::class, 'getNotificationPreferences']);
+
     Route::put('/profile-visibility', [AuthController::class, 'updateProfileVisibility']);
     
     // Suppression de compte
@@ -169,6 +173,8 @@ Route::middleware(['auth:api'])->prefix('stock')->group(function () {
     
     // Rapports
     Route::get('/rapport', [StockController::class, 'rapport']);
+    // ✅ Route pour vérifier les alertes (cron)
+    Route::post('/stock/check-alerts', [StockController::class, 'checkAlerts']);
 });
 
 /*
@@ -205,6 +211,8 @@ Route::middleware(['auth:api'])->prefix('animaux')->group(function () {
     Route::put('/{id}', [AnimalController::class, 'update']);
     Route::delete('/{id}', [AnimalController::class, 'destroy']);
     Route::get('/all', [AnimalController::class, 'getAll']);
+    // ✅ Route pour vérifier les alertes sanitaires (peut être appelée par cron)
+    Route::post('/check-health-alerts', [AnimalController::class, 'checkHealthAlerts']);
 });
 
 /*
@@ -225,6 +233,8 @@ Route::middleware(['auth:api'])->prefix('taches')->group(function () {
     
     // Actions spécifiques
     Route::patch('/{id}/complete', [TacheController::class, 'complete']);
+    // ✅ Route pour vérifier les rappels (appelée par cron)
+    Route::post('/taches/verifier-rappels', [TacheController::class, 'verifierRappels']);
 });
 
 /*
@@ -394,4 +404,18 @@ Route::middleware(['auth:api'])->prefix('dashboard')->group(function () {
 
 Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard/stats', [App\Http\Controllers\Api\DashboardController::class, 'adminStats']);
+});
+
+
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - WebPush Notifications
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api'])->group(function () {
+    Route::post('/webpush/subscribe', [WebPushController::class, 'subscribe']);
+    Route::post('/webpush/unsubscribe', [WebPushController::class, 'unsubscribe']);
+    Route::post('/webpush/update-subscription', [WebPushController::class, 'update']);
 });

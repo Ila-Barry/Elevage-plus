@@ -15,6 +15,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Notifications\StockNotification;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Contrôleur ProduitController
@@ -135,7 +138,6 @@ class ProduitController extends Controller
         try {
             $user = $request->user();
             
-            // Vérifier que l'élevage appartient à l'utilisateur
             $elevage = Elevage::where('id', $request->elevage_id)
                 ->where('user_id', $user->id)
                 ->firstOrFail();
@@ -143,17 +145,14 @@ class ProduitController extends Controller
             $data = $request->validated();
             $data['elevage_id'] = $elevage->id;
             
-            // Upload de la photo
             if ($request->hasFile('photo')) {
                 $data['photo_url'] = $this->uploadPhoto($request->file('photo'));
             }
             
-            // Quantité initiale
             $quantiteInitiale = $data['quantite_initiale'] ?? 0;
             unset($data['quantite_initiale']);
             $data['quantite'] = $quantiteInitiale;
             
-            // Créer le produit
             $produit = Produit::create($data);
             
             // Créer un mouvement initial si quantité > 0
@@ -165,6 +164,34 @@ class ProduitController extends Controller
                 ]);
             }
             
+            // 🔔 NOTIFICATION DE CRÉATION
+            try {
+                Log::info('📤 Envoi notification création produit', [
+                    'user_id' => $user->id,
+                    'produit_id' => $produit->id,
+                    'produit_nom' => $produit->nom
+                ]);
+                
+                $user->notify(new StockNotification($produit, 'created'));
+                
+                // Notifier les admins
+                $admins = User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    if ($admin->id !== $user->id) {
+                        $admin->notify(new StockNotification($produit, 'created'));
+                    }
+                }
+                
+                Log::info('✅ Notification création produit envoyée');
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur notification création produit', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+            
+            // Vérifier si le stock est critique
+            $this->checkStockAlert($produit, $user);
+            
             DB::commit();
             
             return $this->successResponse(
@@ -175,7 +202,7 @@ class ProduitController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur création produit: ' . $e->getMessage());
+            Log::error('Erreur création produit: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la création du produit.', 500);
         }
     }
@@ -222,11 +249,20 @@ class ProduitController extends Controller
         DB::beginTransaction();
         
         try {
+            // Récupérer les anciennes valeurs
+            $oldValues = [
+                'nom' => $produit->nom,
+                'categorie' => $produit->categorie,
+                'seuil_alerte' => $produit->seuil_alerte,
+                'unite' => $produit->unite,
+                'description' => $produit->description,
+                'fournisseur' => $produit->fournisseur,
+            ];
+            
             $data = $request->validated();
             
             // Gestion de la photo
             if ($request->hasFile('photo')) {
-                // Supprimer l'ancienne photo
                 if ($produit->photo_url) {
                     $this->deletePhoto($produit->photo_url);
                 }
@@ -240,6 +276,43 @@ class ProduitController extends Controller
             
             $produit->update($data);
             
+            // 🔔 DÉTECTER LES CHANGEMENTS
+            $changes = [];
+            $fieldsToCheck = ['nom', 'categorie', 'seuil_alerte', 'unite', 'description', 'fournisseur'];
+            
+            foreach ($fieldsToCheck as $field) {
+                if (isset($data[$field]) && $oldValues[$field] != $data[$field]) {
+                    $changes[$field] = [
+                        'old' => $oldValues[$field],
+                        'new' => $data[$field]
+                    ];
+                }
+            }
+            
+            // 🔔 NOTIFICATION DE MODIFICATION
+            if (!empty($changes)) {
+                try {
+                    Log::info('📤 Envoi notification modification produit', [
+                        'user_id' => $user->id,
+                        'produit_id' => $produit->id,
+                        'changes' => $changes
+                    ]);
+                    
+                    $user->notify(new StockNotification($produit, 'updated', null, [
+                        'changes' => $changes
+                    ]));
+                    
+                    Log::info('✅ Notification modification produit envoyée');
+                } catch (\Exception $e) {
+                    Log::error('❌ Erreur notification modification produit', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            // Vérifier le stock après modification
+            $this->checkStockAlert($produit, $user);
+            
             DB::commit();
             
             return $this->successResponse(
@@ -249,7 +322,7 @@ class ProduitController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur mise à jour produit: ' . $e->getMessage());
+            Log::error('Erreur mise à jour produit: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la mise à jour du produit.', 500);
         }
     }
@@ -273,12 +346,30 @@ class ProduitController extends Controller
         DB::beginTransaction();
         
         try {
-            // Supprimer la photo
+            $produitNom = $produit->nom;
+            
+            // 🔔 NOTIFICATION DE SUPPRESSION
+            try {
+                Log::info('📤 Envoi notification suppression produit', [
+                    'user_id' => $user->id,
+                    'produit_id' => $produit->id,
+                    'produit_nom' => $produitNom
+                ]);
+                
+                $produitClone = clone $produit;
+                $user->notify(new StockNotification($produitClone, 'deleted'));
+                
+                Log::info('✅ Notification suppression produit envoyée');
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur notification suppression produit', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+            
             if ($produit->photo_url) {
                 $this->deletePhoto($produit->photo_url);
             }
             
-            // Les mouvements seront supprimés automatiquement (cascade)
             $produit->delete();
             
             DB::commit();
@@ -287,8 +378,80 @@ class ProduitController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur suppression produit: ' . $e->getMessage());
+            Log::error('Erreur suppression produit: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la suppression du produit.', 500);
+        }
+    }
+
+    /**
+     * Vérifier et envoyer des alertes de stock
+     */
+    protected function checkStockAlert(Produit $produit, User $user): void
+    {
+        try {
+            // Vérifier la rupture de stock
+            if ($produit->quantite <= 0) {
+                Log::warning('🚨 Rupture de stock détectée', [
+                    'produit_id' => $produit->id,
+                    'produit_nom' => $produit->nom
+                ]);
+                
+                $user->notify(new StockNotification($produit, 'stock_rupture'));
+                
+                // Notifier les admins
+                $admins = User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    if ($admin->id !== $user->id) {
+                        $admin->notify(new StockNotification($produit, 'stock_rupture'));
+                    }
+                }
+                
+                return;
+            }
+            
+            // Vérifier le stock critique
+            if ($produit->quantite <= $produit->seuil_alerte && $produit->seuil_alerte > 0) {
+                Log::warning('⚠️ Stock critique détecté', [
+                    'produit_id' => $produit->id,
+                    'produit_nom' => $produit->nom,
+                    'quantite' => $produit->quantite,
+                    'seuil' => $produit->seuil_alerte
+                ]);
+                
+                $user->notify(new StockNotification($produit, 'stock_critique'));
+                
+                // Notifier les admins
+                $admins = User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    if ($admin->id !== $user->id) {
+                        $admin->notify(new StockNotification($produit, 'stock_critique'));
+                    }
+                }
+                
+                return;
+            }
+            
+            // Vérifier l'expiration proche (30 jours)
+            if ($produit->date_expiration) {
+                $joursRestants = now()->diffInDays($produit->date_expiration);
+                if ($joursRestants <= 30 && $joursRestants > 0) {
+                    Log::info('📅 Expiration proche', [
+                        'produit_id' => $produit->id,
+                        'produit_nom' => $produit->nom,
+                        'jours' => $joursRestants
+                    ]);
+                    
+                    $user->notify(new StockNotification($produit, 'stock_expiration', null, [
+                        'jours' => $joursRestants
+                    ]));
+                }
+            }
+            
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur vérification stock', [
+                'produit_id' => $produit->id,
+                'error' => $e->getMessage()
+            ]);
         }
     }
 
