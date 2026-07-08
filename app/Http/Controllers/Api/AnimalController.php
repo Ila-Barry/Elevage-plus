@@ -4,6 +4,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Notifications\AnimalNotification;
+use Illuminate\Support\Facades\Log;
+use App\Models\AnimalHistorique; 
 use App\Http\Requests\Api\Animal\CreateAnimalRequest;
 use App\Http\Requests\Api\Animal\UpdateAnimalRequest;
 use App\Http\Requests\Api\Animal\AnimalFilterRequest;
@@ -150,19 +153,46 @@ class AnimalController extends Controller
         DB::beginTransaction();
         
         try {
+            $user = $request->user();
             $data = $request->validated();
             
-            // Vérifier que l'élevage appartient à l'utilisateur
             $elevage = Elevage::where('id', $data['elevage_id'])
-                ->where('user_id', $request->user()->id)
+                ->where('user_id', $user->id)
                 ->firstOrFail();
             
-            // Upload de l'image
             if ($request->hasFile('image')) {
                 $data['img_url'] = $this->uploadImage($request->file('image'));
             }
             
             $animal = Animal::create($data);
+            
+            // ✅ ENREGISTRER L'HISTORIQUE DE CRÉATION
+            try {
+                AnimalHistorique::logCreation(
+                    $animal->id,
+                    $user->id,
+                    $data
+                );
+                
+                Log::info('📝 Historique création animal enregistré', [
+                    'animal_id' => $animal->id,
+                    'user_id' => $user->id
+                ]);
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur historique création', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+            
+            // 🔔 ENVOYER LA NOTIFICATION
+            try {
+                $user->notify(new AnimalNotification($animal, 'created'));
+                Log::info('✅ Notification création animal envoyée');
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur notification création', [
+                    'error' => $e->getMessage()
+                ]);
+            }
             
             DB::commit();
             
@@ -174,7 +204,7 @@ class AnimalController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur création animal: ' . $e->getMessage());
+            Log::error('Erreur création animal: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la création de l\'animal.', 500);
         }
     }
@@ -210,7 +240,7 @@ class AnimalController extends Controller
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(UpdateAnimalRequest $request, $id)
+ public function update(UpdateAnimalRequest $request, $id)
     {
         $user = $request->user();
         
@@ -222,11 +252,21 @@ class AnimalController extends Controller
         DB::beginTransaction();
         
         try {
+            // Récupérer les anciennes valeurs
+            $oldValues = [
+                'nom' => $animal->nom,
+                'espece' => $animal->espece,
+                'race' => $animal->race,
+                'poids' => (float) $animal->poids,
+                'statut_sanitaire' => $animal->statut_sanitaire,
+                'sexe' => $animal->sexe,
+                'statut' => $animal->statut,
+            ];
+            
             $data = $request->validated();
             
             // Gestion de l'image
             if ($request->hasFile('image')) {
-                // Supprimer l'ancienne image
                 if ($animal->img_url && !str_contains($animal->img_url, 'default-')) {
                     $this->deleteImage($animal->img_url);
                 }
@@ -238,7 +278,7 @@ class AnimalController extends Controller
                 $data['img_url'] = null;
             }
             
-            // Si l'animal est marqué comme décédé, s'assurer que les dates sont définies
+            // Si l'animal est marqué comme décédé
             if (isset($data['statut']) && $data['statut'] === 'decede') {
                 if (empty($data['date_deces'])) {
                     $data['date_deces'] = now();
@@ -248,7 +288,162 @@ class AnimalController extends Controller
                 }
             }
             
+            // Mettre à jour l'animal
             $animal->update($data);
+            
+            // 🔍 DÉTECTER LES CHANGEMENTS ET ENREGISTRER L'HISTORIQUE
+            $changes = [];
+            $fieldsToCheck = ['nom', 'espece', 'race', 'poids', 'statut_sanitaire', 'sexe', 'statut'];
+            
+            foreach ($fieldsToCheck as $field) {
+                if (isset($data[$field]) && $oldValues[$field] != $data[$field]) {
+                    $changes[$field] = [
+                        'old' => $oldValues[$field],
+                        'new' => $data[$field]
+                    ];
+                    
+                    // Enregistrer dans l'historique
+                    try {
+                        AnimalHistorique::logChange(
+                            $animal->id,
+                            $user->id,
+                            $field,
+                            $oldValues[$field],
+                            $data[$field],
+                            'update'
+                        );
+                    } catch (\Exception $e) {
+                        Log::error('❌ Erreur historique changement', [
+                            'field' => $field,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+            }
+            
+            // 🔔 ALERTE SANITAIRE
+            if (isset($data['statut_sanitaire']) && in_array($data['statut_sanitaire'], ['malade', 'critique'])) {
+                try {
+                    Log::info('🚨 Alerte sanitaire animal', [
+                        'animal_id' => $animal->id,
+                        'statut' => $data['statut_sanitaire']
+                    ]);
+                    
+                    $user->notify(new AnimalNotification($animal, 'health_alert', [
+                        'status' => $data['statut_sanitaire']
+                    ]));
+                    
+                    Log::info('✅ Alerte sanitaire envoyée');
+                } catch (\Exception $e) {
+                    Log::error('❌ Erreur envoi alerte sanitaire', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            // 🔔 ALERTE PERTE DE POIDS (CORRIGÉE)
+            if (isset($data['poids']) && isset($oldValues['poids']) && $data['poids'] < $oldValues['poids']) {
+                $oldWeight = (float) $oldValues['poids'];
+                $newWeight = (float) $data['poids'];
+                
+                if ($oldWeight > 0) {
+                    $lossPercent = (($oldWeight - $newWeight) / $oldWeight) * 100;
+                    
+                    // Vérifier l'historique des poids sur les 15 derniers jours
+                    $historique = AnimalHistorique::where('animal_id', $animal->id)
+                        ->where('champ_modifie', 'poids') // ✅ CORRECTION: champ_modifie
+                        ->where('action', 'update')
+                        ->where('created_at', '>=', now()->subDays(15))
+                        ->orderBy('created_at', 'desc')
+                        ->first();
+                    
+                    if ($historique) {
+                        $oldHistoricalWeight = (float) ($historique->ancienne_valeur ?? $oldWeight);
+                        $newWeight = (float) $data['poids'];
+                        $historicalLoss = (($oldHistoricalWeight - $newWeight) / max($oldHistoricalWeight, 1)) * 100;
+                        
+                        if ($historicalLoss >= 10) {
+                            try {
+                                Log::info('⚠️ Alerte perte de poids animal', [
+                                    'animal_id' => $animal->id,
+                                    'loss_percent' => $historicalLoss
+                                ]);
+                                
+                                $user->notify(new AnimalNotification($animal, 'weight_alert', [
+                                    'old_weight' => $oldHistoricalWeight,
+                                    'new_weight' => $newWeight
+                                ]));
+                                
+                                Log::info('✅ Alerte perte de poids envoyée');
+                            } catch (\Exception $e) {
+                                Log::error('❌ Erreur envoi alerte perte de poids', [
+                                    'error' => $e->getMessage()
+                                ]);
+                            }
+                        }
+                    } elseif ($lossPercent >= 10) {
+                        // Pas d'historique, mais perte directe significative
+                        try {
+                            Log::info('⚠️ Alerte perte de poids immédiate', [
+                                'animal_id' => $animal->id,
+                                'loss_percent' => $lossPercent
+                            ]);
+                            
+                            $user->notify(new AnimalNotification($animal, 'weight_alert', [
+                                'old_weight' => $oldWeight,
+                                'new_weight' => $newWeight
+                            ]));
+                            
+                            Log::info('✅ Alerte perte de poids immédiate envoyée');
+                        } catch (\Exception $e) {
+                            Log::error('❌ Erreur envoi alerte perte de poids', [
+                                'error' => $e->getMessage()
+                            ]);
+                        }
+                    }
+                }
+            }
+            
+            // 🔔 NOTIFICATION DE DÉCÈS
+            if (isset($data['statut']) && $data['statut'] === 'decede' && $oldValues['statut'] !== 'decede') {
+                try {
+                    Log::info('💔 Animal décédé', [
+                        'animal_id' => $animal->id,
+                        'motif' => $data['motif_deces'] ?? 'Non spécifié'
+                    ]);
+                    
+                    $user->notify(new AnimalNotification($animal, 'death', [
+                        'motif' => $data['motif_deces'] ?? 'Non spécifié'
+                    ]));
+                    
+                    Log::info('✅ Notification de décès envoyée');
+                } catch (\Exception $e) {
+                    Log::error('❌ Erreur envoi notification décès', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            // 🔔 NOTIFICATION DE MODIFICATION
+            if (!empty($changes)) {
+                try {
+                    Log::info('📤 Envoi notification modification animal', [
+                        'user_id' => $user->id,
+                        'animal_id' => $animal->id,
+                        'changes' => $changes
+                    ]);
+                    
+                    $user->notify(new AnimalNotification($animal, 'updated', [
+                        'changes' => $changes
+                    ]));
+                    
+                    Log::info('✅ Notification modification animal envoyée');
+                } catch (\Exception $e) {
+                    Log::error('❌ Erreur envoi notification modification', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
             
             DB::commit();
             
@@ -259,10 +454,13 @@ class AnimalController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur mise à jour animal: ' . $e->getMessage());
-            return $this->errorResponse('Erreur lors de la mise à jour de l\'animal.', 500);
+            Log::error('Erreur mise à jour animal: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return $this->errorResponse('Erreur lors de la mise à jour de l\'animal: ' . $e->getMessage(), 500);
         }
     }
+
 
     /**
      * Supprimer un animal
@@ -283,12 +481,34 @@ class AnimalController extends Controller
         DB::beginTransaction();
         
         try {
+            $animalNom = $animal->nom;
+            $animalId = $animal->id;
+            
+            // 🔔 ENVOYER LA NOTIFICATION AVANT LA SUPPRESSION
+            try {
+                Log::info('📤 Envoi notification suppression animal', [
+                    'user_id' => $user->id,
+                    'animal_id' => $animalId,
+                    'animal_nom' => $animalNom
+                ]);
+                
+                // Créer un clone pour la notification
+                $animalClone = clone $animal;
+                
+                $user->notify(new AnimalNotification($animalClone, 'deleted'));
+                
+                Log::info('✅ Notification suppression animal envoyée');
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur envoi notification suppression', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+            
             // Supprimer l'image
             if ($animal->img_url && !str_contains($animal->img_url, 'default-')) {
                 $this->deleteImage($animal->img_url);
             }
             
-            // Les tâches seront supprimées automatiquement (cascade)
             $animal->delete();
             
             DB::commit();
@@ -297,10 +517,44 @@ class AnimalController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur suppression animal: ' . $e->getMessage());
+            Log::error('Erreur suppression animal: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la suppression de l\'animal.', 500);
         }
     }
+
+    // AJOUTER UNE MÉTHODE POUR VÉRIFIER LES ALERTES SANITAIRES EN ARRIÈRE-PLAN
+    public function checkHealthAlerts()
+    {
+        try {
+            $animals = Animal::where('statut', 'actif')
+                ->whereIn('statut_sanitaire', ['malade', 'critique'])
+                ->with('elevage.user')
+                ->get();
+            
+            foreach ($animals as $animal) {
+                $user = $animal->elevage?->user;
+                if ($user) {
+                    $user->notify(new AnimalNotification($animal, 'health_alert', [
+                        'status' => $animal->statut_sanitaire
+                    ]));
+                }
+            }
+            
+            Log::info('✅ Vérification des alertes sanitaires terminée', [
+                'animals_checked' => $animals->count()
+            ]);
+            
+            return $this->successResponse([
+                'checked' => $animals->count(),
+                'notified' => $animals->count()
+            ], 'Alertes sanitaires vérifiées.');
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur vérification alertes sanitaires: ' . $e->getMessage());
+            return $this->errorResponse('Erreur lors de la vérification des alertes.', 500);
+        }
+    }
+
 
     /**
      * Statistiques des animaux

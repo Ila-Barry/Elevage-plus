@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use App\Notifications\PublicationNotification;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class PublicationController extends Controller
 {
@@ -23,20 +26,16 @@ class PublicationController extends Controller
     {
         $query = Publication::with(['user'])->published();
 
-        // Filtrer par catégorie
         if ($request->has('categorie') && $request->categorie !== 'all' && !empty($request->categorie)) {
             $query->byCategory($request->categorie);
         }
 
-        // Filtrer par auteur (mes publications)
         if ($request->has('scope') && $request->scope === 'mine') {
             $query->where('user_id', Auth::id());
         }
 
-        // ✅ Mélange aléatoire pour un flux dynamique
         $publications = $query->inRandomOrder()->paginate(10);
 
-        // Formatage des données
         $formatted = $publications->through(function ($post) {
             return $this->formatPublication($post);
         });
@@ -57,49 +56,89 @@ class PublicationController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'titre' => 'required|string|min:5|max:255',
-            'categorie' => 'required|string|in:conseil,experience,alerte',
-            'contenu' => 'nullable|string|min:2',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'videos.*' => 'nullable|file|mimes:mp4,mov,avi,webm|max:51200',
-            'documents.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar|max:10240',
-        ]);
+        try {
+            $user = Auth::user();
+            
+            \Log::info('📝 Tentative de création de publication', [
+                'user_id' => $user->id,
+                'titre' => $request->titre,
+            ]);
 
-        if ($validator->fails()) {
+            $validator = Validator::make($request->all(), [
+                'titre' => 'required|string|min:5|max:255',
+                'categorie' => 'required|string|in:conseil,experience,alerte',
+                'contenu' => 'nullable|string|min:2',
+                'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+                'videos.*' => 'nullable|file|mimes:mp4,mov,avi,webm|max:51200',
+                'documents.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar|max:10240',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Erreur de validation',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $images = $this->uploadMultipleFiles($request->file('images'), 'uploads/publications/images');
+            $videos = $this->uploadMultipleFiles($request->file('videos'), 'uploads/publications/videos');
+            $documents = $this->uploadMultipleDocuments($request->file('documents'), 'uploads/publications/documents');
+
+            $publication = Publication::create([
+                'titre' => $request->titre,
+                'categorie' => $request->categorie,
+                'contenu' => $request->contenu,
+                'user_id' => $user->id,
+                'images' => $images,
+                'videos' => $videos,
+                'documents' => $documents,
+                'published_at' => now(),
+            ]);
+
+            $publication->load('user');
+
+            // 🔔 NOTIFICATION DE CRÉATION
+            try {
+                Log::info('📤 Envoi notification création publication', [
+                    'user_id' => $user->id,
+                    'publication_id' => $publication->id,
+                    'titre' => $publication->titre
+                ]);
+
+                // Notifier l'auteur
+                $user->notify(new PublicationNotification($publication, PublicationNotification::TYPE_CREATED));
+
+                // Notifier les admins
+                $admins = User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    if ($admin->id !== $user->id) {
+                        $admin->notify(new PublicationNotification($publication, PublicationNotification::TYPE_CREATED));
+                    }
+                }
+
+                Log::info('✅ Notification création publication envoyée');
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur notification création publication', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Article publié avec succès !',
+                'data' => $this->formatPublication($publication)
+            ], 201);
+
+        } catch (\Exception $e) {
+            Log::error('❌ ERREUR CRÉATION PUBLICATION: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Erreur de validation',
-                'errors' => $validator->errors()
-            ], 422);
+                'message' => 'Erreur lors de la création: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Traitement des fichiers
-        $images = $this->uploadMultipleFiles($request->file('images'), 'uploads/publications/images');
-        $videos = $this->uploadMultipleFiles($request->file('videos'), 'uploads/publications/videos');
-        $documents = $this->uploadMultipleDocuments($request->file('documents'), 'uploads/publications/documents');
-
-        // Création
-        $publication = Publication::create([
-            'titre' => $request->titre,
-            'categorie' => $request->categorie,
-            'contenu' => $request->contenu,
-            'user_id' => Auth::id(),
-            'images' => $images,
-            'videos' => $videos,
-            'documents' => $documents,
-            'published_at' => now(),
-        ]);
-
-        // Charger la relation user
-        $publication->load('user');
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Article publié avec succès !',
-            'data' => $this->formatPublication($publication)
-        ], 201);
     }
+
 
     /**
      * Mettre à jour une publication
@@ -108,7 +147,6 @@ class PublicationController extends Controller
     {
         $publication = Publication::findOrFail($id);
 
-        // Vérifier les droits
         if (!$publication->canManage(Auth::user())) {
             return response()->json([
                 'status' => 'error',
@@ -133,20 +171,14 @@ class PublicationController extends Controller
             ], 422);
         }
 
-        // Récupérer les fichiers existants
-        $images = is_array($publication->images)
-            ? $publication->images
-            : [];
+        $user = Auth::user();
+        $oldTitre = $publication->titre;
 
-        $videos = is_array($publication->videos)
-            ? $publication->videos
-            : [];
+        // Gestion des fichiers (comme avant)
+        $images = is_array($publication->images) ? $publication->images : [];
+        $videos = is_array($publication->videos) ? $publication->videos : [];
+        $documents = is_array($publication->documents) ? $publication->documents : [];
 
-        $documents = is_array($publication->documents)
-            ? $publication->documents
-            : [];
-
-        // Supprimer des fichiers si demandé
         if ($request->has('delete_images') && $request->delete_images) {
             $this->deleteMultipleFiles($images, 'public');
             $images = [];
@@ -160,7 +192,6 @@ class PublicationController extends Controller
             $documents = [];
         }
 
-        // Ajouter les nouveaux fichiers
         if ($request->hasFile('images')) {
             $newImages = $this->uploadMultipleFiles($request->file('images'), 'uploads/publications/images');
             $images = array_merge($images, $newImages);
@@ -174,7 +205,6 @@ class PublicationController extends Controller
             $documents = array_merge($documents, $newDocuments);
         }
 
-        // Mise à jour
         $updateData = [];
         if ($request->has('titre')) $updateData['titre'] = $request->titre;
         if ($request->has('categorie')) $updateData['categorie'] = $request->categorie;
@@ -186,12 +216,31 @@ class PublicationController extends Controller
         $publication->update($updateData);
         $publication->load('user');
 
+        // 🔔 NOTIFICATION DE MODIFICATION
+        try {
+            Log::info('📤 Envoi notification modification publication', [
+                'user_id' => $user->id,
+                'publication_id' => $publication->id,
+                'old_titre' => $oldTitre,
+                'new_titre' => $publication->titre
+            ]);
+
+            $user->notify(new PublicationNotification($publication, PublicationNotification::TYPE_UPDATED));
+
+            Log::info('✅ Notification modification publication envoyée');
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur notification modification publication', [
+                'error' => $e->getMessage()
+            ]);
+        }
+
         return response()->json([
             'status' => 'success',
             'message' => 'Publication mise à jour avec succès !',
             'data' => $this->formatPublication($publication)
         ]);
     }
+
 
     /**
      * Supprimer une publication
@@ -207,10 +256,30 @@ class PublicationController extends Controller
             ], 403);
         }
 
-        // Supprimer les fichiers
+        $user = Auth::user();
+        $titre = $publication->titre;
+
         $this->deleteMultipleFiles($publication->getAttributes()['images'] ?? [], 'public');
         $this->deleteMultipleFiles($publication->getAttributes()['videos'] ?? [], 'public');
         $this->deleteMultipleDocuments($publication->getAttributes()['documents'] ?? [], 'public');
+
+        // 🔔 NOTIFICATION DE SUPPRESSION (avant la suppression)
+        try {
+            Log::info('📤 Envoi notification suppression publication', [
+                'user_id' => $user->id,
+                'publication_id' => $publication->id,
+                'titre' => $titre
+            ]);
+
+            $publicationClone = clone $publication;
+            $user->notify(new PublicationNotification($publicationClone, PublicationNotification::TYPE_DELETED));
+
+            Log::info('✅ Notification suppression publication envoyée');
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur notification suppression publication', [
+                'error' => $e->getMessage()
+            ]);
+        }
 
         $publication->delete();
 
@@ -221,16 +290,22 @@ class PublicationController extends Controller
     }
 
     // ============================================================
-    // MÉTHODES UTILITAIRES DE FICHIERS
+    // MÉTHODES UTILITAIRES DE FICHIERS (AVEC CRÉATION AUTO DES DOSSIERS)
     // ============================================================
 
     /**
-     * Upload multiple fichiers
+     * Upload multiple fichiers avec création automatique du dossier
      */
     private function uploadMultipleFiles($files, $directory)
     {
         if (empty($files)) {
             return [];
+        }
+
+        // ✅ CRÉER LE DOSSIER AUTOMATIQUEMENT (SOLUTION DÉFINITIVE)
+        $fullPath = storage_path('app/public/' . $directory);
+        if (!file_exists($fullPath)) {
+            mkdir($fullPath, 0777, true);
         }
 
         $uploaded = [];
@@ -242,12 +317,18 @@ class PublicationController extends Controller
     }
 
     /**
-     * Upload multiple documents (avec noms)
+     * Upload multiple documents avec création automatique du dossier
      */
     private function uploadMultipleDocuments($files, $directory)
     {
         if (empty($files)) {
             return [];
+        }
+
+        // ✅ CRÉER LE DOSSIER AUTOMATIQUEMENT (SOLUTION DÉFINITIVE)
+        $fullPath = storage_path('app/public/' . $directory);
+        if (!file_exists($fullPath)) {
+            mkdir($fullPath, 0777, true);
         }
 
         $uploaded = [];
@@ -346,12 +427,14 @@ class PublicationController extends Controller
         };
     }
 
-    /**
-     * commentaire à une publication
-     */
+    // ============================================================
+    // COMMENTAIRES
+    // ============================================================
+
     public function addComment(Request $request, $id)
     {
         $publication = Publication::findOrFail($id);
+        $user = Auth::user();
         
         $validator = Validator::make($request->all(), [
             'contenu' => 'required|string|min:1|max:5000',
@@ -368,15 +451,39 @@ class PublicationController extends Controller
 
         $commentaire = Commentaire::create([
             'publication_id' => $publication->id,
-            'user_id' => Auth::id(),
+            'user_id' => $user->id,
             'parent_id' => $request->parent_id,
             'contenu' => $request->contenu,
         ]);
 
-        // Incrémenter le compteur de commentaires
         $publication->increment('nbr_commentaires');
-
         $commentaire->load('user');
+
+        // 🔔 NOTIFICATION DE COMMENTAIRE (uniquement si ce n'est pas l'auteur)
+        if ($publication->user_id !== $user->id) {
+            try {
+                Log::info('📤 Envoi notification commentaire publication', [
+                    'publication_id' => $publication->id,
+                    'commentateur_id' => $user->id,
+                    'auteur_id' => $publication->user_id
+                ]);
+
+                $auteur = User::find($publication->user_id);
+                if ($auteur) {
+                    $auteur->notify(new PublicationNotification(
+                        $publication,
+                        PublicationNotification::TYPE_COMMENTED,
+                        $user,
+                        ['comment_content' => $request->contenu]
+                    ));
+                    Log::info('✅ Notification commentaire envoyée à ' . $auteur->name);
+                }
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur notification commentaire', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
 
         return response()->json([
             'status' => 'success',
@@ -395,9 +502,7 @@ class PublicationController extends Controller
         ], 201);
     }
 
-    /**
-     * Récupérer les commentaires d'une publication
-     */
+
     public function getComments($id)
     {
         $publication = Publication::findOrFail($id);
@@ -408,7 +513,6 @@ class PublicationController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Formater les commentaires
         $formatted = $commentaires->map(function($comment) {
             return [
                 'id' => $comment->id,
@@ -429,14 +533,10 @@ class PublicationController extends Controller
         ]);
     }
 
-    /**
-     * Supprimer un commentaire
-     */
     public function deleteComment($id)
     {
         $commentaire = Commentaire::findOrFail($id);
         
-        // Vérifier les droits (auteur ou admin)
         if (Auth::id() !== $commentaire->user_id && Auth::user()->role !== 'admin') {
             return response()->json([
                 'status' => 'error',
@@ -446,8 +546,6 @@ class PublicationController extends Controller
 
         $publication_id = $commentaire->publication_id;
         $commentaire->delete();
-
-        // Décrémenter le compteur de commentaires
         Publication::where('id', $publication_id)->decrement('nbr_commentaires');
 
         return response()->json([
@@ -456,27 +554,25 @@ class PublicationController extends Controller
         ]);
     }
 
-    /**
-     * ou retirer un like
-     */
+    // ============================================================
+    // LIKES
+    // ============================================================
+
     public function toggleLike($id)
     {
         $publication = Publication::findOrFail($id);
         $user = Auth::user();
         
-        // Vérifier si l'utilisateur a déjà liké
         $existingLike = Like::where('publication_id', $publication->id)
                             ->where('user_id', $user->id)
                             ->first();
         
         if ($existingLike) {
-            // Supprimer le like
             $existingLike->delete();
             $publication->decrement('nbr_likes');
             $liked = false;
             $message = 'Like retiré';
         } else {
-            // Ajouter le like
             Like::create([
                 'publication_id' => $publication->id,
                 'user_id' => $user->id,
@@ -484,14 +580,33 @@ class PublicationController extends Controller
             $publication->increment('nbr_likes');
             $liked = true;
             $message = 'Like ajouté';
-            
-            // 🔔 Notification (optionnel - à décommenter si vous avez la notification)
-            // if ($publication->user_id !== $user->id) {
-            //     $publication->user->notify(new NewLikeNotification($user, $publication));
-            // }
+
+            // 🔔 NOTIFICATION DE LIKE (uniquement si ce n'est pas l'auteur)
+            if ($publication->user_id !== $user->id) {
+                try {
+                    Log::info('📤 Envoi notification like publication', [
+                        'publication_id' => $publication->id,
+                        'likeur_id' => $user->id,
+                        'auteur_id' => $publication->user_id
+                    ]);
+
+                    $auteur = User::find($publication->user_id);
+                    if ($auteur) {
+                        $auteur->notify(new PublicationNotification(
+                            $publication,
+                            PublicationNotification::TYPE_LIKED,
+                            $user
+                        ));
+                        Log::info('✅ Notification like envoyée à ' . $auteur->name);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('❌ Erreur notification like', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
         }
         
-        // Recharger pour avoir le compteur à jour
         $publication->refresh();
         
         return response()->json([
@@ -504,9 +619,7 @@ class PublicationController extends Controller
         ]);
     }
 
-    /**
-     * Vérifier si l'utilisateur a liké une publication
-     */
+
     public function checkLike($id)
     {
         $publication = Publication::findOrFail($id);
@@ -525,9 +638,6 @@ class PublicationController extends Controller
         ]);
     }
 
-    /**
-     * Récupérer la liste des utilisateurs qui ont liké
-     */
     public function getLikes($id)
     {
         $publication = Publication::findOrFail($id);
@@ -551,9 +661,10 @@ class PublicationController extends Controller
         ]);
     }
 
-    /**
-     * Partager une publication
-     */
+    // ============================================================
+    // PARTAGES
+    // ============================================================
+
     public function share(Request $request, $id)
     {
         $publication = Publication::findOrFail($id);
@@ -571,20 +682,43 @@ class PublicationController extends Controller
             ], 422);
         }
 
-        // Enregistrer le partage
         Share::create([
             'publication_id' => $publication->id,
             'user_id' => $user->id,
             'plateforme' => $request->plateforme,
         ]);
 
-        // Incrémenter le compteur de partages
         $publication->increment('nbr_partages');
 
-        // Générer l'URL de partage
+        // 🔔 NOTIFICATION DE PARTAGE (uniquement si ce n'est pas l'auteur)
+        if ($publication->user_id !== $user->id) {
+            try {
+                Log::info('📤 Envoi notification partage publication', [
+                    'publication_id' => $publication->id,
+                    'partageur_id' => $user->id,
+                    'auteur_id' => $publication->user_id,
+                    'plateforme' => $request->plateforme
+                ]);
+
+                $auteur = User::find($publication->user_id);
+                if ($auteur) {
+                    $auteur->notify(new PublicationNotification(
+                        $publication,
+                        PublicationNotification::TYPE_SHARED,
+                        $user,
+                        ['platform' => $request->plateforme]
+                    ));
+                    Log::info('✅ Notification partage envoyée à ' . $auteur->name);
+                }
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur notification partage', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
         $shareUrl = url('/blog/' . $publication->id);
         
-        // URLs spécifiques aux plateformes
         $platformUrls = [
             'facebook' => 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode($shareUrl),
             'twitter' => 'https://twitter.com/intent/tweet?url=' . urlencode($shareUrl) . '&text=' . urlencode($publication->titre),
@@ -603,9 +737,6 @@ class PublicationController extends Controller
         ]);
     }
 
-    /**
-     * Récupérer les statistiques de partage
-     */
     public function getShares($id)
     {
         $publication = Publication::findOrFail($id);
@@ -627,7 +758,6 @@ class PublicationController extends Controller
                 ];
             });
         
-        // Statistiques par plateforme
         $stats = Share::where('publication_id', $publication->id)
             ->select('plateforme', \DB::raw('count(*) as total'))
             ->groupBy('plateforme')
@@ -644,6 +774,4 @@ class PublicationController extends Controller
             ]
         ]);
     }
-
-
 }

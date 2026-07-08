@@ -1,5 +1,4 @@
 <?php
-// routes/web.php
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -23,15 +22,13 @@ Route::get('/login', function () {
     return view('auth/login');
 })->name('login');
 
-
-// ✅ CHANGEMENT ICI : Renommer pour éviter le conflit
 Route::get('/auth/login', function () {
     return view('auth/login');
-})->name('web.login'); // ✅ Nom unique
+})->name('web.login');
 
 Route::get('/auth/register', function () {
     return view('auth/register');
-})->name('web.register'); // ✅ Nom unique
+})->name('web.register');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/logout', function () {
@@ -45,19 +42,15 @@ Route::get('/auth/verify-2fa', function () {
 // ========== ROUTES PROTÉGÉES (AUTHENTIFIÉ) ==========
 Route::middleware(['auth'])->group(function () {
     
-    // Dashboard Éleveur
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
     
     Route::get('/auth/profile', function () {
         $user = Auth::user();
-        
         if (!$user) {
-            return redirect()->route('web.login'); // ✅ Utiliser le nouveau nom
+            return redirect()->route('web.login');
         }
-        
-        // Statistiques
         $stats = [
             'publications' => $user->publications()->count(),
             'likes_received' => $user->publications()->sum('nbr_likes') ?? 0,
@@ -65,104 +58,106 @@ Route::middleware(['auth'])->group(function () {
             'elevages' => $user->elevages()->count(),
             'animaux' => $user->elevages()->withCount('animaux')->get()->sum('animaux_count') ?? 0,
         ];
-        
         return view('auth/profile', compact('user', 'stats'));
     });
     
     Route::get('/auth/parametre', function () {
         $user = Auth::user();
-        
         if (!$user) {
-            return redirect()->route('web.login'); // ✅ Utiliser le nouveau nom
+            return redirect()->route('web.login');
         }
-        
-        // Récupérer les statistiques
         $stats = [
             'publications' => $user->publications()->count(),
             'likes_received' => $user->publications()->sum('nbr_likes') ?? 0,
             'commentaires' => $user->commentaires()->count(),
             'elevages' => $user->elevages()->count(),
         ];
-        
         return view('auth/parametre', compact('user', 'stats'));
     });
     
-    // Gestion
+    // ========== ROUTES PRINCIPALES ==========
     Route::get('/elevages', function () {
-        $user = Auth::user();
-        
-        if (!$user) {
-            return redirect()->route('web.login');
-        }
-        
-        return view('elevages', compact('user'));
+        return view('elevages');
     });
+    
+    // ✅ ROUTE POUR VOIR UN ÉLEVAGE SPÉCIFIQUE
+    Route::get('/elevages/{id}', function ($id) {
+        return view('elevages', compact('id'));
+    })->name('elevages.show');
     
     Route::get('/animaux', function () {
         return view('animaux');
     });
     
+    // ✅ ROUTE POUR VOIR UN ANIMAL SPÉCIFIQUE
+    Route::get('/animaux/{id}', function ($id) {
+        return view('animaux', compact('id'));
+    })->name('animaux.show');
+    
     Route::get('/taches', function () {
         return view('taches');
     });
+    
+    // ✅ ROUTE POUR VOIR UNE TÂCHE SPÉCIFIQUE
+    Route::get('/taches/{id}', function ($id) {
+        return view('taches', compact('id'));
+    })->name('taches.show');
     
     Route::get('/stocks', function () {
         return view('stocks');
     });
     
-    // Communauté
+    // ✅ ROUTE POUR VOIR UN PRODUIT SPÉCIFIQUE
+    Route::get('/stocks/{id}', function ($id) {
+        return view('stocks', compact('id'));
+    })->name('stocks.show');
+    
     Route::get('/blog', function () {
         return view('blog');
     });
+    
+    // ✅ ROUTE POUR VOIR UN ARTICLE SPÉCIFIQUE
+    Route::get('/blog/{id}', function ($id) {
+        return view('blog', compact('id'));
+    })->name('blog.show');
     
     Route::get('/messages', function () {
         return view('messages');
     });
     
+    // ✅ ROUTE POUR VOIR UNE CONVERSATION SPÉCIFIQUE
+    Route::get('/messagerie', function () {
+        return view('messages');
+    })->name('messagerie');
+    
     Route::get('/notification', function () {
         return view('notification');
-    });
-});
+    })->name('notifications');
+}); // Fin du groupe auth
 
 // ========== ROUTES ADMIN (AUTHENTIFIÉ + ADMIN) ==========
-// Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/admin/dashboard', function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', function () {
         return view('admin/dashboard');
     })->name('admin.dashboard');
     
-    Route::get('/admin/utilisateur', function () {
+    Route::get('/utilisateur', function () {
         return view('admin/utilisateur');
     });
     
-    Route::get('/admin/publication', function () {
+    Route::get('/publication', function () {
         return view('admin/publication');
     });
     
-    Route::get('/admin/signale', function () {
+    Route::get('/signale', function () {
         return view('admin/signale');
     });
     
-    Route::get('/admin/statistique', function () {
+    Route::get('/messages/{id}', function ($id) {
+        return view('admin/messages', compact('id'));
+    })->name('admin.messages');
+    
+    Route::get('/statistique', function () {
         return view('admin/statistique');
     });
-// });
-
-// ========== VÉRIFICATION D'EMAIL ==========
-Route::get('/verify-email', function (Request $request) {
-    $verifyUrl = $request->query('verify_url');
-    
-    if (!$verifyUrl) {
-        return view('verify-email', [
-            'error' => 'Lien de vérification manquant.',
-            'success' => false
-        ]);
-    }
-
-    $verifyUrl = urldecode($verifyUrl);
-    
-    return view('verify-email', [
-        'verify_url' => $verifyUrl,
-        'error' => null,
-        'success' => true
-    ]);
-})->name('verify.email');
+}); // Fin du groupe admin

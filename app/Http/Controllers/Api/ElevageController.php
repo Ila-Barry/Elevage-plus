@@ -4,6 +4,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 use App\Http\Requests\Api\Elevage\CreateElevageRequest;
 use App\Http\Requests\Api\Elevage\UpdateElevageRequest;
 use App\Http\Requests\Api\Elevage\ElevageFilterRequest;
@@ -14,6 +15,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+
+use App\Notifications\ElevageNotification;
+use Illuminate\Support\Facades\Notification as NotificationFacade;
+
 
 /**
  * Contrôleur ElevageController
@@ -120,12 +125,40 @@ class ElevageController extends Controller
             $data['user_id'] = $user->id;
             $data['date_creation'] = now();
             
-            // Upload de l'image
             if ($request->hasFile('image')) {
                 $data['img_url'] = $this->uploadImage($request->file('image'));
             }
             
             $elevage = Elevage::create($data);
+            
+            // 🔔 ENVOYER LA NOTIFICATION DE CRÉATION
+            try {
+                Log::info('📤 Envoi notification création élevage', [
+                    'user_id' => $user->id,
+                    'elevage_id' => $elevage->id,
+                    'elevage_nom' => $elevage->nom
+                ]);
+                
+                $user->notify(new ElevageNotification($elevage, 'created'));
+                
+                // OPTIONNEL: Notifier les admins
+                $admins = \App\Models\User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    if ($admin->id !== $user->id) {
+                        $admin->notify(new ElevageNotification($elevage, 'created', [
+                            'admin_notification' => true
+                        ]));
+                    }
+                }
+                
+                Log::info('✅ Notification création envoyée avec succès');
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur envoi notification création', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                // On continue même si la notification échoue
+            }
             
             DB::commit();
             
@@ -137,7 +170,7 @@ class ElevageController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur création élevage: ' . $e->getMessage());
+            Log::error('Erreur création élevage: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la création de l\'élevage.', 500);
         }
     }
@@ -180,41 +213,75 @@ class ElevageController extends Controller
         $user = $request->user();
         
         $elevage = Elevage::findOrFail($id);
-        
-        // Vérifier le propriétaire
         $this->authorize('update', $elevage);
         
         DB::beginTransaction();
         
         try {
-            // Récupérer toutes les données validées
+            // Récupérer les anciennes valeurs
+            $oldValues = [
+                'nom' => $elevage->nom,
+                'type_elevage' => $elevage->type_elevage,
+                'localisation' => $elevage->localisation,
+                'superficie' => $elevage->superficie,
+                'description' => $elevage->description,
+                'statut' => $elevage->statut,
+            ];
+            
             $data = $request->validated();
             
-            // ✅ Gestion de l'image - CORRECTION IMPORTANTE
             if ($request->hasFile('image')) {
-                // Supprimer l'ancienne image
                 if ($elevage->img_url && !str_contains($elevage->img_url, 'default-farm')) {
                     $this->deleteImage($elevage->img_url);
                 }
                 $data['img_url'] = $this->uploadImage($request->file('image'));
             } elseif ($request->input('delete_image') === 'true' || $request->input('delete_image') === '1') {
-                // Supprimer l'image si demandé
                 if ($elevage->img_url && !str_contains($elevage->img_url, 'default-farm')) {
                     $this->deleteImage($elevage->img_url);
                 }
                 $data['img_url'] = null;
             } else {
-                // Conserver l'image existante
-                // Ne pas modifier img_url si aucune action sur l'image
                 unset($data['image']);
                 unset($data['delete_image']);
             }
             
-            // ✅ Supprimer les champs qui ne sont pas dans la table
             unset($data['delete_image']);
-            
-            // ✅ Mise à jour
             $elevage->update($data);
+            
+            // 🔔 DÉTECTER LES CHANGEMENTS
+            $changes = [];
+            $fieldsToCheck = ['nom', 'type_elevage', 'localisation', 'superficie', 'description', 'statut'];
+            
+            foreach ($fieldsToCheck as $field) {
+                if (isset($data[$field]) && $oldValues[$field] != $data[$field]) {
+                    $changes[$field] = [
+                        'old' => $oldValues[$field],
+                        'new' => $data[$field]
+                    ];
+                }
+            }
+            
+            // Envoyer la notification si des changements ont été faits
+            if (!empty($changes) || $request->hasFile('image')) {
+                try {
+                    Log::info('📤 Envoi notification mise à jour élevage', [
+                        'user_id' => $user->id,
+                        'elevage_id' => $elevage->id,
+                        'changes' => $changes
+                    ]);
+                    
+                    $user->notify(new ElevageNotification($elevage, 'updated', [
+                        'changes' => $changes
+                    ]));
+                    
+                    Log::info('✅ Notification mise à jour envoyée avec succès');
+                } catch (\Exception $e) {
+                    Log::error('❌ Erreur envoi notification mise à jour', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                }
+            }
             
             DB::commit();
             
@@ -225,7 +292,7 @@ class ElevageController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur mise à jour élevage: ' . $e->getMessage());
+            Log::error('Erreur mise à jour élevage: ' . $e->getMessage());
             return $this->errorResponse(
                 'Erreur lors de la mise à jour de l\'élevage: ' . $e->getMessage(),
                 500
@@ -245,19 +312,51 @@ class ElevageController extends Controller
         $user = $request->user();
         
         $elevage = Elevage::findOrFail($id);
-        
-        // Vérifier le propriétaire via Policy
         $this->authorize('delete', $elevage);
         
         DB::beginTransaction();
         
         try {
-            // Supprimer l'image
+            $elevageNom = $elevage->nom;
+            $elevageId = $elevage->id;
+            
             if ($elevage->img_url && !str_contains($elevage->img_url, 'default-farm')) {
                 $this->deleteImage($elevage->img_url);
             }
             
-            // Les animaux et produits seront supprimés automatiquement (cascade)
+            // 🔔 ENVOYER LA NOTIFICATION AVANT LA SUPPRESSION
+            try {
+                Log::info('📤 Envoi notification suppression élevage', [
+                    'user_id' => $user->id,
+                    'elevage_id' => $elevageId,
+                    'elevage_nom' => $elevageNom
+                ]);
+                
+                // Créer un clone pour la notification
+                $elevageClone = clone $elevage;
+                
+                // Notifier l'utilisateur
+                $user->notify(new ElevageNotification($elevageClone, 'deleted'));
+                
+                // Notifier les admins
+                $admins = \App\Models\User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    if ($admin->id !== $user->id) {
+                        $admin->notify(new ElevageNotification($elevageClone, 'deleted', [
+                            'admin_notification' => true,
+                            'deleted_by' => $user->name
+                        ]));
+                    }
+                }
+                
+                Log::info('✅ Notification suppression envoyée avec succès');
+            } catch (\Exception $e) {
+                Log::error('❌ Erreur envoi notification suppression', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+            
             $elevage->delete();
             
             DB::commit();
@@ -266,7 +365,7 @@ class ElevageController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur suppression élevage: ' . $e->getMessage());
+            Log::error('Erreur suppression élevage: ' . $e->getMessage());
             return $this->errorResponse('Erreur lors de la suppression de l\'élevage.', 500);
         }
     }

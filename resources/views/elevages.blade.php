@@ -9,6 +9,7 @@
 @endpush
 
 @section('content')
+
 <div class="dashboard-wrapper container-fluid py-4">
     
    <div class="d-flex flex-column align-items-start mb-4 gap-2">
@@ -402,7 +403,6 @@ async function createElevage(formData) {
 // ================= MODIFIER UN ÉLEVAGE =================
 async function updateElevage(id, formData) {
     try {
-        // ✅ Vérifier que les champs obligatoires sont présents
         const nom = formData.get('nom');
         const type = formData.get('type_elevage');
         
@@ -428,7 +428,6 @@ async function updateElevage(id, formData) {
         const result = await response.json();
         
         if (!response.ok) {
-            // ✅ Gérer les erreurs de validation
             if (response.status === 422 && result.errors) {
                 let errorMessages = [];
                 for (const [field, errors] of Object.entries(result.errors)) {
@@ -831,14 +830,12 @@ async function openEditModal(id) {
             document.getElementById('editSuperficie').value = elevage.superficie !== null && elevage.superficie !== undefined ? elevage.superficie : '';
             document.getElementById('editDescription').value = elevage.description || '';
             
-            // ✅ Gestion de l'image
             if (elevage.img_url) {
                 document.getElementById('editImagePreview').innerHTML = `<img src="${elevage.img_url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">`;
             } else {
                 document.getElementById('editImagePreview').innerHTML = '🖼️';
             }
             
-            // Réinitialiser l'input file
             document.getElementById('editPhotoInput').value = '';
             document.getElementById('editRemovePhotoBtn').style.display = 'none';
             document.getElementById('editRemovePhotoBtn').dataset.action = '';
@@ -865,7 +862,7 @@ document.getElementById('editPhotoInput').addEventListener('change', function(e)
         reader.onload = function(event) {
             preview.innerHTML = `<img src="${event.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">`;
             removeBtn.style.display = 'flex';
-            removeBtn.dataset.action = 'replace'; // Indique qu'on remplace
+            removeBtn.dataset.action = 'replace';
         };
         reader.readAsDataURL(file);
     }
@@ -875,18 +872,16 @@ document.getElementById('editRemovePhotoBtn').addEventListener('click', function
     const preview = document.getElementById('editImagePreview');
     const input = document.getElementById('editPhotoInput');
     
-    // ✅ Si une nouvelle image est sélectionnée, on ne supprime que l'aperçu
     if (this.dataset.action === 'replace') {
         preview.innerHTML = '🖼️';
         input.value = '';
         this.style.display = 'none';
         this.dataset.action = '';
     } else {
-        // ✅ Sinon, on marque pour suppression définitive
         preview.innerHTML = '🖼️';
         input.value = '';
         this.style.display = 'none';
-        this.dataset.action = 'delete'; // Marquer pour suppression
+        this.dataset.action = 'delete';
     }
 });
 
@@ -898,7 +893,6 @@ document.getElementById('editElevageForm').addEventListener('submit', async func
     const errorDiv = document.getElementById('editError');
     errorDiv.style.display = 'none';
     
-    // ✅ Vérification des champs obligatoires
     const id = parseInt(document.getElementById('editId').value);
     const nom = document.getElementById('editNomElevage').value.trim();
     const type = document.getElementById('editTypeElevage').value;
@@ -915,12 +909,10 @@ document.getElementById('editElevageForm').addEventListener('submit', async func
         return;
     }
     
-    // ✅ Créer le FormData
     const formData = new FormData();
     formData.append('nom', nom);
     formData.append('type_elevage', type);
     
-    // Ajouter les champs optionnels
     const localisation = document.getElementById('editLocalisation').value.trim();
     const superficie = document.getElementById('editSuperficie').value;
     const description = document.getElementById('editDescription').value.trim();
@@ -931,19 +923,16 @@ document.getElementById('editElevageForm').addEventListener('submit', async func
     }
     if (description) formData.append('description', description);
     
-    // ✅ Gérer l'image
     const photoInput = document.getElementById('editPhotoInput');
     if (photoInput.files && photoInput.files[0]) {
         formData.append('image', photoInput.files[0]);
     }
     
-    // ✅ Gérer la suppression de l'image
     const removeBtn = document.getElementById('editRemovePhotoBtn');
     if (removeBtn.dataset.action === 'delete') {
         formData.append('delete_image', 'true');
     }
     
-    // ✅ Ajouter le _method pour Laravel
     formData.append('_method', 'PUT');
     
     submitBtn.disabled = true;
@@ -1077,6 +1066,30 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('📋 Page Élevages chargée, chargement des données...');
     loadElevages(1, '');
 });
+
+// ================================================================
+// CORRECTION : Forcer la fermeture des modals via les boutons
+// (croix et "Annuler") qui ne fonctionnaient pas
+// ================================================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Sélectionner tous les boutons de fermeture (data-dismiss ou data-bs-dismiss)
+    const closeButtons = document.querySelectorAll('[data-dismiss="modal"], [data-bs-dismiss="modal"]');
+    
+    closeButtons.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            // Empêcher le comportement par défaut
+            e.preventDefault();
+            // Trouver le modal parent
+            const modal = this.closest('.modal');
+            if (modal) {
+                // Fermer le modal via Bootstrap (jQuery)
+                $(modal).modal('hide');
+            }
+        });
+    });
+});
+
 </script>
+
 
 @endsection

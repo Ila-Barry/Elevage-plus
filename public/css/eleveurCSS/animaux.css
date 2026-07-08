@@ -1,330 +1,312 @@
 /* ===========================
-   PAGE ANIMAUX
-=========================== */
-.animaux-container{
-     padding: 20px 24px;
+   PAGE ANIMAUX - CORRIGÉ
+   =========================== */
+
+/* ========== CONTENEUR PRINCIPAL ========== */
+.animaux-container {
+    padding: 20px 24px;
     background: #f8f9fc;
     min-height: calc(100vh - 70px);
 }
-.animals-page{
-    padding:20px;
-    background:#f5f6f8;
-    min-height:100vh;
+
+/* ========== EN-TÊTE ========== */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
 }
 
-/* ===========================
-   HEADER
-=========================== */
-
-.page-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:20px;
-    margin-bottom:20px;
-    flex-wrap:wrap;
+.header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
-.page-header h2{
-    font-size:24px;
-    font-weight:700;
-    color:#2d2d2d;
-    margin:0;
+.page-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #2d2d2d;
+    margin: 0;
 }
 
-.header-actions{
-    display:flex;
-    gap:15px;
-    align-items:center;
-    flex-wrap:wrap;
+.total-count {
+    font-size: 16px;
+    color: #6c757d;
+    font-weight: 400;
 }
 
-/* ===========================
-   AJOUT
-=========================== */
-
-.btn-add-animal{
-    border:none;
-    background:#198754;
-    color:white;
-    padding:10px 18px;
-    border-radius:6px;
-    font-size:14px;
-    font-weight:600;
-    cursor:pointer;
-    transition:.3s;
+/* ========== BOUTON AJOUTER ========== */
+.btn-add-animal {
+    border: none;
+    background: #198754;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .3s;
+    white-space: nowrap;
 }
 
-.btn-filtre{
-    border:none;
-    background:#198754;
-    color:white;
-    padding:10px 18px;
-    border-radius:6px;
-    font-size:14px;
-    font-weight:600;
-    cursor:pointer;
-    transition:.3s;
+.btn-add-animal:hover {
+    background: #146c43;
 }
 
-.btn-add-animal:hover{
-    background:#146c43;
+.btn-filtre {
+    border: none;
+    background: #198754;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .3s;
 }
 
-/* ===========================
-   SEARCH
-=========================== */
-
-.search-box{
-    display:flex;
-    overflow:hidden;
-    border:1px solid #ddd;
-    border-radius:6px;
-    background:white;
+.btn-filtre:hover {
+    background: #146c43;
 }
 
-.search-box input{
-    border:none;
-    padding:10px;
-    min-width:220px;
-    outline:none;
+/* ========== BARRE DE RECHERCHE ========== */
+.search-bar-container {
+    margin-bottom: 20px;
 }
 
-.search-box button{
-    border:none;
-    background:#fff;
-    width:45px;
-    cursor:pointer;
+.search-bar-container .search-box {
+    display: flex;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    max-width: 400px;
 }
 
-/* ===========================
-   FILTRES
-=========================== */
-
-.filters-section{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    flex-wrap:wrap;
-    margin-bottom:20px;
+.search-bar-container .search-box input {
+    border: none;
+    padding: 10px;
+    flex: 1;
+    outline: none;
+    min-width: 200px;
 }
 
-.filter-label{
-    font-weight:600;
+.search-bar-container .search-box button {
+    border: none;
+    background: #fff;
+    width: 45px;
+    cursor: pointer;
 }
 
-.filters-section select{
-    border:1px solid #d9d9d9;
-    border-radius:6px;
-    padding:8px 12px;
-    background:white;
+.search-bar-container .search-box button:hover {
+    background: #f5f5f5;
 }
 
-/* ===========================
-   LISTE
-=========================== */
-
-.animals-list{
-    display:flex;
-    flex-direction:column;
-    gap:15px;
+/* ========== FILTRES ========== */
+.filters-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
 }
 
-/* ===========================
-   CARD
-=========================== */
-
-.animal-card{
-    background:white;
-    border-radius:10px;
-    padding:15px;
-    display:grid;
-    grid-template-columns:120px 1fr 160px;
-    gap:15px;
-    align-items:center;
-    border:1px solid #ececec;
+.filter-label {
+    font-weight: 600;
+    font-size: 14px;
 }
 
-.animal-image img{
-    width:100%;
-    height:90px;
-    object-fit:cover;
-    border-radius:8px;
+.filters-section select {
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    padding: 8px 12px;
+    background: white;
+    font-size: 14px;
 }
 
-.animal-info h5{
-    font-size:16px;
-    font-weight:700;
-    margin-bottom:10px;
+/* ========== LISTE ========== */
+.animals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
-.animal-details{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:8px;
-    font-size:14px;
-    color:#555;
+/* ========== CARTE ANIMAL ========== */
+.animal-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    display: grid;
+    grid-template-columns: 120px 1fr 160px;
+    gap: 15px;
+    align-items: center;
+    border: 1px solid #ececec;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.animal-details i{
-    color:#198754;
-    margin-right:5px;
+.animal-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-.badge-sante{
-    background:#d4edda;
-    color:#198754;
-    padding:2px 8px;
-    border-radius:20px;
-    font-size:12px;
-    font-weight:600;
+.animal-image {
+    position: relative;
 }
 
-/* ===========================
-   ACTIONS
-=========================== */
-
-.animal-actions{
-    display:flex;
-    flex-direction:column;
-    gap:8px;
+.animal-image img {
+    width: 100%;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
 }
 
-.animal-actions button{
-    border:none;
-    border-radius:5px;
-    padding:8px;
-    font-size:13px;
-    cursor:pointer;
-    transition:.3s;
+.sexe-badge-small {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
 }
 
-.btn-detail{
-    background:#d4edda;
-    color:#198754;
+.animal-info h5 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #2d2d2d;
 }
 
-.btn-edit{
-    background:#fff3cd;
-    color:#856404;
+.animal-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    font-size: 14px;
+    color: #555;
 }
 
-.btn-delete{
-    background:#f8d7da;
-    color:#dc3545;
+.animal-details i {
+    color: #198754;
+    margin-right: 5px;
 }
 
-.btn-detail:hover,
-.btn-edit:hover,
-.btn-delete:hover{
-    transform:translateY(-2px);
+.badge-sante {
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
 }
 
-/* ===========================
-   PAGINATION
-=========================== */
-
-.pagination-section{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-top:25px;
-    flex-wrap:wrap;
-    gap:15px;
+.badge-sante.bonne {
+    background: #d4edda;
+    color: #198754;
 }
 
-.pagination-custom{
-    display:flex;
-    gap:8px;
+.badge-sante.moyenne {
+    background: #fff3cd;
+    color: #856404;
 }
 
-.pagination-custom button{
-    width:35px;
-    height:35px;
-    border:none;
-    border-radius:5px;
-    background:white;
-    cursor:pointer;
-    border:1px solid #ddd;
+.badge-sante.critique {
+    background: #f8d7da;
+    color: #dc3545;
 }
 
-.pagination-custom .active{
-    background:#198754;
-    color:white;
+/* ========== ACTIONS SUR LA CARTE ========== */
+.animal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-/* ===========================
-   TABLET
-=========================== */
-
-@media(max-width:992px){
-
-    .animal-card{
-        grid-template-columns:100px 1fr;
-    }
-
-    .animal-actions{
-        grid-column:1 / -1;
-        flex-direction:row;
-    }
-
-    .animal-actions button{
-        flex:1;
-    }
-
+.animal-actions button {
+    border: none;
+    border-radius: 5px;
+    padding: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: .3s;
 }
 
-/* ===========================
-   MOBILE
-=========================== */
-
-@media(max-width:768px){
-
-    .page-header{
-        flex-direction:column;
-        align-items:stretch;
-    }
-
-    .header-actions{
-        flex-direction:column;
-        align-items:stretch;
-    }
-
-    .search-box{
-        width:100%;
-    }
-
-    .search-box input{
-        width:100%;
-    }
-
-    .animal-card{
-        grid-template-columns:1fr;
-    }
-
-    .animal-image img{
-        height:180px;
-    }
-
-    .animal-details{
-        grid-template-columns:1fr;
-    }
-
-    .animal-actions{
-        flex-direction:column;
-    }
-
-    .pagination-section{
-        flex-direction:column;
-        align-items:center;
-    }
-
+.animal-actions button:hover {
+    transform: translateY(-2px);
 }
 
-/* ===========================
-   MODALES
-=========================== */
+.btn-detail {
+    background: #d4edda;
+    color: #198754;
+}
 
+.btn-edit {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.btn-delete {
+    background: #f8d7da;
+    color: #dc3545;
+}
+
+/* ========== PAGINATION ========== */
+.pagination-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.pagination-custom {
+    display: flex;
+    gap: 8px;
+}
+
+.pagination-custom button {
+    width: 35px;
+    height: 35px;
+    border: none;
+    border-radius: 5px;
+    background: white;
+    cursor: pointer;
+    border: 1px solid #ddd;
+}
+
+.pagination-custom .active {
+    background: #198754;
+    color: white;
+}
+
+.page-numbers {
+    display: flex;
+    gap: 8px;
+}
+
+.page-numbers button {
+    width: 35px;
+    height: 35px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: white;
+    cursor: pointer;
+}
+
+.page-numbers button.active {
+    background: #198754;
+    color: white;
+    border-color: #198754;
+}
+
+/* ========== MODALES ========== */
 .modal {
     display: none;
     position: fixed;
@@ -334,6 +316,7 @@
     height: 100%;
     background-color: rgba(0,0,0,0.6);
     overflow-y: auto;
+    z-index: 9999;
 }
 
 .modal-content {
@@ -389,213 +372,7 @@
     padding: 24px;
 }
 
-/* Logo */
-.modal-logo {
-    text-align: center;
-    margin-bottom: 25px;
-}
-
-.logo-text {
-    font-size: 24px;
-    font-weight: 800;
-    letter-spacing: 1px;
-}
-
-/* Photo section */
-.form-section-box {
-    border: 1px solid #e5e7eb;
-    background-color: #fafafa;
-}
-
-/* Conteneur principal pour l'alignement horizontal */
-.photo-actions-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: nowrap;
-}
-
-.image-preview-placeholder {
-    width: 70px;
-    height: 70px;
-    background-color: #f3f4f6;
-    border-style: dashed !important;
-    border-color: #cbd5e1 !important;
-    flex-shrink: 0;
-}
-
-.btn-photo-action {
-    font-size: 0.85rem;
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    background-color: #ffffff;
-    white-space: nowrap;
-    height: 38px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.cursor-pointer {
-    cursor: pointer;
-}
-
-/* Responsive pour mobile */
-@media (max-width: 768px) {
-    .photo-actions-wrapper {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    
-    .btn-photo-action {
-        flex: 1;
-    }
-}
-
-/* Formulaire */
-.form-group {
-    margin-bottom: 18px;
-}
-
-.form-group label {
-    display: block;
-    font-weight: 600;
-    font-size: 13px;
-    margin-bottom: 6px;
-    color: #333;
-}
-
-.form-control {
-    width: 100%;
-    padding: 0 12px;
-    height: 39px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    font-size: 14px;
-    transition: 0.2s;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: #198754;
-    box-shadow: 0 0 0 2px rgba(25,135,84,0.2);
-}
-
-textarea.form-control {
-    resize: vertical;
-    font-family: inherit;
-}
-
-/* Actions boutons */
-.form-actions {
-    display: flex;
-    gap: 15px;
-    margin-top: 28px;
-    margin-bottom: 30px;
-}
-
-.btn-cancel {
-    flex: 1;
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    padding: 10px;
-    border-radius: 40px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.btn-cancel:hover {
-    background: #e9ecef;
-}
-
-.btn-save {
-    flex: 1;
-    background: #198754;
-    border: none;
-    padding: 10px;
-    border-radius: 40px;
-    font-weight: 600;
-    color: white;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.btn-save:hover {
-    background: #146c43;
-}
-.mobile-app-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    background: #f8f9fa;
-    padding: 14px 18px;
-    border-radius: 16px;
-}
-
-.mobile-app-content i {
-    font-size: 32px;
-    color: #198754;
-    margin-right: 12px;
-}
-
-.mobile-app-content strong {
-    font-size: 15px;
-}
-
-.mobile-app-content p {
-    font-size: 12px;
-    color: #666;
-    margin: 4px 0 0;
-}
-
-.btn-download {
-    background: #198754;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 40px;
-    color: white;
-    font-size: 13px;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.btn-download:hover {
-    background: #146c43;
-}
-
-/* Responsive modale */
-@media (max-width: 640px) {
-    .modal-content {
-        margin: 15px;
-        width: auto;
-    }
-    
-    .modal-body {
-        padding: 20px;
-    }
-    
-    .mobile-app-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .photo-actions {
-        flex-direction: column;
-    }
-    
-    .form-actions {
-        flex-direction: column;
-    }
-}
-
-/* ===========================
-   MODALE DÉTAIL ANIMAL
-=========================== */
-
+/* ========== MODALE DÉTAIL ========== */
 .modal-detail {
     max-width: 1000px !important;
     width: 95% !important;
@@ -607,7 +384,6 @@ textarea.form-control {
     gap: 30px;
 }
 
-/* Colonne gauche */
 .detail-left {
     display: flex;
     flex-direction: column;
@@ -620,6 +396,7 @@ textarea.form-control {
     overflow: hidden;
     background: #f8f9fa;
     border: 1px solid #e9ecef;
+    position: relative;
 }
 
 .detail-photo img {
@@ -628,7 +405,20 @@ textarea.form-control {
     object-fit: cover;
 }
 
-/* Section informations */
+.detail-photo-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.sexe-badge {
+    background: rgba(0,0,0,0.6);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 18px;
+}
+
 .info-section {
     background: #f8f9fa;
     border-radius: 16px;
@@ -643,10 +433,6 @@ textarea.form-control {
     display: flex;
     align-items: center;
     gap: 8px;
-}
-
-.info-section h3 i {
-    font-size: 18px;
 }
 
 .info-grid {
@@ -683,502 +469,10 @@ textarea.form-control {
 }
 
 .badge-sante-detail {
-    background: #d4edda;
-    color: #198754;
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
-}
-
-/* Colonne droite */
-.detail-right {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-/* Historique des tâches */
-.tasks-section {
-    background: #f8f9fa;
-    border-radius: 16px;
-    padding: 18px;
-}
-
-.tasks-section h3 {
-    font-size: 16px;
-    font-weight: 700;
-    color: #198754;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.tasks-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.task-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    background: white;
-    border-radius: 10px;
-    border-left: 3px solid #198754;
-}
-
-.task-type {
-    font-weight: 600;
-    color: #2d2d2d;
-    font-size: 13px;
-}
-
-.task-date {
-    color: #888;
-    font-size: 12px;
-}
-
-/* Courbe de poids */
-.weight-chart-section {
-    background: #f8f9fa;
-    border-radius: 16px;
-    padding: 18px;
-}
-
-.weight-chart-section h3 {
-    font-size: 16px;
-    font-weight: 700;
-    color: #198754;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.chart-container {
-    margin-bottom: 10px;
-}
-
-.weight-labels {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 5px;
-    font-size: 10px;
-    color: #888;
-    margin-top: 10px;
-}
-
-.weight-labels span {
-    flex: 1;
-    text-align: center;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-.action-btn {
-    padding: 10px 20px;
-    border-radius: 30px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-modify {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.btn-delete {
-    background: #f8d7da;
-    color: #dc3545;
-}
-
-.btn-add-task {
-    background: #d4edda;
-    color: #198754;
-}
-
-/* Responsive detail modal */
-@media (max-width: 768px) {
-    .detail-container {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-    
-    .modal-detail {
-        width: 95% !important;
-        margin: 15px auto;
-    }
-    
-    .info-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-    }
-    
-    .info-value {
-        text-align: left;
-    }
-    
-    .apps-icons {
-        gap: 15px;
-    }
-    
-    .app-icon i {
-        width: 44px;
-        height: 44px;
-        font-size: 22px;
-    }
-}
-/* Photo section */
-.photo-section {
-    margin-bottom: 24px;
-}
-
-.photo-label {
-    font-weight: 600;
-    margin-bottom: 8px;
-    display: block;
-    font-size: 14px;
-}
-
-.optional {
-    font-weight: normal;
-    color: #888;
-    font-size: 12px;
-}
-
-.photo-preview {
-    width: 100%;
-    height: 160px;
-    background: #f8f9fa;
-    border: 2px dashed #ddd;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    color: #adb5bd;
-    margin-bottom: 12px;
-    overflow: hidden;
-}
-
-.photo-preview i {
-    font-size: 36px;
-}
-
-.photo-preview span {
-    font-size: 13px;
-}
-
-.photo-action {
-    display: flex;
-    gap: 12px;
-}
-
-.btn-choose-img {
-    flex: 1;
-    background: #e9ecef;
-    border: none;
-    padding: 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    transition: 0.2s;
-}
-
-.btn-choose-img:hover {
-    background: #dee2e6;
-}
-
-.btn-delete-img {
-    flex: 1;
-    background: #f8d7da;
-    border: none;
-    padding: 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    color: #dc3545;
-    transition: 0.2s;
-}
-
-.btn-delete-img:hover {
-    background: #f5c6cb;
-} 
-
-
-/* Styles supplémentaires pour le toast */
-.custom-toast {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    z-index: 10000;
-    transform: translateX(400px);
-    transition: transform 0.3s ease;
-}
-
-.custom-toast.show {
-    transform: translateX(0);
-}
-
-.custom-toast .toast-content {
-    background: #343a40;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-.custom-toast.success .toast-content {
-    background: #198754;
-}
-
-.custom-toast.danger .toast-content {
-    background: #dc3545;
-}
-
-.custom-toast.warning .toast-content {
-    background: #ffc107;
-    color: #343a40;
-}
-
-.custom-toast.info .toast-content {
-    background: #0dcaf0;
-    color: #343a40;
-}
-
-/* ===========================
-   RESPONSIVE ANIMAUX - AMÉLIORATIONS
-=========================== */
-
-/* Tablettes et petits écrans */
-@media (max-width: 992px) {
-    .animal-card {
-        grid-template-columns: 100px 1fr;
-    }
-
-    .animal-actions {
-        grid-column: 1 / -1;
-        flex-direction: row;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid #e9ecef;
-    }
-
-    .animal-actions button {
-        flex: 1;
-        max-width: 150px;
-    }
-}
-
-/* Mobiles */
-@media (max-width: 768px) {
-    .page-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .header-actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .search-box {
-        width: 100%;
-    }
-
-    .search-box input {
-        width: 100%;
-    }
-
-    .animal-card {
-        grid-template-columns: 1fr;
-        padding: 15px;
-        gap: 12px;
-    }
-
-    .animal-image img {
-        height: 180px;
-        width: 100%;
-    }
-
-    /* === AMÉLIORATION: animal-details en 2 colonnes sur mobile === */
-    .animal-details {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px 15px;
-        font-size: 13px;
-        color: #555;
-        padding: 8px 0;
-    }
-
-    .animal-details > div {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 0;
-    }
-
-    .animal-details > div i {
-        width: 16px;
-        font-size: 13px;
-        color: #198754;
-        flex-shrink: 0;
-    }
-
-    /* === AMÉLIORATION: boutons en bas alignés horizontalement === */
-    .animal-actions {
-        grid-column: 1 / -1;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        gap: 8px;
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid #e9ecef;
-        width: 100%;
-    }
-
-    .animal-actions button {
-        flex: 1;
-        min-width: 0;
-        padding: 10px 8px;
-        font-size: 12px;
-        white-space: nowrap;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-    }
-
-    .animal-actions button i {
-        font-size: 14px;
-    }
-
-    /* Pour les très petits écrans, cacher le texte des boutons */
-    .pagination-section {
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .filters-section {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-
-    .filter-label {
-        grid-column: 1 / -1;
-    }
-
-    .filters-section select {
-        width: 100%;
-        padding: 8px 10px;
-        font-size: 13px;
-    }
-}
-
-/* Très petits mobiles (< 480px) */
-@media (max-width: 480px) {
-    .animal-details {
-        grid-template-columns: 1fr 1fr;
-        gap: 6px 12px;
-        font-size: 12px;
-    }
-
-    .animal-details > div {
-        padding: 3px 0;
-    }
-
-    .animal-details > div i {
-        font-size: 12px;
-        width: 14px;
-    }
-
-    .animal-actions button {
-        font-size: 11px;
-        padding: 8px 6px;
-    }
-
-    .animal-actions button i {
-        font-size: 12px;
-    }
-
-    .animal-card {
-        padding: 12px;
-    }
-
-    .animal-image img {
-        height: 150px;
-    }
-
-    .animal-info h5 {
-        font-size: 14px;
-        margin-bottom: 6px;
-    }
-}
-
-/* Pour les écrans très petits*/
-@media (max-width: 360px) {
-    .animal-actions {
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .animal-actions button {
-        width: 100%;
-        padding: 10px;
-        justify-content: center;
-    }
-
-    .animal-details {
-        grid-template-columns: 1fr;
-        gap: 4px;
-    }
-
-    .filters-section {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Badges santé */
-.badge-sante.bonne {
-    background: #d4edda;
-    color: #198754;
-}
-
-.badge-sante.moyenne {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.badge-sante.critique {
-    background: #f8d7da;
-    color: #dc3545;
 }
 
 .badge-sante-detail.bonne {
@@ -1196,47 +490,42 @@ textarea.form-control {
     color: #dc3545;
 }
 
-/* Pagination */
-.page-numbers {
+.detail-right {
     display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.tasks-section {
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 18px;
+}
+
+.tasks-section h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #198754;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
     gap: 8px;
 }
 
-.page-numbers button {
-    width: 35px;
-    height: 35px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background: white;
-    cursor: pointer;
+.tasks-list {
+    max-height: 200px;
+    overflow-y: auto;
 }
 
-.page-numbers button.active {
+.tasks-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.tasks-list::-webkit-scrollbar-thumb {
     background: #198754;
-    color: white;
-    border-color: #198754;
+    border-radius: 4px;
 }
 
-/* Empty state */
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    background: white;
-    border-radius: 12px;
-}
-
-/* Animation des cartes */
-.animal-card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.animal-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-
-/* Ajouter dans le style dynamique ou dans le fichier CSS */
 .task-item {
     display: flex;
     align-items: center;
@@ -1289,27 +578,450 @@ textarea.form-control {
     color: #856404;
 }
 
-.tasks-list {
-    max-height: 200px;
-    overflow-y: auto;
+.weight-chart-section {
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 18px;
 }
 
-.tasks-list::-webkit-scrollbar {
-    width: 4px;
+.weight-chart-section h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #198754;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.tasks-list::-webkit-scrollbar-thumb {
-    background: #198754;
+.chart-container {
+    margin-bottom: 10px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.action-btn {
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-modify {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.btn-delete {
+    background: #f8d7da;
+    color: #dc3545;
+}
+
+/* ========== PHOTO UPLOAD ========== */
+.form-section-box {
+    border: 1px solid #e5e7eb;
+    background-color: #fafafa;
+}
+
+.photo-actions-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: nowrap;
+}
+
+.image-preview-placeholder {
+    width: 70px;
+    height: 70px;
+    background-color: #f3f4f6;
+    border-style: dashed !important;
+    border-color: #cbd5e1 !important;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-preview-placeholder img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
     border-radius: 4px;
 }
 
+.btn-photo-action {
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    background-color: #ffffff;
+    white-space: nowrap;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
 
-.custom-toast { position: fixed; bottom: 20px; right: 20px; z-index: 9999; transform: translateY(100px); opacity: 0; transition: all 0.3s ease; }
+.cursor-pointer {
+    cursor: pointer;
+}
 
-.custom-toast.show { transform: translateY(0); opacity: 1; }
+/* ========== FORMULAIRE ========== */
+.form-group {
+    margin-bottom: 18px;
+}
 
-.toast-content { background: #333; color: #fff; padding: 12px 24px; border-radius: 4px; display: flex; align-items: center; gap: 8px; }
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: #333;
+}
 
-.custom-toast.success .toast-content { background: #198754; }
+.form-control {
+    width: 100%;
+    padding: 0 12px;
+    height: 39px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: 0.2s;
+}
 
-.custom-toast.danger .toast-content { background: #dc3545; }
+.form-control:focus {
+    outline: none;
+    border-color: #198754;
+    box-shadow: 0 0 0 2px rgba(25,135,84,0.2);
+}
+
+textarea.form-control {
+    resize: vertical;
+    font-family: inherit;
+}
+
+.optional {
+    font-weight: normal;
+    color: #888;
+    font-size: 12px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 28px;
+    margin-bottom: 30px;
+}
+
+.btn-cancel {
+    flex: 1;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 40px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #e9ecef;
+}
+
+.btn-save {
+    flex: 1;
+    background: #198754;
+    border: none;
+    padding: 10px;
+    border-radius: 40px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-save:hover {
+    background: #146c43;
+}
+
+/* ========== TOAST ========== */
+.custom-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 10000;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+}
+
+.custom-toast.show {
+    transform: translateX(0);
+}
+
+.custom-toast .toast-content {
+    background: #343a40;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.custom-toast.success .toast-content {
+    background: #198754;
+}
+
+.custom-toast.danger .toast-content {
+    background: #dc3545;
+}
+
+.custom-toast.warning .toast-content {
+    background: #ffc107;
+    color: #343a40;
+}
+
+.custom-toast.info .toast-content {
+    background: #0dcaf0;
+    color: #343a40;
+}
+
+/* ========== RESPONSIVE ========== */
+
+/* Tablettes */
+@media (max-width: 992px) {
+    .animal-card {
+        grid-template-columns: 100px 1fr;
+    }
+
+    .animal-actions {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .animal-actions button {
+        flex: 1;
+        max-width: 150px;
+    }
+}
+
+/* Mobiles */
+@media (max-width: 768px) {
+    .animaux-container {
+        padding: 15px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .header-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .btn-add-animal {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .search-bar-container .search-box {
+        max-width: 100%;
+    }
+
+    .animal-card {
+        grid-template-columns: 1fr;
+        padding: 15px;
+        gap: 12px;
+    }
+
+    .animal-image img {
+        height: 180px;
+        width: 100%;
+    }
+
+    .animal-details {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 15px;
+        font-size: 13px;
+    }
+
+    .animal-actions {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #e9ecef;
+        width: 100%;
+    }
+
+    .animal-actions button {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 8px;
+        font-size: 12px;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .filters-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .filter-label {
+        grid-column: 1 / -1;
+    }
+
+    .filters-section select {
+        width: 100%;
+    }
+
+    .pagination-section {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .detail-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .modal-detail {
+        width: 95% !important;
+        margin: 15px auto;
+    }
+
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .info-value {
+        text-align: left;
+    }
+
+    .photo-actions-wrapper {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .btn-photo-action {
+        flex: 1;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .action-btn {
+        justify-content: center;
+    }
+
+    .custom-toast {
+        left: 15px;
+        right: 15px;
+        bottom: 15px;
+        transform: translateY(100px);
+    }
+
+    .custom-toast.show {
+        transform: translateY(0);
+    }
+}
+
+/* Très petits mobiles */
+@media (max-width: 480px) {
+    .animal-details {
+        grid-template-columns: 1fr;
+        gap: 6px 12px;
+        font-size: 12px;
+    }
+
+    .animal-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .animal-actions button {
+        width: 100%;
+        padding: 10px;
+        justify-content: center;
+    }
+
+    .filters-section {
+        grid-template-columns: 1fr;
+    }
+
+    .animal-image img {
+        height: 150px;
+    }
+
+    .animal-info h5 {
+        font-size: 14px;
+    }
+
+    .modal-content {
+        margin: 15px;
+        width: auto;
+        border-radius: 16px;
+    }
+
+    .modal-body {
+        padding: 16px;
+    }
+
+    .modal-header {
+        padding: 14px 16px;
+    }
+
+    .modal-header h2 {
+        font-size: 16px;
+    }
+}
+
+/* Pour les très très petits écrans */
+@media (max-width: 360px) {
+    .animal-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .animal-actions button {
+        width: 100%;
+        padding: 10px;
+        justify-content: center;
+    }
+}

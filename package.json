@@ -10,6 +10,7 @@
         "vite": "^4.0.0"
     },
     "dependencies": {
-        "bootstrap": "4.6"
+        "bootstrap": "4.6",
+        "web-push": "^3.6.7"
     }
 }
