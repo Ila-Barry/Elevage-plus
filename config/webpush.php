@@ -1,48 +1,33 @@
 <?php
+// config/webpush.php
 
 return [
-
-    /**
-     * These are the keys for authentication (VAPID).
-     * These keys must be safely stored and should not change.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | VAPID Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration pour l'authentification des notifications push.
+    | Les clés VAPID sont générées avec `npx web-push generate-vapid-keys`
+    |
+    */
     'vapid' => [
-        'subject' => env('VAPID_SUBJECT'),
-        'public_key' => env('VAPID_PUBLIC_KEY'),
-        'private_key' => env('VAPID_PRIVATE_KEY'),
-        'pem_file' => env('VAPID_PEM_FILE'),
+        'public_key' => env('WEBPUSH_VAPID_PUBLIC_KEY'),
+        'private_key' => env('WEBPUSH_VAPID_PRIVATE_KEY'),
+        'subject' => env('WEBPUSH_VAPID_SUBJECT'),
     ],
-
-    /**
-     * This is model that will be used to for push subscriptions.
-     */
-    'model' => \NotificationChannels\WebPush\PushSubscription::class,
-
-    /**
-     * This is the name of the table that will be created by the migration and
-     * used by the PushSubscription model shipped with this package.
-     */
-    'table_name' => env('WEBPUSH_DB_TABLE', 'push_subscriptions'),
-
-    /**
-     * This is the database connection that will be used by the migration and
-     * the PushSubscription model shipped with this package.
-     */
-    'database_connection' => env('WEBPUSH_DB_CONNECTION', env('DB_CONNECTION', 'mysql')),
-
-    /**
-     * The Guzzle client options used by Minishlink\WebPush.
-     */
-    'client_options' => [],
-
-    /**
-     * Google Cloud Messaging.
-     *
-     * @deprecated
-     */
-    'gcm' => [
-        'key' => env('GCM_KEY'),
-        'sender_id' => env('GCM_SENDER_ID'),
-    ],
-
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Délai d'expiration des notifications
+    |--------------------------------------------------------------------------
+    */
+    'ttl' => env('WEBPUSH_TTL', 24 * 60 * 60), // 24 heures par défaut
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Modèle de l'abonnement
+    |--------------------------------------------------------------------------
+    */
+    'model' => NotificationChannels\WebPush\WebPushSubscription::class,
 ];

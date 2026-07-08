@@ -51,18 +51,22 @@
             <button class="filter-btn" data-filter="success">
                 <i class="fas fa-check-circle"></i>
                 <span>Succès</span>
+                <span class="filter-count" id="successCount">0</span>
             </button>
             <button class="filter-btn" data-filter="warning">
                 <i class="fas fa-exclamation-triangle"></i>
                 <span>Alertes</span>
+                <span class="filter-count" id="warningCount">0</span>
             </button>
             <button class="filter-btn" data-filter="danger">
                 <i class="fas fa-times-circle"></i>
                 <span>Urgents</span>
+                <span class="filter-count" id="dangerCount">0</span>
             </button>
             <button class="filter-btn" data-filter="info">
                 <i class="fas fa-info-circle"></i>
                 <span>Infos</span>
+                <span class="filter-count" id="infoCount">0</span>
             </button>
         </div>
 
@@ -77,7 +81,7 @@
                 <i class="fas fa-bell-slash"></i>
             </div>
             <h3>Aucune notification</h3>
-            <p>Vous n'avez aucune notification pour le moment.</p>
+            <p id="emptyMessage">Vous n'avez aucune notification pour le moment.</p>
         </div>
 
         <!-- Pagination -->
@@ -120,13 +124,21 @@ const CONFIG = {
 
 const state = {
     notifications: [],
+    allNotifications: [], // Toutes les notifications en cache
     currentFilter: 'all',
     currentPage: 1,
     totalPages: 1,
     perPage: 15,
     total: 0,
     unreadCount: 0,
+    readCount: 0,
+    successCount: 0,
+    warningCount: 0,
+    dangerCount: 0,
+    infoCount: 0,
     isLoading: false,
+    pollingInterval: null,
+    notificationPollingInterval: null,
 };
 
 // ============================================================
@@ -176,14 +188,52 @@ function formatDate(dateString) {
 }
 
 // ============================================================
+// MISE À JOUR DU BADGE - UNIQUEMENT POUR LES NON LUES
+// ============================================================
+
+function updateNotificationBadge() {
+    const count = state.unreadCount;
+    
+    const badgeElements = document.querySelectorAll('.notification-badge, .menu-notification-badge');
+    badgeElements.forEach(el => {
+        if (count > 0) {
+            el.textContent = count;
+            el.style.display = 'inline-block';
+            el.classList.remove('pulse');
+            void el.offsetWidth;
+            el.classList.add('pulse');
+        } else {
+            el.textContent = '0';
+            el.style.display = 'none';
+        }
+    });
+
+    if (count > 0) {
+        document.title = `(${count}) Notifications - Élevage+`;
+    } else {
+        document.title = 'Notifications - Élevage+';
+    }
+}
+
+// ============================================================
 // API CALLS
 // ============================================================
 
 async function apiCall(endpoint, options = {}) {
+    if (!CONFIG.TOKEN) {
+        logError('❌ Token manquant pour l\'appel API', endpoint);
+        const raw = localStorage.getItem('access_token');
+        CONFIG.TOKEN = raw ? raw.replace(/^"(.*)"$/, '$1').trim() : null;
+        if (!CONFIG.TOKEN) {
+            throw new Error('Non authentifié');
+        }
+    }
+
     const defaultHeaders = {
         'Accept': 'application/json',
         'Authorization': 'Bearer ' + CONFIG.TOKEN,
-        'X-CSRF-TOKEN': CONFIG.CSRF_TOKEN
+        'X-CSRF-TOKEN': CONFIG.CSRF_TOKEN,
+        'Content-Type': 'application/json',
     };
 
     const config = {
@@ -203,6 +253,26 @@ async function apiCall(endpoint, options = {}) {
 
     try {
         const response = await fetch(url, config);
+        
+        if (response.status === 401) {
+            logError('🔑 Token expiré, tentative de rafraîchissement...');
+            try {
+                const refreshResult = await refreshToken();
+                if (refreshResult) {
+                    config.headers.Authorization = 'Bearer ' + CONFIG.TOKEN;
+                    const retryResponse = await fetch(url, config);
+                    const retryData = await retryResponse.json();
+                    if (retryResponse.ok) {
+                        return retryData;
+                    }
+                }
+            } catch (refreshError) {
+                logError('❌ Échec du rafraîchissement du token', refreshError);
+                window.location.href = '/auth/login';
+                throw new Error('Session expirée, veuillez vous reconnecter');
+            }
+        }
+
         const data = await response.json();
 
         if (!response.ok) {
@@ -221,6 +291,67 @@ async function apiCall(endpoint, options = {}) {
     }
 }
 
+async function refreshToken() {
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/auth/refresh`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + CONFIG.TOKEN,
+                'X-CSRF-TOKEN': CONFIG.CSRF_TOKEN,
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.data && data.data.access_token) {
+                const newToken = data.data.access_token;
+                localStorage.setItem('access_token', JSON.stringify(newToken));
+                CONFIG.TOKEN = newToken;
+                log('✅ Token rafraîchi avec succès');
+                return true;
+            }
+        }
+        return false;
+    } catch (error) {
+        logError('❌ Erreur rafraîchissement token', error);
+        return false;
+    }
+}
+
+// ============================================================
+// RÉCUPÉRATION DES STATISTIQUES
+// ============================================================
+
+async function fetchNotificationStats() {
+    try {
+        const result = await apiCall('/notifications/stats');
+        if (result.status === 'success' || result.success === true) {
+            const stats = result.data;
+            return {
+                total: stats.total || 0,
+                unread: stats.unread || 0,
+                read: stats.read || 0
+            };
+        }
+        return { total: 0, unread: 0, read: 0 };
+    } catch (error) {
+        logError('Erreur récupération stats', error);
+        return { total: 0, unread: 0, read: 0 };
+    }
+}
+
+// ============================================================
+// FILTRAGE DES NOTIFICATIONS PAR TYPE
+// ============================================================
+
+function filterNotificationsByType(notifications, type) {
+    if (type === 'all') return notifications;
+    if (type === 'unread') return notifications.filter(n => !n.read_at && !n.is_read);
+    if (type === 'read') return notifications.filter(n => n.read_at || n.is_read);
+    return notifications.filter(n => n.data?.type === type || n.type === type);
+}
+
 // ============================================================
 // CHARGEMENT DES NOTIFICATIONS
 // ============================================================
@@ -232,6 +363,8 @@ async function loadNotifications(page = 1, filter = 'all') {
     state.currentFilter = filter;
 
     const container = document.getElementById('notificationsList');
+    if (!container) return;
+    
     container.innerHTML = `
         <div class="text-center py-5">
             <div class="spinner-border text-success" role="status">
@@ -242,47 +375,63 @@ async function loadNotifications(page = 1, filter = 'all') {
     `;
 
     try {
-        let endpoint = '/notifications';
-        let params = `page=${page}&per_page=${state.perPage}`;
-
-        if (filter === 'unread') {
-            endpoint = '/notifications/unread';
-        } else if (filter !== 'all') {
-            params += `&type=${filter}`;
-        }
-
-        const result = await apiCall(`${endpoint}?${params}`);
-
-        if (result.status === 'success') {
-            const data = result.data;
+        // Récupérer toutes les notifications
+        const result = await apiCall(`/notifications?page=1&per_page=100`);
+        
+        if (result.status === 'success' || result.success === true) {
+            const responseData = result.data;
+            let allNotifications = [];
             
-            // Gérer les différents formats de réponse
-            if (Array.isArray(data)) {
-                state.notifications = data;
-                state.total = data.length;
-                state.totalPages = 1;
-            } else if (data.data) {
-                state.notifications = data.data;
-                state.total = data.meta?.total || data.data.length;
-                state.totalPages = data.meta?.last_page || 1;
-                state.unreadCount = data.meta?.unread_count || 0;
-            } else {
-                state.notifications = [];
-                state.total = 0;
-                state.totalPages = 1;
+            if (responseData && responseData.data && Array.isArray(responseData.data)) {
+                allNotifications = responseData.data;
+                state.total = responseData.meta?.total || responseData.data.length;
+            } else if (Array.isArray(responseData)) {
+                allNotifications = responseData;
+                state.total = responseData.length;
             }
-
-            renderNotifications();
-            updateCounters();
+            
+            // 🔥 Calculer les statistiques sur TOUTES les notifications
+            state.unreadCount = allNotifications.filter(n => !n.read_at && !n.is_read).length;
+            state.readCount = allNotifications.filter(n => n.read_at || n.is_read).length;
+            
+            // 🔥 Statistiques par type
+            state.successCount = allNotifications.filter(n => (n.data?.type || n.type) === 'success').length;
+            state.warningCount = allNotifications.filter(n => (n.data?.type || n.type) === 'warning').length;
+            state.dangerCount = allNotifications.filter(n => (n.data?.type || n.type) === 'danger').length;
+            state.infoCount = allNotifications.filter(n => (n.data?.type || n.type) === 'info').length;
+            
+            // 🔥 Appliquer le filtre pour l'affichage
+            let filteredNotifications = filterNotificationsByType(allNotifications, filter);
+            
+            // Pagination manuelle
+            const start = (page - 1) * state.perPage;
+            const end = start + state.perPage;
+            const paginated = filteredNotifications.slice(start, end);
+            
+            state.notifications = paginated;
+            state.totalPages = Math.ceil(filteredNotifications.length / state.perPage) || 1;
+            
+            // Mettre à jour le badge (UNIQUEMENT non lues)
+            updateNotificationBadge();
+            
+            // Mettre à jour tous les compteurs
+            updateAllCounters();
+            
+            renderNotifications(filteredNotifications.length);
             updatePagination();
         } else {
             showToast(result.message || 'Erreur lors du chargement', 'danger');
-            renderNotifications();
+            renderNotifications(0);
         }
     } catch (error) {
         logError('Erreur chargement notifications', error);
-        showToast('Erreur lors du chargement des notifications', 'danger');
-        renderNotifications();
+        if (error.message === 'Non authentifié') {
+            showToast('Session expirée, veuillez vous reconnecter', 'danger');
+            setTimeout(() => window.location.href = '/auth/login', 2000);
+        } else {
+            showToast('Erreur lors du chargement des notifications', 'danger');
+        }
+        renderNotifications(0);
     } finally {
         state.isLoading = false;
     }
@@ -292,13 +441,26 @@ async function loadNotifications(page = 1, filter = 'all') {
 // RENDU DES NOTIFICATIONS
 // ============================================================
 
-function renderNotifications() {
+function renderNotifications(totalCount) {
     const container = document.getElementById('notificationsList');
     const emptyDiv = document.getElementById('emptyNotifications');
+
+    if (!container || !emptyDiv) return;
 
     if (state.notifications.length === 0) {
         container.style.display = 'none';
         emptyDiv.style.display = 'flex';
+        
+        const filterLabels = {
+            'all': 'Vous n\'avez aucune notification.',
+            'unread': 'Vous n\'avez aucune notification non lue.',
+            'read': 'Vous n\'avez aucune notification lue.',
+            'success': 'Vous n\'avez aucune notification de succès.',
+            'warning': 'Vous n\'avez aucune alerte.',
+            'danger': 'Vous n\'avez aucune notification urgente.',
+            'info': 'Vous n\'avez aucune notification d\'information.'
+        };
+        document.getElementById('emptyMessage').textContent = filterLabels[state.currentFilter] || 'Aucune notification trouvée.';
         return;
     }
 
@@ -306,17 +468,46 @@ function renderNotifications() {
     emptyDiv.style.display = 'none';
 
     container.innerHTML = state.notifications.map(notification => {
-        const isRead = notification.is_read || false;
-        const icon = notification.icon || '🔔';
-        const type = notification.type || 'info';
-        const url = notification.url || '#';
-        const title = notification.title || 'Notification';
-        const message = notification.message || '';
+        const isRead = notification.read_at !== null || notification.is_read === true;
+        
+        // 🔥 Récupérer le type depuis la structure de données
+        let type = 'info';
+        if (notification.data && notification.data.type) {
+            type = notification.data.type;
+        } else if (notification.type) {
+            type = notification.type;
+        }
+        
+        // 🔥 Récupérer le titre
+        let title = 'Notification';
+        if (notification.data && notification.data.title) {
+            title = notification.data.title;
+        } else if (notification.title) {
+            title = notification.title;
+        }
+        
+        // 🔥 Récupérer le message
+        let message = '';
+        if (notification.data && notification.data.message) {
+            message = notification.data.message;
+        } else if (notification.message) {
+            message = notification.message;
+        }
+        
+        // 🔥 Récupérer l'URL
+        let url = '#';
+        if (notification.data && notification.data.url) {
+            url = notification.data.url;
+        } else if (notification.url) {
+            url = notification.url;
+        }
+        
         const time = formatDate(notification.created_at);
-        const actions = notification.actions || [];
+        const actions = notification.data?.actions || [];
 
-        // Déterminer la classe CSS selon le type
+        // 🔥 Déterminer l'icône
         const iconClass = getIconClass(type);
+        const iconType = getIconType(type);
 
         return `
             <div class="notification-item ${isRead ? '' : 'unread'}" 
@@ -324,7 +515,7 @@ function renderNotifications() {
                  data-url="${url}"
                  data-type="${type}">
                 <div class="notification-icon ${iconClass}">
-                    <i class="${getIconType(type)}"></i>
+                    <i class="fas ${iconType}"></i>
                 </div>
                 <div class="notification-content">
                     <div class="notification-header">
@@ -336,20 +527,20 @@ function renderNotifications() {
                         <div class="notification-footer">
                             ${actions.map(action => `
                                 <button class="action-btn ${action.type || ''}" 
-                                        onclick="handleAction('${notification.id}', '${action.label}', '${action.url || '#'}')">
-                                    ${action.label}
+                                        onclick="handleAction('${notification.id}', '${escapeHtml(action.label)}', '${action.url || '#'}')">
+                                    ${escapeHtml(action.label)}
                                 </button>
                             `).join('')}
                         </div>
                     ` : ''}
                 </div>
                 ${!isRead ? `
-                    <button class="mark-read-btn" onclick="markAsRead('${notification.id}')" title="Marquer comme lu">
+                    <button class="mark-read-btn" onclick="event.stopPropagation(); markAsRead('${notification.id}')" title="Marquer comme lu">
                         <i class="fas fa-circle"></i>
                     </button>
                 ` : `
                     <button class="mark-read-btn" style="opacity: 0.4;" disabled>
-                        <i class="fas fa-circle"></i>
+                        <i class="fas fa-check-circle"></i>
                     </button>
                 `}
             </div>
@@ -362,17 +553,20 @@ function renderNotifications() {
             if (e.target.closest('button')) return;
             const id = this.dataset.id;
             const url = this.dataset.url;
+            
+            if (this.classList.contains('unread')) {
+                markAsRead(id, false);
+            }
+            
             if (url && url !== '#') {
                 window.location.href = url;
             }
-            if (!this.classList.contains('unread')) return;
-            markAsRead(id);
         });
     });
 }
 
 // ============================================================
-// FONCTIONS D'ICÔNES
+// FONCTIONS D'ICÔNES 
 // ============================================================
 
 function getIconClass(type) {
@@ -409,8 +603,48 @@ function getIconType(type) {
         'report': 'fa-flag',
         'welcome': 'fa-hand-peace',
         'user': 'fa-user-plus',
+        'created': 'fa-plus-circle',
+        'updated': 'fa-edit',
+        'deleted': 'fa-trash',
+        'liked': 'fa-heart',
+        'commented': 'fa-comment',
+        'shared': 'fa-share-alt',
+        'stock_entree': 'fa-arrow-down',
+        'stock_sortie': 'fa-arrow-up',
+        'stock_critique': 'fa-exclamation-triangle',
+        'stock_rupture': 'fa-times-circle',
+        'stock_expiration': 'fa-clock',
+        'reminder': 'fa-bell',
+        'new_message': 'fa-envelope',
+        'message_read': 'fa-check-double',
+        'task_reminder': 'fa-bell',
     };
+    
     return icons[type] || 'fa-bell';
+}
+
+// ============================================================
+// MISE À JOUR DE TOUS LES COMPTEURS
+// ============================================================
+
+function updateAllCounters() {
+    // Badge totalNotifCount : UNIQUEMENT les NON LUES
+    document.getElementById('totalNotifCount').textContent = state.unreadCount || 0;
+    
+    // allCount : TOTAL de toutes les notifications
+    document.getElementById('allCount').textContent = state.total || 0;
+    
+    // unreadCount : UNIQUEMENT les NON LUES
+    document.getElementById('unreadCount').textContent = state.unreadCount || 0;
+    
+    // readCount : UNIQUEMENT les LUES
+    document.getElementById('readCount').textContent = state.readCount || 0;
+    
+    // Compteurs par type
+    document.getElementById('successCount').textContent = state.successCount || 0;
+    document.getElementById('warningCount').textContent = state.warningCount || 0;
+    document.getElementById('dangerCount').textContent = state.dangerCount || 0;
+    document.getElementById('infoCount').textContent = state.infoCount || 0;
 }
 
 // ============================================================
@@ -418,9 +652,9 @@ function getIconType(type) {
 // ============================================================
 
 function handleAction(notificationId, label, url) {
+    event.stopPropagation();
     log(`📌 Action: ${label} sur la notification ${notificationId}`);
     
-    // Marquer comme lue avant de rediriger
     markAsRead(notificationId, false);
     
     if (url && url !== '#') {
@@ -442,19 +676,23 @@ async function markAsRead(notificationId, showToastMsg = true) {
             method: 'POST'
         });
 
-        if (result.status === 'success') {
-            // Mettre à jour localement
+        if (result.status === 'success' || result.success === true) {
             const item = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
             if (item) {
                 item.classList.remove('unread');
                 const markBtn = item.querySelector('.mark-read-btn');
                 if (markBtn) {
                     markBtn.style.opacity = '0.4';
+                    markBtn.innerHTML = '<i class="fas fa-check-circle"></i>';
                     markBtn.disabled = true;
                 }
+                
+                state.unreadCount = Math.max(0, state.unreadCount - 1);
+                state.readCount = state.readCount + 1;
+                
+                updateNotificationBadge();
+                updateAllCounters();
             }
-            
-            updateCounters();
             
             if (showToastMsg) {
                 showToast('Notification marquée comme lue', 'success');
@@ -478,39 +716,28 @@ async function markAllAsRead() {
             method: 'POST'
         });
 
-        if (result.status === 'success') {
-            // Mettre à jour localement
+        if (result.status === 'success' || result.success === true) {
             document.querySelectorAll('.notification-item.unread').forEach(item => {
                 item.classList.remove('unread');
                 const markBtn = item.querySelector('.mark-read-btn');
                 if (markBtn) {
                     markBtn.style.opacity = '0.4';
+                    markBtn.innerHTML = '<i class="fas fa-check-circle"></i>';
                     markBtn.disabled = true;
                 }
             });
             
-            updateCounters();
+            state.readCount = state.readCount + state.unreadCount;
+            state.unreadCount = 0;
+            
+            updateNotificationBadge();
+            updateAllCounters();
             showToast('Toutes les notifications ont été marquées comme lues', 'success');
         }
     } catch (error) {
         logError('Erreur marquage tout comme lu', error);
         showToast('Erreur lors du marquage', 'danger');
     }
-}
-
-// ============================================================
-// METTRE À JOUR LES COMPTEURS
-// ============================================================
-
-function updateCounters() {
-    const total = state.notifications.length;
-    const unread = document.querySelectorAll('.notification-item.unread').length;
-    const read = total - unread;
-
-    document.getElementById('totalNotifCount').textContent = total;
-    document.getElementById('allCount').textContent = total;
-    document.getElementById('unreadCount').textContent = unread;
-    document.getElementById('readCount').textContent = read;
 }
 
 // ============================================================
@@ -521,6 +748,8 @@ function updatePagination() {
     const pageNumbers = document.getElementById('pageNumbers');
     const prevBtn = document.getElementById('prevPageBtn');
     const nextBtn = document.getElementById('nextPageBtn');
+
+    if (!pageNumbers || !prevBtn || !nextBtn) return;
 
     if (state.totalPages <= 1) {
         pageNumbers.innerHTML = '';
@@ -540,7 +769,7 @@ function updatePagination() {
 
     if (start > 1) {
         html += `<button class="page-number" onclick="goToPage(1)">1</button>`;
-        if (start > 2) html += `<button class="page-number" disabled>...</button>`;
+        if (start > 2) html += `<span class="page-number disabled">...</span>`;
     }
 
     for (let i = start; i <= end; i++) {
@@ -548,7 +777,7 @@ function updatePagination() {
     }
 
     if (end < state.totalPages) {
-        if (end < state.totalPages - 1) html += `<button class="page-number" disabled>...</button>`;
+        if (end < state.totalPages - 1) html += `<span class="page-number disabled">...</span>`;
         html += `<button class="page-number" onclick="goToPage(${state.totalPages})">${state.totalPages}</button>`;
     }
 
@@ -560,7 +789,10 @@ function updatePagination() {
 function goToPage(page) {
     if (page === state.currentPage || state.isLoading) return;
     loadNotifications(page, state.currentFilter);
-    document.querySelector('.notifications-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const list = document.querySelector('.notifications-list');
+    if (list) {
+        list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 // ============================================================
@@ -603,7 +835,7 @@ function showToast(message, type = 'info') {
     toast.innerHTML = `
         <div class="toast-content">
             <i class="fas ${icons[type] || icons.info}"></i>
-            <span>${message}</span>
+            <span>${escapeHtml(message)}</span>
         </div>
     `;
     document.body.appendChild(toast);
@@ -617,23 +849,138 @@ function showToast(message, type = 'info') {
 }
 
 // ============================================================
-// POLLING - RÉCUPÉRATION EN TEMPS RÉEL
+// VÉRIFICATION DES NOUVELLES NOTIFICATIONS
 // ============================================================
 
-let pollingInterval = null;
-
-function startPolling() {
-    if (pollingInterval) clearInterval(pollingInterval);
-    pollingInterval = setInterval(() => {
-        if (document.hidden) return;
-        loadNotifications(state.currentPage, state.currentFilter);
-    }, 30000); // Toutes les 30 secondes
+async function checkNewNotifications() {
+    try {
+        // Recharger complètement les données
+        await loadNotifications(state.currentPage, state.currentFilter);
+    } catch (error) {
+        logError('Erreur vérification nouvelles notifications', error);
+    }
 }
 
-function stopPolling() {
-    if (pollingInterval) {
-        clearInterval(pollingInterval);
-        pollingInterval = null;
+// ============================================================
+// POLLING
+// ============================================================
+
+function startAllPolling() {
+    if (state.notificationPollingInterval) {
+        clearInterval(state.notificationPollingInterval);
+    }
+    state.notificationPollingInterval = setInterval(() => {
+        if (!document.hidden) {
+            checkNewNotifications();
+        }
+    }, 15000);
+
+    if (state.pollingInterval) {
+        clearInterval(state.pollingInterval);
+    }
+    state.pollingInterval = setInterval(() => {
+        if (!document.hidden && document.getElementById('notificationsList')) {
+            loadNotifications(state.currentPage, state.currentFilter);
+        }
+    }, 30000);
+}
+
+function stopAllPolling() {
+    if (state.pollingInterval) {
+        clearInterval(state.pollingInterval);
+        state.pollingInterval = null;
+    }
+    if (state.notificationPollingInterval) {
+        clearInterval(state.notificationPollingInterval);
+        state.notificationPollingInterval = null;
+    }
+}
+
+// ============================================================
+// SERVICE WORKER
+// ============================================================
+
+function registerServiceWorker() {
+    if (!('serviceWorker' in navigator)) {
+        log('⚠️ Service Workers non supportés');
+        return;
+    }
+
+    navigator.serviceWorker.register('/sw.js')
+        .then(registration => {
+            log('✅ Service Worker enregistré avec succès', registration);
+            
+            if ('Notification' in window && Notification.permission === 'granted') {
+                subscribeToPushNotifications();
+            }
+        })
+        .catch(error => {
+            logError('❌ Erreur enregistrement Service Worker', error);
+        });
+}
+
+function subscribeToPushNotifications() {
+    if (!('serviceWorker' in navigator)) return;
+    if (!('PushManager' in window)) return;
+    
+    navigator.serviceWorker.ready.then(registration => {
+        registration.pushManager.getSubscription().then(subscription => {
+            if (subscription) {
+                log('✅ Déjà abonné aux notifications push', subscription);
+                return;
+            }
+            
+            const vapidPublicKey = document.querySelector('meta[name="vapid-public-key"]')?.content || '';
+            if (!vapidPublicKey) {
+                log('⚠️ Clé VAPID publique non trouvée');
+                return;
+            }
+            
+            const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+            
+            registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: applicationServerKey
+            })
+            .then(subscription => {
+                log('✅ Abonnement push réussi', subscription);
+                return saveSubscription(subscription);
+            })
+            .then(response => {
+                if (response) {
+                    log('✅ Subscription sauvegardée sur le serveur', response);
+                }
+            })
+            .catch(error => {
+                logError('❌ Erreur abonnement push', error);
+            });
+        });
+    });
+}
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+async function saveSubscription(subscription) {
+    try {
+        const result = await apiCall('/webpush/subscribe', {
+            method: 'POST',
+            body: { subscription: subscription }
+        });
+        return result;
+    } catch (error) {
+        logError('❌ Erreur sauvegarde subscription', error);
+        return null;
     }
 }
 
@@ -645,51 +992,75 @@ document.addEventListener('DOMContentLoaded', function() {
     log('🚀 Initialisation de la page Notifications');
     
     if (!CONFIG.TOKEN) {
-        showToast('Non connecté. Redirection...', 'danger');
-        setTimeout(() => window.location.href = '/auth/login', 2000);
-        return;
+        try {
+            const raw = localStorage.getItem('access_token');
+            CONFIG.TOKEN = raw ? raw.replace(/^"(.*)"$/, '$1').trim() : null;
+        } catch (e) {
+            CONFIG.TOKEN = null;
+        }
+        
+        if (!CONFIG.TOKEN) {
+            log('⚠️ Non authentifié, redirection vers login');
+            showToast('Veuillez vous connecter', 'danger');
+            setTimeout(() => window.location.href = '/auth/login', 2000);
+            return;
+        }
     }
     
-    // Charger les notifications
     loadNotifications(1, 'all');
-    
-    // Configurer les filtres
     setupFilters();
     
-    // Événement "Tout marquer comme lu"
-    document.getElementById('markAllReadBtn').addEventListener('click', markAllAsRead);
+    const markAllBtn = document.getElementById('markAllReadBtn');
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', markAllAsRead);
+    }
     
-    // Événement "Paramètres"
-    document.getElementById('notificationSettingsBtn').addEventListener('click', function() {
-        showToast('Paramètres des notifications (bientôt disponible)', 'info');
-    });
+    const settingsBtn = document.getElementById('notificationSettingsBtn');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', function() {
+            showToast('Paramètres des notifications (bientôt disponible)', 'info');
+        });
+    }
     
-    // Pagination
-    document.getElementById('prevPageBtn').addEventListener('click', function() {
-        if (state.currentPage > 1) goToPage(state.currentPage - 1);
-    });
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function() {
+            if (state.currentPage > 1) goToPage(state.currentPage - 1);
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+            if (state.currentPage < state.totalPages) goToPage(state.currentPage + 1);
+        });
+    }
     
-    document.getElementById('nextPageBtn').addEventListener('click', function() {
-        if (state.currentPage < state.totalPages) goToPage(state.currentPage + 1);
-    });
+    startAllPolling();
+    registerServiceWorker();
     
-    // Démarrer le polling
-    startPolling();
-    
-    // Arrêter le polling quand la page est cachée
     document.addEventListener('visibilitychange', function() {
         if (document.hidden) {
-            stopPolling();
+            stopAllPolling();
         } else {
-            startPolling();
-            // Rafraîchir immédiatement
+            startAllPolling();
+            checkNewNotifications();
             loadNotifications(state.currentPage, state.currentFilter);
         }
     });
     
-    // Nettoyer le polling avant de quitter
     window.addEventListener('beforeunload', function() {
-        stopPolling();
+        stopAllPolling();
+    });
+    
+    window.addEventListener('online', function() {
+        log('🌐 Réseau rétabli, rechargement des notifications');
+        showToast('Connexion rétablie', 'success');
+        loadNotifications(state.currentPage, state.currentFilter);
+    });
+    
+    window.addEventListener('offline', function() {
+        log('🌐 Réseau perdu');
+        showToast('Connexion perdue. Vérifiez votre réseau.', 'warning');
     });
     
     log('✅ Page Notifications initialisée avec succès');

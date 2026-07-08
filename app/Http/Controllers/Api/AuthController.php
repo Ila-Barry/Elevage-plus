@@ -24,6 +24,11 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Hash;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+
+
 /**
  * Contrôleur AuthController
  * * Gère toutes les opérations d'authentification et de gestion de profil
@@ -371,6 +376,26 @@ class AuthController extends Controller
     }
 
     /**
+ * Récupère les préférences de notification
+ */
+    public function getNotificationPreferences(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            
+            return $this->successResponse([
+                'web_notifications' => $user->web_notifications ?? true,
+                'email_notifications' => $user->email_notifications ?? false,
+                'message_notifications' => $user->message_notifications ?? true,
+                'newsletter_subscription' => $user->newsletter_subscription ?? false,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erreur récupération préférences: ' . $e->getMessage());
+            return $this->errorResponse('Erreur lors de la récupération des préférences.', 500);
+        }
+    }
+
+    /**
      * Preference notifications
      */
     public function updateNotificationPreferences(Request $request): JsonResponse
@@ -380,6 +405,7 @@ class AuthController extends Controller
             'web_notifications' => 'sometimes|boolean',
             'reminder_notifications' => 'sometimes|boolean',
             'newsletter_subscription' => 'sometimes|boolean',
+            'message_notifications' => 'sometimes|boolean',
         ]);
         
         try {
@@ -391,6 +417,7 @@ class AuthController extends Controller
                 'web_notifications' => $user->web_notifications,
                 'reminder_notifications' => $user->reminder_notifications,
                 'newsletter_subscription' => $user->newsletter_subscription,
+                'message_notifications' => $user->message_notifications,
             ], 'Préférences de notification mises à jour.');
             
         } catch (\Exception $e) {
@@ -523,11 +550,8 @@ class AuthController extends Controller
         $filename = time() . '_' . uniqid() . '.' . $photo->getClientOriginalExtension();
         $path = 'avatars/' . $filename;
         
-        $manager = new ImageManager(new Driver());
-        $image = $manager->read($photo->getPathname());
-        $image->cover(300, 300);
-        
-        Storage::disk('public')->put($path, (string) $image->encode());
+        // ✅ Stocker l'image directement sans redimensionnement (solution de contournement)
+        Storage::disk('public')->put($path, file_get_contents($photo));
         
         return $path;
     }

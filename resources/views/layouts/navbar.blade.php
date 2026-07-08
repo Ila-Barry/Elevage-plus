@@ -97,7 +97,6 @@
 
 <!-- Toast pour les messages -->
 <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
-
 @push('scripts')
 <script>
 $(document).ready(function() {
@@ -172,7 +171,6 @@ $(document).ready(function() {
     $('#logoutBtn').on('click', function(e) {
         e.preventDefault();
         
-        // Afficher un loader ou confirmation
         if (!confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
             return;
         }
@@ -180,15 +178,12 @@ $(document).ready(function() {
         const logoutBtn = $(this);
         const originalText = logoutBtn.html();
         
-        // Changer le texte du bouton
         logoutBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Déconnexion...');
         logoutBtn.css('opacity', '0.7');
         
-        // Récupérer le token depuis localStorage
         const token = localStorage.getItem('access_token');
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
         
-        // 1. Appel API de déconnexion
         fetch('/api/auth/logout', {
             method: 'POST',
             headers: {
@@ -202,13 +197,11 @@ $(document).ready(function() {
         .then(data => {
             console.log('✅ API Logout réussi:', data);
             
-            // 2. Nettoyer le localStorage
             localStorage.removeItem('access_token');
             localStorage.removeItem('token_expiry');
             localStorage.removeItem('user');
             localStorage.removeItem('remember_login');
             
-            // 3. Appel web de déconnexion (session)
             return fetch('/logout', {
                 method: 'POST',
                 headers: {
@@ -222,7 +215,6 @@ $(document).ready(function() {
             console.log('✅ Web Logout réussi');
             showToast('Déconnexion réussie !', 'success');
             
-            // Redirection vers la page de connexion
             setTimeout(() => {
                 window.location.href = '/auth/login';
             }, 500);
@@ -230,7 +222,6 @@ $(document).ready(function() {
         .catch(error => {
             console.error('❌ Erreur lors de la déconnexion:', error);
             
-            // En cas d'erreur, on force la déconnexion locale
             localStorage.removeItem('access_token');
             localStorage.removeItem('token_expiry');
             localStorage.removeItem('user');
@@ -242,7 +233,6 @@ $(document).ready(function() {
             }, 500);
         })
         .finally(() => {
-            // Restaurer le bouton
             logoutBtn.html(originalText);
             logoutBtn.css('opacity', '1');
         });
@@ -282,57 +272,134 @@ $(document).ready(function() {
             setTimeout(() => toast.remove(), 300);
         }, 4000);
     }
+
+    // ================= RAFRAÎCHISSEMENT DES BADGES =================
     async function refreshBadges() {
         try {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
 
             // ================= MESSAGES =================
-            const response = await fetch('/api/messaging/unread-count', {
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
-                    'Accept': 'application/json'
+            try {
+                const response = await fetch('/api/messaging/unread-count', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const totalMessages = data.data?.unread_count || data.unread_count || 0;
+
+                    const msgBadgeNavbar = document.getElementById('navbarMessageBadge');
+                    const msgBadgeSidebar = document.getElementById('sidebarMessageBadge');
+
+                    if (msgBadgeNavbar) {
+                        msgBadgeNavbar.textContent = totalMessages > 0 ? totalMessages : '';
+                        msgBadgeNavbar.style.display = totalMessages > 0 ? 'inline-block' : 'none';
+                    }
+
+                    if (msgBadgeSidebar) {
+                        msgBadgeSidebar.textContent = totalMessages > 0 ? totalMessages : '';
+                        msgBadgeSidebar.style.display = totalMessages > 0 ? 'inline-block' : 'none';
+                    }
                 }
-            });
-            const data = await response.json();
-
-            const totalMessages = data.data?.unread_count || 0;
-
-            const msgBadgeNavbar = document.getElementById('navbarMessageBadge');
-            const msgBadgeSidebar = document.getElementById('sidebarMessageBadge');
-
-            if (msgBadgeNavbar) {
-                msgBadgeNavbar.textContent = totalMessages > 0 ? totalMessages : '';
+            } catch (e) {
+                console.warn('⚠️ Erreur chargement messages:', e);
             }
-
-            if (msgBadgeSidebar) {
-                msgBadgeSidebar.textContent = totalMessages > 0 ? totalMessages : '';
-            }
-
 
             // ================= NOTIFICATIONS =================
-            const notifResponse = await fetch('/api/notifications/unread', {
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
-                    'Accept': 'application/json'
+            try {
+                const notifResponse = await fetch('/api/notifications/unread', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (notifResponse.ok) {
+                    const notifData = await notifResponse.json();
+                    
+                    // 🔥 CORRECTION: Vérifier toutes les structures possibles
+                    let totalNotif = 0;
+                    
+                    // Structure 1: { data: { count: X } }
+                    if (notifData.data?.count !== undefined) {
+                        totalNotif = notifData.data.count;
+                    }
+                    // Structure 2: { data: { meta: { unread_count: X } } }
+                    else if (notifData.data?.meta?.unread_count !== undefined) {
+                        totalNotif = notifData.data.meta.unread_count;
+                    }
+                    // Structure 3: { data: { unread_count: X } }
+                    else if (notifData.data?.unread_count !== undefined) {
+                        totalNotif = notifData.data.unread_count;
+                    }
+                    // Structure 4: { data: [...] } (tableau direct)
+                    else if (Array.isArray(notifData.data)) {
+                        totalNotif = notifData.data.length;
+                    }
+                    // Structure 5: { count: X }
+                    else if (notifData.count !== undefined) {
+                        totalNotif = notifData.count;
+                    }
+                    // Structure 6: { data: { data: [...] } }
+                    else if (notifData.data?.data && Array.isArray(notifData.data.data)) {
+                        totalNotif = notifData.data.data.filter(n => !n.read_at && !n.is_read).length;
+                    }
+
+                    console.log('📊 Notifications non lues:', totalNotif);
+
+                    const notifBadgeNavbar = document.getElementById('navbarNotificationBadge');
+                    const notifBadgeSidebar = document.getElementById('sidebarNotificationBadge');
+
+                    if (notifBadgeNavbar) {
+                        notifBadgeNavbar.textContent = totalNotif > 0 ? totalNotif : '';
+                        notifBadgeNavbar.style.display = totalNotif > 0 ? 'inline-block' : 'none';
+                        
+                        // Animation pulse
+                        if (totalNotif > 0) {
+                            notifBadgeNavbar.classList.remove('pulse');
+                            void notifBadgeNavbar.offsetWidth;
+                            notifBadgeNavbar.classList.add('pulse');
+                        }
+                    }
+
+                    if (notifBadgeSidebar) {
+                        notifBadgeSidebar.textContent = totalNotif > 0 ? totalNotif : '';
+                        notifBadgeSidebar.style.display = totalNotif > 0 ? 'inline-block' : 'none';
+                    }
+
+                    // Mettre à jour le titre de la page
+                    if (totalNotif > 0) {
+                        document.title = `(${totalNotif}) Notifications - Élevage+`;
+                    }
                 }
-            });
-
-            const notifData = await notifResponse.json();
-
-            const totalNotif = notifData.data?.unread_count || 0;
-
-            const notifBadgeNavbar = document.getElementById('navbarNotificationBadge');
-
-            if (notifBadgeNavbar) {
-                notifBadgeNavbar.textContent = totalNotif > 0 ? totalNotif : '';
+            } catch (e) {
+                console.warn('⚠️ Erreur chargement notifications:', e);
             }
 
-        } catch (e) {
-            console.error(e);
+        } catch (error) {
+            console.error('❌ Erreur refreshBadges:', error);
         }
     }
-        refreshBadges();
-    setInterval(refreshBadges, 5000);
-});
 
+    // ================= LANCER LE RAFRAÎCHISSEMENT =================
+    refreshBadges();
+    setInterval(refreshBadges, 10000); // Toutes les 10 secondes
+
+    // ================= RAFRAÎCHIR QUAND LA PAGE REVIENT AU PREMIER PLAN =================
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            refreshBadges();
+        }
+    });
+
+    // ================= RAFRAÎCHIR QUAND LE RÉSEAU REVIENT =================
+    window.addEventListener('online', function() {
+        refreshBadges();
+    });
+});
 </script>
 @endpush

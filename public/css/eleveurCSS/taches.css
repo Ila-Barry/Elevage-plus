@@ -1,3 +1,6 @@
+/* ======================================================
+   STYLE GLOBAL - TITRE PRINCIPAL
+   ====================================================== */
 h1 {
     color: #007bff;
     font-size: 2.5rem;
@@ -5,15 +8,17 @@ h1 {
 }
 
 /* ======================================================
-PAGE TÂCHES - ELEVAGE+
-====================================================== */
+   PAGE TÂCHES - ELEVAGE+
+   ====================================================== */
 
+/* Réinitialisation des marges et paddings */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* Conteneur principal de la page des tâches */
 .taches-container {
   padding: 14px;
   width: 100%;
@@ -22,8 +27,8 @@ PAGE TÂCHES - ELEVAGE+
 }
 
 /* ======================================================
-TITRE
-====================================================== */
+   EN-TÊTE DE LA PAGE
+   ====================================================== */
 
 .page-header {
   margin-bottom: 18px;
@@ -42,12 +47,12 @@ TITRE
 }
 
 /* ======================================================
-GRID PRINCIPAL
-====================================================== */
+   GRILLE PRINCIPALE - 2 COLONNES
+   ====================================================== */
 
 .tasks-grid {
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: 1fr 340px; /* Colonne gauche flexible, droite fixe */
   gap: 15px;
   align-items: start;
 }
@@ -58,8 +63,8 @@ GRID PRINCIPAL
 }
 
 /* ======================================================
-BOUTONS FILTRES
-====================================================== */
+   BOUTONS DE FILTRES (Mois, Semaine, Jour)
+   ====================================================== */
 
 .calendar-filters {
   display: flex;
@@ -91,6 +96,7 @@ BOUTONS FILTRES
   border-color: #198754;
 }
 
+/* Bouton actif (vert) */
 .filter-btn.active {
   background: #198754;
   color: white;
@@ -102,8 +108,8 @@ BOUTONS FILTRES
 }
 
 /* ======================================================
-CALENDRIER
-====================================================== */
+   CALENDRIER
+   ====================================================== */
 
 .calendar-card {
   background: white;
@@ -113,6 +119,7 @@ CALENDRIER
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
+/* En-tête du calendrier avec navigation */
 .calendar-top {
   display: flex;
   justify-content: space-between;
@@ -126,6 +133,7 @@ CALENDRIER
   margin: 0;
 }
 
+/* Boutons de navigation (flèches gauche/droite) */
 .calendar-nav {
   width: 36px;
   height: 36px;
@@ -146,12 +154,14 @@ CALENDRIER
   transform: scale(1.05);
 }
 
+/* Tableau du calendrier */
 .calendar-table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
 }
 
+/* En-têtes des jours (Lun, Mar, Mer, ...) */
 .calendar-table th {
   border: 1px solid #e9ecef;
   padding: 10px 5px;
@@ -161,6 +171,7 @@ CALENDRIER
   color: #495057;
 }
 
+/* Cellules du calendrier (jours) */
 .calendar-table td {
   border: 1px solid #f1f3f4;
   text-align: center;
@@ -178,6 +189,7 @@ CALENDRIER
   box-shadow: inset 0 0 0 1px #198754;
 }
 
+/* Jours des mois précédent/suivant (grisés) */
 .calendar-table td.other-month {
   color: #adb5bd;
   cursor: default;
@@ -188,6 +200,7 @@ CALENDRIER
   box-shadow: none !important;
 }
 
+/* Jour actuel (aujourd'hui) - fond vert */
 .calendar-table td.today {
   background: #198754;
   color: white !important;
@@ -203,7 +216,10 @@ CALENDRIER
   background: #146c43;
 }
 
-/* Point vert pour les jours avec tâches */
+/* ======================================================
+   POINT VERT - JOURS AVEC TÂCHES
+   ====================================================== */
+
 .task-day {
   color: #16a34a;
   position: relative;
@@ -218,6 +234,7 @@ CALENDRIER
   box-shadow: inset 0 0 0 2px #16a34a;
 }
 
+/* Petit point vert en bas de la cellule */
 .task-day::after {
   content: "";
   width: 7px;
@@ -231,28 +248,36 @@ CALENDRIER
   transition: all 0.2s ease;
 }
 
-/* ===============================
-   DRAG & DROP
-================================= */
+/* ======================================================
+   DRAG & DROP - DÉPLACEMENT DES TÂCHES
+   ====================================================== */
 
+/* Zone de dépôt surlignée */
 .calendar-table td.drag-over {
   background: #dcfce7 !important;
   border: 2px dashed #16a34a !important;
   transform: scale(1.02);
 }
 
+/* Élément en cours de glissement */
 .calendar-table td.dragging {
   opacity: 0.5;
 }
 
+/* Point blanc sur le jour en cours pour contraste */
 .task-day.today::after {
   background: white;
 }
 
+/* Animation du point au survol */
 .task-day:hover::after {
   background: #0f7a33;
   transform: translateX(-50%) scale(1.2);
 }
+
+/* ======================================================
+   LÉGENDE DU CALENDRIER
+   ====================================================== */
 
 .calendar-legend {
   margin-top: 14px;
@@ -279,8 +304,8 @@ CALENDRIER
 }
 
 /* ======================================================
-TACHES A VENIR
-====================================================== */
+   SECTION "TÂCHES À VENIR"
+   ====================================================== */
 
 .upcoming-card {
     margin-top: 16px;
@@ -291,6 +316,7 @@ TACHES A VENIR
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
+/* En-tête de section avec fond vert clair */
 .section-header {
     background: #e8f5e9;
     padding: 10px 16px;
@@ -306,6 +332,7 @@ TACHES A VENIR
     color: #198754;
 }
 
+/* Liste des tâches à venir */
 .upcoming-card ul {
     list-style: none;
     margin: 0;
@@ -320,6 +347,7 @@ TACHES A VENIR
     border-top: none;
 }
 
+/* Lien d'une tâche à venir */
 .upcoming-link {
     display: flex;
     align-items: center;
@@ -344,8 +372,8 @@ TACHES A VENIR
 }
 
 /* ======================================================
-BOUTON AJOUT
-====================================================== */
+   BOUTON "AJOUTER UNE TÂCHE"
+   ====================================================== */
 
 .btn-add-task {
   width: 100%;
@@ -372,8 +400,8 @@ BOUTON AJOUT
 }
 
 /* ======================================================
-TACHES DU JOUR
-====================================================== */
+   SECTION "TÂCHES DU JOUR"
+   ====================================================== */
 
 .today-card {
   border: 1px solid #d8d8d8;
@@ -383,6 +411,7 @@ TACHES DU JOUR
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
+/* Élément d'une tâche */
 .task-item {
   padding: 14px 16px;
   transition: all 0.2s ease;
@@ -396,16 +425,29 @@ TACHES DU JOUR
   background: #fafbfc;
 }
 
+/* Style pour une tâche terminée */
 .task-item.completed {
-  opacity: 0.7;
-  background: #f8f9fa;
+    opacity: 0.6;
+    background: #f8f9fa;
 }
 
 .task-item.completed .task-time {
-  text-decoration: line-through;
-  color: #6c757d;
+    text-decoration: line-through;
+    color: #6c757d;
 }
 
+/* Badge "Terminée" */
+.badge-completed {
+    background: #28a745;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+/* Heure et titre de la tâche */
 .task-time {
   font-size: 15px;
   font-weight: 700;
@@ -417,34 +459,120 @@ TACHES DU JOUR
   gap: 6px;
 }
 
+/* Description de la tâche */
 .task-desc {
   color: #555;
   font-size: 14px;
   margin-bottom: 10px;
 }
 
+/* ======================================================
+   CONTENEUR DES BOUTONS D'ACTION (Masquer fait / Modifier)
+   ====================================================== */
+
 .task-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 8px;
 }
 
-.task-actions button {
-  flex: 1;
-  min-width: 80px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border: 1px solid #e0e0e0;
-  background: white;
+/* Décalage du bouton "Masquer fait" vers la droite */
+.btn-hide-task {
+    margin-left: auto;
 }
+
+/* Styles génériques pour tous les boutons d'action */
+.task-actions button {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: none;
+    min-width: 120px;
+}
+
+/* ======================================================
+   BOUTON "MASQUER FAIT" - VERT
+   ====================================================== */
+
+.btn-hide-task {
+    background: white;
+    color: #17b63c;
+    border: 2px solid #b8d2c5 !important;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 120px;
+}
+
+.btn-hide-task:hover {
+    background: #f0fdf4;  /* Fond vert très clair */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.15);
+}
+
+/* ======================================================
+   BOUTON "MODIFIER" - NOIR AVEC CRAYON ROUGE
+   ====================================================== */
+
+.btn-edit-task {
+    background: white;
+    color: #000000 !important;  /* Texte noir en permanence */
+    border: 2px solid #c2bcbebf !important;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 120px;
+}
+
+.btn-edit-task:hover {
+    background: #fff5f5;  /* Fond rouge très clair */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.15);
+    color: #000000 !important;  /* Reste noir au survol */
+}
+
+/* Icône crayon en rouge */
+.btn-edit-task i {
+    color: #dc3545;
+}
+
+/* ======================================================
+   ICÔNES DANS LES BOUTONS
+   ====================================================== */
+
+.btn-hide-task .emoji,
+.btn-hide-task i,
+.btn-edit-task .emoji,
+.btn-edit-task i {
+    font-size: 15px;
+    font-style: normal;
+}
+
+/* ======================================================
+   ANCIENS STYLES (CONSERVÉS POUR COMPATIBILITÉ)
+   ====================================================== */
 
 .btn-success-task {
   border-color: #cdeed7;
@@ -480,47 +608,75 @@ TACHES DU JOUR
   border-color: #dc3545;
 }
 
-.badge-completed {
-  background: #28a745;
-  color: white;
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
+/* ======================================================
+   BOUTONS DES MODALES (AJOUTER ET MODIFIER)
+   ====================================================== */
+
+/* Conteneur des boutons */
+.modal-footer .btn-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 15px;
+}
+
+/* Bouton "Annuler" - Blanc avec bordure grise */
+.btn-cancel-modal {
+    background: white;
+    color: #000000;
+    border: 2px solid #d1d1d1;
+    padding: 10px 30px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.btn-cancel-modal:hover {
+    background: #6c757d;  /* Fond gris au survol */
+    color: white !important;  /* Texte blanc au survol */
+    border-color: #6c757d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+/* Bouton "Ajouter" / "Enregistrer" - Vert */
+.btn-add-modal {
+    background: #198754;
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+}
+
+.btn-add-modal:hover {
+    background: #198754;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+}
+
+/* Responsive mobile */
+@media (max-width: 576px) {
+    .modal-footer .btn-container {
+        flex-direction: column;
+    }
+    
+    .modal-footer .btn-container button {
+        width: 100%;
+    }
 }
 
 /* ======================================================
-MODALES
-====================================================== */
-
-#addTaskModal .modal-content,
-#editTaskModal .modal-content {
-    border-radius: 18px;
-    border: none;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-}
-
-#addTaskModal .modal-header,
-#editTaskModal .modal-header {
-    border-bottom: 1px solid #e9ecef;
-    padding: 20px 24px;
-}
-
-#addTaskModal .modal-title,
-#editTaskModal .modal-title {
-    font-size: 18px;
-}
-
-#addTaskModal .modal-body,
-#editTaskModal .modal-body {
-    padding: 24px;
-}
-
-#addTaskModal .modal-footer,
-#editTaskModal .modal-footer {
-    border-top: 1px solid #e9ecef;
-    padding: 16px 24px;
-}
+   CHAMPS DE FORMULAIRE
+   ====================================================== */
 
 .form-label {
     font-weight: 600;
@@ -543,6 +699,10 @@ MODALES
     box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
 }
 
+/* ======================================================
+   BOUTONS GÉNÉRIQUES
+   ====================================================== */
+
 .btn {
     padding: 10px 24px;
     border-radius: 10px;
@@ -550,19 +710,21 @@ MODALES
     font-size: 14px;
 }
 
+/* Bouton "Ajouter" (vert) */
 .btn-success {
     background: #198754;
     border-color: #198754;
 }
 
 .btn-success:hover {
-    background: #146c43;
+    background: #0a693d;
     border-color: #146c43;
 }
 
+/* Bouton "Annuler" (gris) */
 .btn-secondary {
-    background: #6c757d;
-    border-color: #6c757d;
+    background: #f5f6f7;
+    border-color: #010408;
 }
 
 .btn-secondary:hover {
@@ -571,20 +733,22 @@ MODALES
 }
 
 /* ======================================================
-RESPONSIVE
-====================================================== */
+   RESPONSIVE - TABLETTES
+   ====================================================== */
 
-/* Tablettes */
 @media (max-width: 1024px) {
   .tasks-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr;  /* Une seule colonne sur tablette */
   }
   .tasks-right {
     margin-top: 10px;
   }
 }
 
-/* Mobiles */
+/* ======================================================
+   RESPONSIVE - MOBILES
+   ====================================================== */
+
 @media (max-width: 768px) {
   .page-header {
     flex-direction: column;
@@ -617,6 +781,7 @@ RESPONSIVE
     font-size: 15px;
   }
   
+  /* Les boutons d'action passent en colonne sur mobile */
   .task-actions {
     flex-direction: column;
   }
@@ -644,7 +809,10 @@ RESPONSIVE
   }
 }
 
-/* Petits téléphones */
+/* ======================================================
+   RESPONSIVE - PETITS TÉLÉPHONES
+   ====================================================== */
+
 @media (max-width: 480px) {
   .taches-container {
     padding: 10px;
@@ -704,8 +872,8 @@ RESPONSIVE
 }
 
 /* ======================================================
-SCROLLBAR
-====================================================== */
+   BARRE DE DÉFILEMENT PERSONNALISÉE
+   ====================================================== */
 
 ::-webkit-scrollbar {
     width: 6px;
@@ -726,155 +894,286 @@ SCROLLBAR
     background: #198754;
 }
 
+/* ======================================================
+   NOTIFICATIONS TOAST
+   ====================================================== */
 
 .custom-toast {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        z-index: 10000;
-        transform: translateX(400px);
-        transition: transform 0.3s ease;
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 10000;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+}
+
+.custom-toast.show {
+    transform: translateX(0);
+}
+
+.custom-toast .toast-content {
+    background: #343a40;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Couleurs selon le type de notification */
+.custom-toast.success .toast-content {
+    background: #28a745;
+}
+
+.custom-toast.danger .toast-content {
+    background: #dc3545;
+}
+
+.custom-toast.warning .toast-content {
+    background: #ffc107;
+    color: #343a40;
+}
+
+/* Toast en bas sur mobile */
+@media (max-width: 768px) {
+    .custom-toast {
+        left: 15px;
+        right: 15px;
+        bottom: 15px;
+        transform: translateY(100px);
     }
-    .custom-toast.show { transform: translateX(0); }
-    .custom-toast .toast-content {
-        background: #343a40;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    .custom-toast.show {
+        transform: translateY(0);
     }
-    .custom-toast.success .toast-content { background: #28a745; }
-    .custom-toast.danger .toast-content { background: #dc3545; }
-    .custom-toast.warning .toast-content { background: #ffc107; color: #343a40; }
-    
-    @media (max-width: 768px) {
-        .custom-toast {
-            left: 15px;
-            right: 15px;
-            bottom: 15px;
-            transform: translateY(100px);
-        }
-        .custom-toast.show { transform: translateY(0); }
-    }
-    
+}
+
+/* ======================================================
+   STATISTIQUES (BADGES EN HAUT)
+   ====================================================== */
+
+.task-stats {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.stat-badge {
+    font-size: 14px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+.stat-badge.total {
+    background: #e9ecef;
+}
+
+.stat-badge.done {
+    background: #d4edda;
+    border-color: #28a745;
+}
+
+.stat-badge.pending {
+    background: #fff3cd;
+    border-color: #ffc107;
+}
+
+/* ======================================================
+   STYLES SUPPLEMENTAIRES POUR LE CALENDRIER
+   ====================================================== */
+
+.calendar-table td.other-month {
+    color: #adb5bd;
+    cursor: default;
+}
+
+.calendar-table td.task-day {
+    position: relative;
+    cursor: pointer;
+}
+
+.calendar-table td.task-day::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background: #198754;
+    border-radius: 50%;
+}
+
+.calendar-table td.task-day.today::after {
+    background: white;
+}
+
+/* ======================================================
+   BOUTON SUPPRIMER (CONSERVÉ POUR COMPATIBILITÉ)
+   ====================================================== */
+
+.btn-delete-task {
+    border: 1px solid #f8d7da;
+    background: #fff5f5;
+    color: #dc3545;
+    padding: 7px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-delete-task:hover {
+    background: #f8d7da;
+    border-color: #dc3545;
+}
+
+/* ======================================================
+   BOUTON DE FERMETURE DES MODALES (CROIX ROUGE)
+   ====================================================== */
+
+.modal-header .btn-close {
+    background: none !important;
+    border: none !important;
+    font-size: 24px !important;
+    cursor: pointer !important;
+    color: #FFB6C1 !important;
+    padding: 0 8px !important;
+    line-height: 1 !important;
+    opacity: 1 !important;
+    transition: none !important;
+}
+
+.modal-header .btn-close:hover {
+    color: #dc3545 !important;  /* Reste rouge au survol */
+    transform: none !important;  /* Pas de rotation */
+}
+
+/* ======================================================
+   ADAPTATION MOBILE POUR LES STATISTIQUES
+   ====================================================== */
+
+@media (max-width: 768px) {
     .task-stats {
-        display: flex;
-        gap: 15px;
-        flex-wrap: wrap;
-        margin-top: 8px;
+        gap: 8px;
     }
     .stat-badge {
-        font-size: 14px;
-        padding: 4px 12px;
-        border-radius: 20px;
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
+        font-size: 12px;
+        padding: 3px 10px;
     }
-    .stat-badge.total { background: #e9ecef; }
-    .stat-badge.done { background: #d4edda; border-color: #28a745; }
-    .stat-badge.pending { background: #fff3cd; border-color: #ffc107; }
-    
-    
-    .calendar-table td.other-month {
-        color: #adb5bd;
-        cursor: default;
-    }
-    .calendar-table td.task-day {
-        position: relative;
-        cursor: pointer;
-    }
-    .calendar-table td.task-day::after {
-        content: '';
-        position: absolute;
-        bottom: 4px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 6px;
-        height: 6px;
-        background: #198754;
-        border-radius: 50%;
-    }
-    .calendar-table td.task-day.today::after {
-        background: white;
-    }
-    
-    .task-item.completed {
-        opacity: 0.7;
-        background: #f8f9fa;
-    }
-    .task-item.completed .task-time {
-        text-decoration: line-through;
-        color: #6c757d;
-    }
-    
-    .badge-completed {
-        background: #28a745;
-        color: white;
-        padding: 2px 10px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 600;
-        margin-left: 8px;
-    }
-    
-    .btn-delete-task {
-        border: 1px solid #f8d7da;
-        background: #fff5f5;
-        color: #dc3545;
-        padding: 7px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    .btn-delete-task:hover {
-        background: #f8d7da;
-        border-color: #dc3545;
-    }
-    
     .task-actions {
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-top: 8px;
+        flex-direction: column;
     }
     .task-actions button {
-        flex: 1;
-        min-width: 80px;
+        width: 100%;
+    }
+    .page-header h1 {
+        font-size: 18px;
+    }
+}
+
+
+/* ======================================================
+   CONTENEUR DES BOUTONS D'ACTION
+   ====================================================== */
+
+.task-actions {
+    display: flex;
+    justify-content: space-between;  /* Un bouton à gauche, un à droite */
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    width: 100%;
+}
+
+/* ======================================================
+   STYLES GÉNÉRIQUES POUR LES BOUTONS
+   ====================================================== */
+
+.task-actions button {
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 2px solid;
+    min-width: 140px;
+}
+
+/* ======================================================
+   BOUTONS DE LA MODALE AJOUTER
+   ====================================================== */
+
+/* Conteneur des boutons de la modale */
+.modal-footer .btn-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 15px;
+}
+
+/* ======================================================
+   BOUTON "ANNULER" - EFFET SURVOL
+   ====================================================== */
+
+.btn-cancel-modal {
+    background: white;
+    color: #000000;
+    border: 2px solid #d1d1d1;
+    padding: 10px 30px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.btn-cancel-modal:hover {
+    background: #6c757d;  /* Fond gris au survol */
+    color: white !important;  /* Texte blanc au survol */
+    border-color: #6c757d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+/* Bouton "Ajouter" - Vert */
+.btn-add-modal {
+    background: #198754;
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+}
+
+.btn-add-modal:hover {
+    background: #198754;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+}
+
+/* Sur mobile : les boutons passent en colonne */
+@media (max-width: 576px) {
+    .modal-footer .btn-container {
+        flex-direction: column;
     }
     
-    .modal-header .btn-close {
-        background: none;
-        border: none;
-        font-size: 28px;
-        cursor: pointer;
-        color: #6c757d;
-        transition: all 0.3s ease;
-        padding: 0 8px;
+    .modal-footer .btn-container button {
+        width: 100%;
     }
-    .modal-header .btn-close:hover {
-        color: #dc3545;
-        transform: rotate(90deg);
-    }
-    
-    @media (max-width: 768px) {
-        .task-stats {
-            gap: 8px;
-        }
-        .stat-badge {
-            font-size: 12px;
-            padding: 3px 10px;
-        }
-        .task-actions {
-            flex-direction: column;
-        }
-        .task-actions button {
-            width: 100%;
-        }
-        .page-header h1 {
-            font-size: 18px;
-        }
-    }
+}
