@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- VAPID Public Key pour les notifications push -->
+    <meta name="vapid-public-key" content="{{ config('webpush.vapid.public_key') }}">
     <title>@yield('title', 'Élevage+ - Gestion intégrée d\'élevage & Communauté agricole')</title>
     <link rel="icon" href="{{ asset('images/logoE.png') }}" type="image/png">
 
@@ -267,6 +269,19 @@
             `;
             document.head.appendChild(style);
         });
+
+        // Enregistrement du Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('✅ Service Worker enregistré avec succès:', registration);
+                    })
+                    .catch(function(error) {
+                        console.error('❌ Erreur enregistrement Service Worker:', error);
+                    });
+            });
+        }
     </script>
     
     @stack('scripts')

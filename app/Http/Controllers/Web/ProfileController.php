@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/Web/ProfileController.php
 
 namespace App\Http\Controllers\Web;
 
@@ -11,40 +12,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Contrôleur ProfileController
- * 
- * Gère l'affichage des profils publics des éleveurs
- * 
- * @package App\Http\Controllers\Web
- */
 class ProfileController extends Controller
 {
     use ApiResponseTrait;
 
-    /**
-     * Durée de cache pour les données du profil (secondes)
-     */
-    private const CACHE_DURATION = 300; // 5 minutes
+    private const CACHE_DURATION = 300;
 
-    /**
-     * Afficher le profil d'un éleveur
-     *
-     * @param int $id
-     * @param Request $request
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
-     */
     public function show($id, Request $request)
     {
         try {
-            // Récupérer l'utilisateur
             $user = User::where('status', 'active')
                 ->with(['elevages' => function($query) {
                     $query->withCount(['animaux']);
                 }])
                 ->findOrFail($id);
 
-            // Vérifier si le profil est public ou si l'utilisateur est connecté
             if ($user->profile_visibility === 'prive' && !auth()->check()) {
                 LogService::security('Tentative d\'accès à un profil privé', [
                     'profile_id' => $id,
@@ -53,19 +35,16 @@ class ProfileController extends Controller
                 return redirect('/')->with('error', 'Ce profil est privé.');
             }
 
-            // Log de la visite
             LogService::api('GET', '/profile/' . $id, [
                 'profile_id' => $id,
                 'user_agent' => $request->userAgent()
             ]);
 
-            // Récupérer les statistiques en cache
             $cacheKey = "profile_stats_{$id}";
             $stats = Cache::remember($cacheKey, self::CACHE_DURATION, function () use ($user) {
                 return $this->getProfileStats($user);
             });
 
-            // Récupérer les publications
             $cacheKeyPosts = "profile_posts_{$id}";
             $posts = Cache::remember($cacheKeyPosts, self::CACHE_DURATION, function () use ($user) {
                 return $this->getProfilePosts($user);
@@ -92,12 +71,6 @@ class ProfileController extends Controller
         }
     }
 
-    /**
-     * Récupérer les statistiques du profil
-     *
-     * @param User $user
-     * @return array
-     */
     private function getProfileStats(User $user): array
     {
         $publications = Publication::where('user_id', $user->id)
@@ -109,12 +82,10 @@ class ProfileController extends Controller
             ->whereIn('publication_id', $publications->pluck('id'))
             ->count();
 
-        // Nombre d'abonnés (simulé pour l'instant)
         $followers = DB::table('follows')
             ->where('following_id', $user->id)
             ->count();
 
-        // Nombre d'abonnements (simulé pour l'instant)
         $following = DB::table('follows')
             ->where('follower_id', $user->id)
             ->count();
@@ -130,12 +101,6 @@ class ProfileController extends Controller
         ];
     }
 
-    /**
-     * Récupérer les publications du profil
-     *
-     * @param User $user
-     * @return array
-     */
     private function getProfilePosts(User $user): array
     {
         $publications = Publication::where('user_id', $user->id)
@@ -167,13 +132,6 @@ class ProfileController extends Controller
         return $posts;
     }
 
-    /**
-     * API - Récupérer les données du profil
-     *
-     * @param int $id
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function apiShow($id, Request $request)
     {
         try {
@@ -221,13 +179,6 @@ class ProfileController extends Controller
         }
     }
 
-    /**
-     * API - Récupérer les publications du profil (paginées)
-     *
-     * @param int $id
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function apiPosts($id, Request $request)
     {
         try {
@@ -304,13 +255,6 @@ class ProfileController extends Controller
         }
     }
 
-    /**
-     * API - Suivre ou ne plus suivre un utilisateur
-     *
-     * @param int $id
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function toggleFollow($id, Request $request)
     {
         try {
@@ -348,7 +292,6 @@ class ProfileController extends Controller
                 $following = true;
             }
 
-            // Vider le cache des statistiques
             Cache::forget("profile_stats_{$id}");
 
             LogService::auth($message, [
@@ -383,8 +326,14 @@ class ProfileController extends Controller
         };
     }
 
-    private function getResume(string $contenu, int $length = 150): string
+    /**
+     * ✅ CORRIGÉ : Accepte null et retourne une chaîne vide
+     */
+    private function getResume(?string $contenu, int $length = 150): string
     {
+        if (empty($contenu)) {
+            return '';
+        }
         $text = strip_tags($contenu);
         return strlen($text) > $length ? substr($text, 0, $length) . '...' : $text;
     }

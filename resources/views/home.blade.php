@@ -1,3 +1,4 @@
+
 @extends('layouts.app')
 
 @section('title', 'Accueil - Élevage+')
@@ -59,10 +60,29 @@
       </div>
 
       <!-- Pagination -->
-      <div class="pagination" id="pagination">
-        <button id="prevPage" disabled><i class="fas fa-chevron-left"></i> précédente</button>
-        <div id="pageNumbers" class="page-numbers"></div>
-        <button id="nextPage">suivante <i class="fas fa-chevron-right"></i></button>
+        <div class="pagination" id="pagination">
+            <button id="prevPage" disabled>
+                <i class="fas fa-chevron-left"></i>
+                <span>précédente</span>
+            </button>
+            <div id="pageNumbers" class="page-numbers"></div>
+            <button id="nextPage">
+                <span>suivante</span>
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+      <!-- ================= MODALE IMAGE ================= -->
+      <div id="imageModal" class="modal-image">
+        <div class="modal-image-content">
+          <span class="modal-image-close" id="closeImageModal">&times;</span>
+          <img id="modalImage" src="" alt="Image en grand format">
+          <div class="image-nav">
+            <button id="prevImageBtn"><i class="fas fa-chevron-left"></i></button>
+            <span id="imageCounter">1 / 1</span>
+            <button id="nextImageBtn"><i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -165,7 +185,9 @@ const state = {
     currentCategory: 'all',
     isLoading: false,
     toastTimeout: null,
-    expandedPosts: new Set() // ✅ Pour suivre les publications développées
+    expandedPosts: new Set(),
+    currentImages: [],
+    currentImageIndex: 0 
 };
 
 // ============================================================
@@ -202,6 +224,12 @@ function escapeHtml(text) {
 function truncateText(text, maxLength) {
     if (!text) return '';
     return text.length <= maxLength ? text : text.substring(0, maxLength) + '...';
+}
+
+function stripHtml(html) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
 }
 
 function formatDate(dateString) {
@@ -360,9 +388,7 @@ async function loadPosts(page, category) {
             var meta = result.data.meta || {};
             state.totalPages = meta.last_page || 1;
             
-            // ✅ Réinitialiser les publications développées
             state.expandedPosts = new Set();
-            
             renderPosts();
             updatePagination();
             log('✅ ' + state.posts.length + ' publications chargées');
@@ -394,9 +420,8 @@ async function loadStats() {
         console.log('📊 Réponse stats brute:', result);
         
         if (result && result.success === true && result.data) {
-            var stats = result.data; // C'est ici que ApiResponseTrait stocke l'objet
+            var stats = result.data;
             
-            // Extraction stricte et typée des données renvoyées par le contrôleur
             var users = stats.total_users ?? 0;
             var posts = stats.total_posts ?? 0;
             var likes = stats.total_likes ?? 0;
@@ -404,7 +429,6 @@ async function loadStats() {
             
             console.log('📊 Données extraites:', { users, posts, likes, comments });
             
-            // Mise à jour sécurisée du DOM
             var usersEl = document.getElementById('statUsers');
             var postsEl = document.getElementById('statPosts');
             var likesEl = document.getElementById('statLikes');
@@ -425,7 +449,6 @@ async function loadStats() {
     }
 }
 
-// Fonction de secours utilisant les variables injectées par Blade au premier chargement
 function useServerFallbackStats() {
     log('⚠️ Mode secours : Chargement des statistiques serveur (Blade)');
     var serverStats = {!! json_encode($stats ?? []) !!};
@@ -443,7 +466,7 @@ function useServerFallbackStats() {
 }
 
 // ============================================================
-// AFFICHAGE DES PUBLICATIONS - AVEC "PLUS..." ET "MOINS..."
+// AFFICHAGE DES PUBLICATIONS AVEC GRILLE D'IMAGES PROFESSIONNELLE
 // ============================================================
 
 function renderPosts() {
@@ -465,12 +488,13 @@ function renderPosts() {
         var post = state.posts[i];
         var isExpanded = state.expandedPosts.has(post.id);
         
-        // Extraire les données
+        // Données de l'auteur
         var authorName = post.auteur?.name || post.user?.name || 'Utilisateur';
         var authorAvatar = getAvatarUrl(post.auteur?.photo_url || post.user?.photo_url, authorName);
         var authorRole = post.auteur?.role === 'admin' ? 'Administrateur' : 'Éleveur';
         var time = formatDate(post.published_at || post.created_at);
         
+        // Catégorie
         var categoryIcon = post.categorie === 'experience' ? '💡' : 
                           post.categorie === 'alerte' ? '⚠️' : '🌾';
         var categoryLabel = post.categorie_label || post.categorie || 'Conseil';
@@ -481,12 +505,16 @@ function renderPosts() {
         var shares = post.statistiques?.partages || post.nbr_partages || 0;
         var views = post.statistiques?.vues || post.nbr_vues || 0;
         
-        var imageUrl = post.images && post.images.length > 0 ? post.images[0] : (post.image_url || 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?q=80&w=400');
+        // Images
+        var images = post.images || [];
+        var firstImage = images.length > 0 ? images[0] : (post.image_url || '');
+        
+        // Titre et contenu
         var title = post.titre || 'Sans titre';
         var fullContent = post.contenu || 'Contenu non disponible';
         var profileUrl = '/profilEleveur/' + (post.user_id || post.user?.id);
         
-        // ✅ Gestion du contenu avec "plus..." et "moins..."
+        // Contenu avec "plus..." / "moins..."
         var maxLength = 200;
         var contentExcerpt = truncateText(stripHtml(fullContent), maxLength);
         var isTruncated = fullContent.length > maxLength;
@@ -502,41 +530,65 @@ function renderPosts() {
             contentHtml = fullContent.replace(/\n/g, '<br>');
         }
         
+        // ============================================================
+        // GRILLE D'IMAGES PROFESSIONNELLE
+        // ============================================================
+        var imagesHtml = '';
+        if (images.length > 0) {
+            var displayCount = Math.min(images.length, 4);
+            var remaining = images.length - 4;
+            var gridClass = 'grid-' + displayCount;
+            
+            imagesHtml = '<div class="image-grid ' + gridClass + '">';
+            
+            for (var j = 0; j < displayCount; j++) {
+                var isLast = (j === displayCount - 1 && remaining > 0);
+                var overlay = isLast ? '<div class="overlay-plus">+' + remaining + '</div>' : '';
+                
+                imagesHtml += `
+                    <div class="grid-img-item" onclick="openImageModal(${post.id}, ${j})">
+                        <img src="${fixImageUrl(images[j])}" alt="Image ${j + 1}" loading="lazy" onerror="this.style.display='none'">
+                        ${overlay}
+                    </div>
+                `;
+            }
+            
+            imagesHtml += '</div>';
+        }
+        
+        // Construction de la carte
         html += `
-        <article class="post-card" data-post-id="` + post.id + `">
+        <article class="post-card" data-post-id="${post.id}">
             <div class="post-top">
-                <img src="` + authorAvatar + `" class="avatar" alt="` + escapeHtml(authorName) + `" onerror="this.src='https://ui-avatars.com/api/?name=User&background=4F46E5&color=fff'">
+                <img src="${authorAvatar}" class="avatar" alt="${escapeHtml(authorName)}" onerror="this.src='https://ui-avatars.com/api/?name=User&background=4F46E5&color=fff'">
                 <div class="post-info">
-                    <a href="` + profileUrl + `" style="text-decoration: none; color: inherit;">
-                      <h4>` + escapeHtml(authorName) + ` - ` + authorRole + ` <i class="fas fa-circle-check text-info"></i> • ` + time + `</h4>
+                    <a href="${profileUrl}" style="text-decoration: none; color: inherit;">
+                      <h4>${escapeHtml(authorName)} - ${authorRole} <i class="fas fa-circle-check text-info"></i> • ${time}</h4>
                     </a>
                     <div class="post-meta">
-                        <span><i class="fas fa-tag"></i> ` + categoryIcon + ` ` + categoryLabel + `</span>
+                        <span><i class="fas fa-tag"></i> ${categoryIcon} ${categoryLabel}</span>
                     </div>
                 </div>
             </div>
             <div class="post-content">
                 <div class="post-text">
-
-                    <h3>` + escapeHtml(title) + `</h3>
-                    <p class="post-text-content" data-full="` + (isExpanded ? 'true' : 'false') + `">
-                        ` + contentHtml + `
+                    <h3>${escapeHtml(title)}</h3>
+                    <p class="post-text-content" data-full="${isExpanded ? 'true' : 'false'}">
+                        ${contentHtml}
                     </p>
-                    <img src="` + fixImageUrl(imageUrl) + `" alt="` + escapeHtml(title) + `" onerror="this.src='https://images.unsplash.com/photo-1500595046743-cd271d694d30?q=80&w=400'">
-                    
+                    ${imagesHtml}
                     <div class="post-actions">
-                        <!-- Statistiques publiques -->
                         <span class="stat-item">
-                            <i class="fas fa-heart"></i> <span class="stat-count">` + likes + `</span>
+                            <i class="fas fa-heart"></i> <span class="stat-count">${likes}</span>
                         </span>
                         <span class="stat-item">
-                            <i class="fas fa-comment"></i> <span class="stat-count">` + comments + `</span>
+                            <i class="fas fa-comment"></i> <span class="stat-count">${comments}</span>
                         </span>
                         <span class="stat-item">
-                            <i class="fas fa-share-alt"></i> <span class="stat-count">` + shares + `</span>
+                            <i class="fas fa-share-alt"></i> <span class="stat-count">${shares}</span>
                         </span>
                         <span class="stat-item">
-                            <i class="fas fa-eye"></i> <span class="stat-count">` + views + `</span>
+                            <i class="fas fa-eye"></i> <span class="stat-count">${views}</span>
                         </span>
                     </div>
                 </div>
@@ -546,20 +598,6 @@ function renderPosts() {
     
     container.innerHTML = html;
 }
-
-// ============================================================
-// FONCTION POUR SUPPRIMER LES BALISES HTML
-// ============================================================
-
-function stripHtml(html) {
-    var tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || '';
-}
-
-// ============================================================
-// TOGGLE DU CONTENU COMPLET
-// ============================================================
 
 function toggleFullContent(postId) {
     if (state.expandedPosts.has(postId)) {
@@ -625,6 +663,48 @@ function updatePagination() {
 }
 
 // ============================================================
+// MODALE IMAGE
+// ============================================================
+
+function openImageModal(postId, imageIndex) {
+    var post = state.posts.find(function(p) { return p.id === postId; });
+    if (!post || !post.images || post.images.length === 0) {
+        showToast('Aucune image à afficher', 'info');
+        return;
+    }
+    
+    state.currentImages = post.images;
+    state.currentImageIndex = Math.min(imageIndex, state.currentImages.length - 1);
+    
+    var modal = document.getElementById('imageModal');
+    var img = document.getElementById('modalImage');
+    var counter = document.getElementById('imageCounter');
+    
+    img.src = fixImageUrl(state.currentImages[state.currentImageIndex]) || '';
+    counter.textContent = (state.currentImageIndex + 1) + ' / ' + state.currentImages.length;
+    
+    document.getElementById('prevImageBtn').style.display = state.currentImages.length > 1 ? 'flex' : 'none';
+    document.getElementById('nextImageBtn').style.display = state.currentImages.length > 1 ? 'flex' : 'none';
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function navigateImage(direction) {
+    if (state.currentImages.length === 0) return;
+    state.currentImageIndex += direction;
+    if (state.currentImageIndex < 0) state.currentImageIndex = state.currentImages.length - 1;
+    if (state.currentImageIndex >= state.currentImages.length) state.currentImageIndex = 0;
+    document.getElementById('modalImage').src = fixImageUrl(state.currentImages[state.currentImageIndex]) || '';
+    document.getElementById('imageCounter').textContent = (state.currentImageIndex + 1) + ' / ' + state.currentImages.length;
+}
+
+// ============================================================
 // FILTRES
 // ============================================================
 
@@ -647,16 +727,10 @@ function setupTabs() {
 document.addEventListener('DOMContentLoaded', function() {
     log('🚀 Initialisation de la page d\'accueil');
     
-    // Charger les statistiques
     loadStats();
-    
-    // Charger les publications
     loadPosts(1, 'all');
-    
-    // Configurer les filtres
     setupTabs();
     
-    // Pagination
     document.getElementById('prevPage').addEventListener('click', function() {
         if (state.currentPage > 1) {
             loadPosts(state.currentPage - 1, state.currentCategory);
@@ -671,6 +745,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    document.getElementById('closeImageModal').addEventListener('click', closeImageModal);
+    document.getElementById('prevImageBtn').addEventListener('click', function() { navigateImage(-1); });
+    document.getElementById('nextImageBtn').addEventListener('click', function() { navigateImage(1); });
+    
+    window.addEventListener('click', function(e) {
+        if (e.target === document.getElementById('imageModal')) {
+            closeImageModal();
+        }
+    });
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (document.getElementById('imageModal').style.display === 'flex') {
+                closeImageModal();
+            }
+        }
+        if (e.key === 'ArrowLeft' && document.getElementById('imageModal').style.display === 'flex') {
+            navigateImage(-1);
+        }
+        if (e.key === 'ArrowRight' && document.getElementById('imageModal').style.display === 'flex') {
+            navigateImage(1);
+        }
+    });
+    
     log('✅ Page d\'accueil initialisée avec succès');
 });
 
@@ -680,6 +778,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 var style = document.createElement('style');
 style.textContent = `
+    /* ============================================================
+       TOAST
+    ============================================================ */
     .custom-toast {
         position: fixed;
         bottom: 30px;
@@ -716,72 +817,9 @@ style.textContent = `
         .custom-toast.show { transform: translateY(0); }
     }
     
-    #postsList {
-        transition: opacity 0.3s ease;
-    }
-    .empty-posts {
-        text-align: center;
-        padding: 60px 20px;
-        background: white;
-        border-radius: 12px;
-        border: 1px solid #dee2e6;
-    }
-    .empty-posts i {
-        font-size: 48px;
-        color: #6c757d;
-        margin-bottom: 15px;
-    }
-    .empty-posts h4 {
-        font-size: 18px;
-        margin-bottom: 8px;
-        color: #343a40;
-    }
-    .empty-posts p {
-        font-size: 14px;
-        color: #6c757d;
-    }
-    
-    .pagination .page-numbers {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-    }
-    .page-number {
-        padding: 7px 12px;
-        border: 1px solid #dee2e6;
-        background: white;
-        cursor: pointer;
-        border-radius: 4px;
-        font-size: 12px;
-        transition: all 0.2s;
-    }
-    .page-number:hover {
-        background: #e9ecef;
-    }
-    .page-number.active {
-        background: #28a745;
-        color: white;
-        border-color: #28a745;
-    }
-    .page-dots {
-        padding: 0 5px;
-        color: #6c757d;
-    }
-    #prevPage:disabled, #nextPage:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-    #pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-top: 20px;
-    }
-    
+    /* ============================================================
+       SCROLL CONTAINER
+    ============================================================ */
     .posts-scroll-container {
         max-height: 700px;
         overflow-y: auto;
@@ -802,6 +840,9 @@ style.textContent = `
         background: #146c43;
     }
     
+    /* ============================================================
+       POST CARDS
+    ============================================================ */
     .post-card {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         margin-bottom: 20px;
@@ -848,11 +889,6 @@ style.textContent = `
         display: flex;
         flex-direction: column;
     }
-    .post-content img {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-    }
     .post-content .post-text {
         padding: 15px 20px;
     }
@@ -869,7 +905,6 @@ style.textContent = `
         margin-bottom: 12px;
     }
     
-    /* ✅ Style pour le bouton "plus..." et "moins..." */
     .read-more-btn {
         color: #28a745;
         cursor: pointer;
@@ -922,29 +957,407 @@ style.textContent = `
         color: #6c757d;
     }
     
-    .posts-section {
-        flex: 2;
+    /* ============================================================
+       PAGINATION PROFESSIONNELLE
+    ============================================================ */
+    #pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 25px;
+        padding: 15px 0;
+        flex-wrap: wrap;
+    }
+
+    #pagination button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border: 1px solid #dee2e6;
+        background: white;
+        color: #495057;
+        cursor: pointer;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.25s ease;
+        min-height: 38px;
+        min-width: 38px;
+    }
+
+    #pagination button:hover:not(:disabled) {
+        background: #198754;
+        color: white;
+        border-color: #198754;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(25, 135, 84, 0.2);
+    }
+
+    #pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    #pagination button:active:not(:disabled) {
+        transform: scale(0.95);
+    }
+
+    .page-numbers {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+
+    .page-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 14px;
+        border: 1px solid #dee2e6;
+        background: white;
+        cursor: pointer;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #495057;
+        transition: all 0.25s ease;
+        min-width: 38px;
+        min-height: 38px;
+    }
+
+    .page-number:hover {
+        background: #f8f9fa;
+        border-color: #198754;
+        color: #198754;
+    }
+
+    .page-number.active {
+        background: #198754;
+        color: white;
+        border-color: #198754;
+        box-shadow: 0 2px 8px rgba(25, 135, 84, 0.25);
+    }
+
+    .page-number.active:hover {
+        background: #146c43;
+        border-color: #146c43;
+    }
+
+    .page-dots {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        color: #6c757d;
+        font-size: 14px;
+        font-weight: 500;
+        min-width: 30px;
+    }
+
+    /* ============================================================
+       EMPTY POSTS
+    ============================================================ */
+    .empty-posts {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+    }
+    .empty-posts i {
+        font-size: 48px;
+        color: #6c757d;
+        margin-bottom: 15px;
+    }
+    .empty-posts h4 {
+        font-size: 18px;
+        margin-bottom: 8px;
+        color: #343a40;
+    }
+    .empty-posts p {
+        font-size: 14px;
+        color: #6c757d;
     }
     
+    /* ============================================================
+       MODALE IMAGE
+    ============================================================ */
+    .modal-image {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .modal-image-content {
+        position: relative;
+        max-width: 90%;
+        max-height: 90vh;
+        background: transparent;
+    }
+    .modal-image-content img {
+        width: 100%;
+        max-height: 85vh;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+    .modal-image-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        color: white;
+        font-size: 32px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .modal-image-close:hover {
+        color: #dc3545;
+        transform: rotate(90deg);
+    }
+    .image-nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin-top: 16px;
+    }
+    .image-nav button {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        transition: all 0.3s;
+        color: #1a202c;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .image-nav button:hover {
+        background: white;
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .image-nav span {
+        color: white;
+        font-size: 14px;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 4px 14px;
+        border-radius: 20px;
+    }
+    
+    /* ============================================================
+       GRILLE D'IMAGES PROFESSIONNELLE
+    ============================================================ */
+    .image-grid {
+        display: grid;
+        gap: 6px;
+        margin-top: 10px;
+        margin-bottom: 6px;
+    }
+    
+    .image-grid .grid-img-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        cursor: pointer;
+        aspect-ratio: 16/10;
+        background: #f0f2f5;
+    }
+    
+    .image-grid .grid-img-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    
+    .image-grid .grid-img-item:hover img {
+        transform: scale(1.03);
+    }
+    
+    .image-grid .overlay-plus {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        font-size: 24px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        backdrop-filter: blur(2px);
+    }
+    
+    /* Grille 1 image */
+    .image-grid.grid-1 {
+        grid-template-columns: 1fr;
+        max-width: 100%;
+    }
+    
+    .image-grid.grid-1 .grid-img-item {
+        aspect-ratio: 16/9;
+        max-height: 300px;
+    }
+    
+    /* Grille 2 images */
+    .image-grid.grid-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .image-grid.grid-2 .grid-img-item {
+        aspect-ratio: 1/1;
+    }
+    
+    /* Grille 3 images */
+    .image-grid.grid-3 {
+        grid-template-columns: 2fr 1fr;
+        grid-template-rows: 1fr 1fr;
+    }
+    
+    .image-grid.grid-3 .grid-img-item:first-child {
+        grid-row: 1 / 3;
+    }
+    
+    .image-grid.grid-3 .grid-img-item {
+        aspect-ratio: auto;
+    }
+    
+    /* Grille 4 images */
+    .image-grid.grid-4 {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+    }
+    
+    .image-grid.grid-4 .grid-img-item {
+        aspect-ratio: 1/1;
+    }
+    
+    /* ============================================================
+       RESPONSIVE PAGINATION
+    ============================================================ */
     @media (max-width: 768px) {
-        .post-content {
-            flex-direction: column;
+        #pagination {
+            gap: 5px;
+            padding: 10px 0;
         }
-        .post-content img {
-            height: 150px;
-        }
-        .post-top .post-info .post-meta {
-            gap: 8px;
-        }
-        .post-content .post-text .post-actions {
-            gap: 8px;
-        }
-        .posts-scroll-container {
-            max-height: 500px;
-        }
-        .post-content .post-text .post-actions .stat-item {
+        
+        #pagination button {
+            padding: 6px 12px;
             font-size: 12px;
-            padding: 3px 6px;
+            min-height: 32px;
+            min-width: 32px;
+            border-radius: 6px;
+        }
+        
+        .page-number {
+            padding: 6px 10px;
+            font-size: 12px;
+            min-width: 32px;
+            min-height: 32px;
+            border-radius: 6px;
+        }
+        
+        .page-dots {
+            font-size: 12px;
+            min-width: 20px;
+        }
+        
+        .image-grid .grid-img-item {
+            aspect-ratio: 4/3;
+        }
+        
+        .image-grid.grid-1 .grid-img-item {
+            aspect-ratio: 16/9;
+            max-height: 200px;
+        }
+        
+        .image-grid.grid-3 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+        }
+        
+        .image-grid.grid-3 .grid-img-item:first-child {
+            grid-row: 1 / 2;
+            grid-column: 1 / 3;
+            aspect-ratio: 16/9;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        #pagination {
+            gap: 3px;
+        }
+        
+        #pagination button {
+            padding: 4px 8px;
+            font-size: 11px;
+            min-height: 28px;
+            min-width: 28px;
+            border-radius: 4px;
+        }
+        
+        .page-number {
+            padding: 4px 8px;
+            font-size: 11px;
+            min-width: 28px;
+            min-height: 28px;
+            border-radius: 4px;
+        }
+        
+        /* Cache le texte des boutons précédent/suivant sur très petits écrans */
+        #pagination button span {
+            display: none;
+        }
+        
+        #pagination button i {
+            font-size: 12px;
+        }
+        
+        .image-grid {
+            gap: 4px;
+        }
+        
+        .image-grid .grid-img-item {
+            aspect-ratio: 4/3;
+            border-radius: 6px;
+        }
+        
+        .image-grid.grid-1 .grid-img-item {
+            aspect-ratio: 16/9;
+            max-height: 160px;
+        }
+        
+        .image-grid.grid-3 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+        }
+        
+        .image-grid.grid-3 .grid-img-item:first-child {
+            grid-row: 1 / 2;
+            grid-column: 1 / 3;
+            aspect-ratio: 16/9;
+        }
+        
+        .image-grid .overlay-plus {
+            font-size: 18px;
         }
     }
 `;
