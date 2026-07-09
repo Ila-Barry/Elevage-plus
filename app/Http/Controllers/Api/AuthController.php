@@ -20,18 +20,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Hash;
-
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Foundation\Bus\DispatchesJobs;
-use Illuminate\Foundation\Validation\ValidatesRequests;
-
 
 /**
  * Contrôleur AuthController
- * * Gère toutes les opérations d'authentification et de gestion de profil
+ * Gère toutes les opérations d'authentification et de gestion de profil
  */
 class AuthController extends Controller
 {
@@ -128,7 +121,6 @@ class AuthController extends Controller
                 $user->save();
             }
             
-            // Auth::guard('web')->login($user, $request->input('remember', false));
             if (config('session.driver') !== 'array') { 
                 try {
                     Auth::login($user, $request->input('remember', false));
@@ -142,7 +134,6 @@ class AuthController extends Controller
 
             Log::info('Connexion réussie', ['user_id' => $user->id, 'role' => $user->role]);
 
-            // ✅ Utilisation du ApiResponseTrait standardisé
             return $this->successResponse([
                 'user' => $user->makeVisible(['email', 'telephone']),
                 'access_token' => $token,
@@ -285,14 +276,30 @@ class AuthController extends Controller
             $user = Auth::user();
             $updateData = $request->validated();
             
+            Log::info('Mise à jour du profil', [
+                'user_id' => $user->id,
+                'has_photo' => $request->hasFile('photo'),
+                'update_data' => $updateData
+            ]);
+            
             if ($request->hasFile('photo')) {
+                Log::info('Photo reçue', [
+                    'name' => $request->file('photo')->getClientOriginalName(),
+                    'size' => $request->file('photo')->getSize(),
+                    'mime' => $request->file('photo')->getMimeType()
+                ]);
+                
                 if ($user->photo_url && !str_contains($user->photo_url, 'ui-avatars.com')) {
                     $oldPath = str_replace('/storage/', '', $user->photo_url);
-                    Storage::disk('public')->delete($oldPath);
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                        Log::info('Ancienne photo supprimée', ['path' => $oldPath]);
+                    }
                 }
                 
                 $photoPath = $this->uploadProfilePhoto($request->file('photo'));
                 $updateData['photo_url'] = $photoPath;
+                Log::info('Nouvelle photo uploadée', ['path' => $photoPath]);
             }
             
             unset($updateData['photo']);
@@ -308,6 +315,7 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Erreur lors de la mise à jour du profil: ' . $e->getMessage());
+            
             return $this->errorResponse('Erreur lors de la mise à jour du profil.', 500);
         }
     }
@@ -376,8 +384,8 @@ class AuthController extends Controller
     }
 
     /**
- * Récupère les préférences de notification
- */
+     * Récupère les préférences de notification
+     */
     public function getNotificationPreferences(Request $request): JsonResponse
     {
         try {
@@ -492,7 +500,7 @@ class AuthController extends Controller
             }
             
             $recentPosts = $user->publications()
-                ->where('statut', 'publiee') // Corrigé de 'etat' à 'statut' pour correspondre au HomeController
+                ->where('statut', 'publiee')
                 ->latest()
                 ->limit(10)
                 ->get();
@@ -545,12 +553,15 @@ class AuthController extends Controller
 
     // ========== MÉTHODES PRIVÉES ==========
 
+    /**
+     * Upload de la photo de profil sans Intervention Image
+     */
     private function uploadProfilePhoto($photo): string
     {
         $filename = time() . '_' . uniqid() . '.' . $photo->getClientOriginalExtension();
         $path = 'avatars/' . $filename;
         
-        // ✅ Stocker l'image directement sans redimensionnement (solution de contournement)
+        // ✅ Stocker l'image directement sans redimensionnement
         Storage::disk('public')->put($path, file_get_contents($photo));
         
         return $path;

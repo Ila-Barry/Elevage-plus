@@ -660,7 +660,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
                 }
             }
             
-            showSuccess('Inscription réussie ! Un email de vérification vous a été envoyé.');
+            showSuccess('Inscription réussie ! Vous allez être redirigé vers la page de connexion.');
             
             // Redirection vers la page de connexion
             setTimeout(() => {

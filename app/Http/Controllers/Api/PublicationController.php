@@ -54,88 +54,49 @@ class PublicationController extends Controller
     /**
      * Créer une nouvelle publication
      */
-    public function store(Request $request)
+
+    public function store(CreateAnimalRequest $request)
     {
+        DB::beginTransaction();
+        
         try {
-            $user = Auth::user();
+            $user = $request->user();
+            $data = $request->validated();
             
-            \Log::info('📝 Tentative de création de publication', [
+            // ✅ LOG pour déboguer
+            \Log::info('📝 Création animal', [
                 'user_id' => $user->id,
-                'titre' => $request->titre,
+                'data' => $data,
+                'elevage_id' => $data['elevage_id'] ?? null
             ]);
-
-            $validator = Validator::make($request->all(), [
-                'titre' => 'required|string|min:5|max:255',
-                'categorie' => 'required|string|in:conseil,experience,alerte',
-                'contenu' => 'nullable|string|min:2',
-                'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-                'videos.*' => 'nullable|file|mimes:mp4,mov,avi,webm|max:51200',
-                'documents.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,zip,rar|max:10240',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Erreur de validation',
-                    'errors' => $validator->errors()
-                ], 422);
+            
+            $elevage = Elevage::where('id', $data['elevage_id'])
+                ->where('user_id', $user->id)
+                ->firstOrFail();
+            
+            \Log::info('✅ Élevage trouvé', ['elevage_id' => $elevage->id]);
+            
+            if ($request->hasFile('image')) {
+                $data['img_url'] = $this->uploadImage($request->file('image'));
             }
-
-            $images = $this->uploadMultipleFiles($request->file('images'), 'uploads/publications/images');
-            $videos = $this->uploadMultipleFiles($request->file('videos'), 'uploads/publications/videos');
-            $documents = $this->uploadMultipleDocuments($request->file('documents'), 'uploads/publications/documents');
-
-            $publication = Publication::create([
-                'titre' => $request->titre,
-                'categorie' => $request->categorie,
-                'contenu' => $request->contenu,
-                'user_id' => $user->id,
-                'images' => $images,
-                'videos' => $videos,
-                'documents' => $documents,
-                'published_at' => now(),
-            ]);
-
-            $publication->load('user');
-
-            // 🔔 NOTIFICATION DE CRÉATION
-            try {
-                Log::info('📤 Envoi notification création publication', [
-                    'user_id' => $user->id,
-                    'publication_id' => $publication->id,
-                    'titre' => $publication->titre
-                ]);
-
-                // Notifier l'auteur
-                $user->notify(new PublicationNotification($publication, PublicationNotification::TYPE_CREATED));
-
-                // Notifier les admins
-                $admins = User::where('role', 'admin')->get();
-                foreach ($admins as $admin) {
-                    if ($admin->id !== $user->id) {
-                        $admin->notify(new PublicationNotification($publication, PublicationNotification::TYPE_CREATED));
-                    }
-                }
-
-                Log::info('✅ Notification création publication envoyée');
-            } catch (\Exception $e) {
-                Log::error('❌ Erreur notification création publication', [
-                    'error' => $e->getMessage()
-                ]);
-            }
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Article publié avec succès !',
-                'data' => $this->formatPublication($publication)
-            ], 201);
-
+            
+            $animal = Animal::create($data);
+            \Log::info('✅ Animal créé', ['animal_id' => $animal->id]);
+            
+            DB::commit();
+            
+            return $this->successResponse(
+                new AnimalResource($animal->load(['elevage', 'pere', 'mere'])),
+                'Animal créé avec succès.',
+                201
+            );
+            
         } catch (\Exception $e) {
-            Log::error('❌ ERREUR CRÉATION PUBLICATION: ' . $e->getMessage());
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Erreur lors de la création: ' . $e->getMessage()
-            ], 500);
+            DB::rollBack();
+            \Log::error('❌ Erreur création animal: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return $this->errorResponse('Erreur lors de la création de l\'animal: ' . $e->getMessage(), 500);
         }
     }
 
