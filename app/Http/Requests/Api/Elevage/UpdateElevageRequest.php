@@ -1,4 +1,5 @@
 <?php
+// app/Http/Requests/Api/Elevage/UpdateElevageRequest.php
 
 namespace App\Http\Requests\Api\Elevage;
 
@@ -6,19 +7,25 @@ use App\Http\Requests\Api\ApiRequest;
 use App\Models\Elevage;
 use Illuminate\Validation\Rule;
 
+/**
+ * Requête de validation pour la mise à jour d'un élevage
+ */
 class UpdateElevageRequest extends ApiRequest
 {
+    /**
+     * Règles de validation
+     */
     public function rules(): array
     {
         return [
             'nom' => [
-                'required', 
+                'sometimes',
                 'string',
                 'min:3',
                 'max:100',
             ],
             'type_elevage' => [
-                'required',  
+                'sometimes',
                 'string',
                 Rule::in(array_keys(Elevage::TYPES_ELEVAGE)),
             ],
@@ -55,13 +62,14 @@ class UpdateElevageRequest extends ApiRequest
         ];
     }
 
+    /**
+     * Messages d'erreur personnalisés
+     */
     public function messages(): array
     {
         return [
-            'nom.required' => 'Le nom de l\'élevage est obligatoire.',
             'nom.min' => 'Le nom doit contenir au moins 3 caractères.',
             'nom.max' => 'Le nom ne peut pas dépasser 100 caractères.',
-            'type_elevage.required' => 'Le type d\'élevage est obligatoire.',
             'type_elevage.in' => 'Le type d\'élevage sélectionné n\'est pas valide.',
             'superficie.numeric' => 'La superficie doit être un nombre.',
             'superficie.min' => 'La superficie doit être supérieure ou égale à 0.',
@@ -71,7 +79,9 @@ class UpdateElevageRequest extends ApiRequest
         ];
     }
 
-    // Préparation des données avant validation
+    /**
+     * Préparation des données avant validation
+     */
     protected function prepareForValidation(): void
     {
         // Nettoyer les champs vides
@@ -86,6 +96,11 @@ class UpdateElevageRequest extends ApiRequest
         // S'assurer que les champs numériques sont bien formatés
         if ($this->has('superficie')) {
             $this->merge(['superficie' => $this->superficie === '' ? null : $this->superficie]);
+        }
+        
+        // Si localisation est vide, on la met à null
+        if ($this->has('localisation') && empty($this->localisation)) {
+            $this->merge(['localisation' => null]);
         }
     }
 }

@@ -302,6 +302,7 @@
     flex-direction: column;
     background: var(--whatsapp-bg);
     position: relative;
+    min-height: 400px;
 }
 
 .discussion-area::before {
@@ -337,6 +338,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    min-width: 0;
 }
 
 .discussion-avatar {
@@ -358,11 +360,18 @@
     right: 1px;
 }
 
+.discussion-info {
+    min-width: 0;
+}
+
 .discussion-info h3 {
     font-size: 0.95rem;
     font-weight: 500;
     margin: 0 0 2px 0;
     color: var(--whatsapp-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .discussion-info .online-status {
@@ -382,6 +391,7 @@
 .discussion-actions {
     display: flex;
     gap: 4px;
+    flex-shrink: 0;
 }
 
 .discussion-actions .action-btn {
@@ -435,7 +445,7 @@
 }
 
 /* ============================================================
-   MESSAGES - STYLE CORRIGÉ
+   MESSAGES
    ============================================================ */
 
 .message {
@@ -446,7 +456,6 @@
     animation: messageSlide 0.2s ease;
 }
 
-/* MESSAGE ENVOYÉ (PAR MOI) - À GAUCHE, FOND GRIS CLAIR */
 .message-sent {
     align-self: flex-start;
     flex-direction: row;
@@ -475,7 +484,6 @@
     color: rgba(17, 27, 33, 0.6);
 }
 
-/* MESSAGE REÇU (DE L'AUTRE) - À DROITE, FOND BLANC */
 .message-received {
     align-self: flex-end;
     flex-direction: row-reverse;
@@ -503,10 +511,6 @@
 .message-received .message-time {
     color: var(--whatsapp-text-light);
 }
-
-/* ============================================================
-   CONTENU DES MESSAGES
-   ============================================================ */
 
 .message-bubble p {
     margin: 0;
@@ -563,7 +567,7 @@
 }
 
 /* ============================================================
-   ZONE D'ENVOI
+   ZONE D'ENVOI - CORRIGÉ
    ============================================================ */
 
 .message-input-area {
@@ -580,7 +584,7 @@
 
 .input-actions {
     display: flex;
-    gap: 4px;
+    gap: 2px;
     flex-shrink: 0;
 }
 
@@ -593,7 +597,7 @@
     color: var(--whatsapp-text-light);
     cursor: pointer;
     transition: all 0.2s;
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
 .input-action-btn:hover {
@@ -604,23 +608,25 @@
 .message-input-wrapper {
     flex: 1;
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
     background: var(--whatsapp-bg);
     border-radius: 8px;
     padding: 2px 4px;
+    min-width: 0;
 }
 
 .message-input {
     flex: 1;
     border: none;
     background: transparent;
-    padding: 10px 12px;
+    padding: 8px 10px;
     font-size: 0.9rem;
     color: var(--whatsapp-text);
     outline: none;
     font-family: inherit;
-    min-height: 20px;
+    min-width: 50px;
+    width: 100%;
 }
 
 .message-input::placeholder {
@@ -856,6 +862,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    min-width: 0;
 }
 
 .modal-user-avatar {
@@ -863,17 +870,24 @@
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
+    flex-shrink: 0;
 }
 
 .modal-user-name {
     font-weight: 500;
     font-size: 0.9rem;
     color: var(--whatsapp-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .modal-user-role {
     font-size: 0.75rem;
     color: var(--whatsapp-text-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .btn-modal-contact {
@@ -886,6 +900,8 @@
     padding: 6px 12px;
     border-radius: 6px;
     transition: all 0.2s;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .btn-modal-contact:hover {
@@ -960,155 +976,9 @@
 }
 
 /* ============================================================
-   ANIMATIONS
+   TOAST MESSAGE NOTIFICATION
    ============================================================ */
 
-@keyframes messageSlide {
-    from {
-        opacity: 0;
-        transform: translateY(8px) scale(0.96);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-
-/* Tablettes */
-@media (max-width: 992px) {
-    .conversations-list {
-        width: 300px;
-        min-width: 250px;
-    }
-    
-    .message {
-        max-width: 75%;
-    }
-}
-
-/* Mobiles */
-@media (max-width: 768px) {
-    .messagerie-container {
-        height: calc(100vh - 60px);
-    }
-    
-    .messagerie-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-        padding: 8px 12px;
-    }
-    
-    .search-bar {
-        width: 100%;
-    }
-    
-    .messagerie-body {
-        flex-direction: column;
-    }
-    
-    .conversations-list {
-        width: 100%;
-        min-width: unset;
-        max-height: 45vh;
-        border-right: none;
-        border-bottom: 1px solid var(--whatsapp-border);
-    }
-    
-    .conversations-scroll {
-        max-height: calc(45vh - 60px);
-    }
-    
-    .discussion-area {
-        min-height: 55vh;
-    }
-    
-    .message {
-        max-width: 85%;
-    }
-    
-    .message-bubble .message-media {
-        max-width: 200px;
-        max-height: 200px;
-    }
-    
-    .messages-scroll {
-        padding: 12px 16px;
-    }
-    
-    .custom-modal-card {
-        width: 95%;
-    }
-}
-
-/* Petits mobiles */
-@media (max-width: 480px) {
-    .conversation-avatar img {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .message {
-        max-width: 92%;
-    }
-    
-    .message-bubble p {
-        font-size: 0.85rem;
-    }
-    
-    .messages-scroll {
-        padding: 8px 12px;
-    }
-    
-    .discussion-header {
-        padding: 8px 12px;
-    }
-    
-    .discussion-avatar img {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .message-input-area {
-        padding: 6px 10px;
-    }
-    
-    .message-input {
-        font-size: 0.85rem;
-        padding: 8px 10px;
-    }
-    
-    .send-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 0.85rem;
-    }
-}
-
-/* ============================================================
-   UTILITAIRES
-   ============================================================ */
-
-.text-center { text-align: center; }
-.text-muted { color: var(--whatsapp-text-light); }
-.py-4 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
-.py-3 { padding-top: 1rem; padding-bottom: 1rem; }
-.mt-3 { margin-top: 1rem; }
-.mr-1 { margin-right: 0.25rem; }
-.mr-2 { margin-right: 0.5rem; }
-.d-flex { display: flex; }
-.flex-column { flex-direction: column; }
-.align-items-center { align-items: center; }
-.justify-content-center { justify-content: center; }
-.gap-2 { gap: 0.5rem; }
-
-
-
-/* ================= TOAST DE NOTIFICATION ================= */
 .custom-toast-message {
     position: fixed;
     top: 20px;
@@ -1170,14 +1040,359 @@
     animation: pulse 0.5s ease 2;
 }
 
-/* Responsive */
-@media (max-width: 576px) {
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+
+@keyframes messageSlide {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ============================================================
+   RESPONSIVE - CORRIGÉ
+   ============================================================ */
+
+/* Tablettes */
+@media (max-width: 992px) {
+    .conversations-list {
+        width: 300px;
+        min-width: 250px;
+    }
+    
+    .message {
+        max-width: 75%;
+    }
+    
+    .search-bar {
+        width: 200px;
+    }
+}
+
+/* Mobiles */
+@media (max-width: 768px) {
+    .messagerie-container {
+        height: calc(100vh - 60px);
+    }
+    
+    .messagerie-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 8px 12px;
+    }
+    
+    .messagerie-title {
+        font-size: 1rem;
+        justify-content: center;
+    }
+    
+    .search-bar {
+        width: 100%;
+    }
+    
+    .search-input {
+        padding: 8px 12px 8px 34px;
+        font-size: 0.8rem;
+    }
+    
+    .messagerie-body {
+        flex-direction: column;
+    }
+    
+    .conversations-list {
+        width: 100%;
+        min-width: unset;
+        max-height: 40vh;
+        border-right: none;
+        border-bottom: 1px solid var(--whatsapp-border);
+    }
+    
+    .conversations-scroll {
+        max-height: calc(40vh - 60px);
+    }
+    
+    .discussion-area {
+        flex: 1;
+        min-height: 60vh;
+        max-height: 60vh;
+    }
+    
+    .message {
+        max-width: 85%;
+    }
+    
+    .message-bubble .message-media {
+        max-width: 180px;
+        max-height: 180px;
+    }
+    
+    .messages-scroll {
+        padding: 12px 16px;
+    }
+    
+    /* ✅ CORRECTION : Zone d'envoi sur mobile */
+    .message-input-area {
+        padding: 6px 8px;
+        gap: 4px;
+        flex-wrap: nowrap;
+    }
+    
+    .input-actions {
+        gap: 1px;
+    }
+    
+    .input-action-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.85rem;
+    }
+    
+    .message-input-wrapper {
+        padding: 1px 3px;
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .message-input {
+        padding: 6px 8px;
+        font-size: 0.85rem;
+        min-width: 40px;
+    }
+    
+    .send-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    
+    /* ✅ CORRECTION : Afficher la discussion en entier */
+    .discussion-area {
+        display: flex !important;
+        flex-direction: column;
+    }
+    
+    .discussion-area[style*="display: none"] {
+        display: none !important;
+    }
+    
+    .custom-modal-card {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .modal-user-item {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .modal-user-left {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .btn-modal-contact {
+        font-size: 0.7rem;
+        padding: 4px 10px;
+    }
+}
+
+/* Petits mobiles */
+@media (max-width: 480px) {
+    .conversation-avatar img {
+        width: 38px;
+        height: 38px;
+    }
+    
+    .conversation-item {
+        padding: 8px 12px;
+        gap: 8px;
+    }
+    
+    .conversation-name {
+        font-size: 0.85rem;
+    }
+    
+    .conversation-preview {
+        font-size: 0.75rem;
+    }
+    
+    .message {
+        max-width: 92%;
+    }
+    
+    .message-bubble p {
+        font-size: 0.85rem;
+    }
+    
+    .message-bubble {
+        padding: 6px 10px !important;
+    }
+    
+    .messages-scroll {
+        padding: 8px 10px;
+    }
+    
+    .discussion-header {
+        padding: 6px 10px;
+    }
+    
+    .discussion-avatar img {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .discussion-info h3 {
+        font-size: 0.85rem;
+    }
+    
+    .discussion-actions .action-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 0.85rem;
+    }
+    
+    /* ✅ CORRECTION : Zone d'envoi sur très petit mobile */
+    .message-input-area {
+        padding: 4px 6px;
+        gap: 3px;
+        flex-wrap: nowrap;
+    }
+    
+    .input-action-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 0.75rem;
+    }
+    
+    .message-input-wrapper {
+        padding: 1px 2px;
+    }
+    
+    .message-input {
+        padding: 4px 6px;
+        font-size: 0.8rem;
+        min-width: 30px;
+    }
+    
+    .send-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 0.75rem;
+    }
+    
+    .btn-new-conversation {
+        font-size: 0.75rem;
+        padding: 8px 12px;
+    }
+    
     .custom-toast-message {
         top: 10px;
         right: 10px;
         left: 10px;
         max-width: none;
-        padding: 12px 18px;
+        padding: 10px 16px;
         font-size: 13px;
     }
+    
+    .custom-toast {
+        bottom: 15px;
+        max-width: 90%;
+    }
+    
+    .custom-toast .toast-content {
+        padding: 10px 16px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Très petits écrans */
+@media (max-width: 380px) {
+    .discussion-avatar img {
+        width: 26px;
+        height: 26px;
+    }
+    
+    .discussion-info h3 {
+        font-size: 0.75rem;
+    }
+    
+    .discussion-info .online-status {
+        font-size: 0.6rem;
+    }
+    
+    .discussion-actions .action-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 0.7rem;
+    }
+    
+    .message-input-area {
+        padding: 3px 4px;
+        gap: 2px;
+    }
+    
+    .input-action-btn {
+        width: 22px;
+        height: 22px;
+        font-size: 0.65rem;
+    }
+    
+    .message-input {
+        padding: 3px 4px;
+        font-size: 0.75rem;
+        min-width: 25px;
+    }
+    
+    .send-btn {
+        width: 22px;
+        height: 22px;
+        font-size: 0.65rem;
+    }
+    
+    .modal-user-avatar {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .modal-user-name {
+        font-size: 0.8rem;
+    }
+}
+
+/* ============================================================
+   UTILITAIRES
+   ============================================================ */
+
+.text-center { text-align: center; }
+.text-muted { color: var(--whatsapp-text-light); }
+.py-4 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+.py-3 { padding-top: 1rem; padding-bottom: 1rem; }
+.mt-3 { margin-top: 1rem; }
+.mr-1 { margin-right: 0.25rem; }
+.mr-2 { margin-right: 0.5rem; }
+.d-flex { display: flex; }
+.flex-column { flex-direction: column; }
+.align-items-center { align-items: center; }
+.justify-content-center { justify-content: center; }
+.gap-2 { gap: 0.5rem; }
+
+/* ============================================================
+   FIX : Discussion area visible
+   ============================================================ */
+
+.discussion-area {
+    display: flex !important;
+    flex-direction: column;
+}
+
+.discussion-area[style*="display: none"] {
+    display: none !important;
 }

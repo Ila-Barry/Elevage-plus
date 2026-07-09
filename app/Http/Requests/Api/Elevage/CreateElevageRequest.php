@@ -30,7 +30,7 @@ class CreateElevageRequest extends ApiRequest
                 Rule::in(array_keys(Elevage::TYPES_ELEVAGE)),
             ],
             'localisation' => [
-                'required',
+                'nullable',
                 'string',
                 'max:200',
             ],
@@ -90,7 +90,7 @@ class CreateElevageRequest extends ApiRequest
                 'nullable',
                 'image',
                 'mimes:jpeg,png,jpg,webp',
-                'max:5048',
+                'max:5120',
             ],
         ];
     }
@@ -108,7 +108,6 @@ class CreateElevageRequest extends ApiRequest
             'type_elevage.required' => 'Le type d\'élevage est obligatoire.',
             'type_elevage.in' => 'Le type d\'élevage sélectionné n\'est pas valide.',
             
-            'localisation.required' => 'La localisation est obligatoire.',
             'localisation.max' => 'La localisation ne peut pas dépasser 200 caractères.',
             
             'superficie.numeric' => 'La superficie doit être un nombre.',
@@ -143,6 +142,13 @@ class CreateElevageRequest extends ApiRequest
         if ($this->has('code_postal')) {
             $this->merge([
                 'code_postal' => strtoupper(trim($this->code_postal)),
+            ]);
+        }
+        
+        // Si localisation est vide, on ne la transmet pas pour éviter les erreurs
+        if ($this->has('localisation') && empty($this->localisation)) {
+            $this->merge([
+                'localisation' => null,
             ]);
         }
     }

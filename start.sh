@@ -20,12 +20,12 @@ mkdir -p /var/www/html/storage/app/public/uploads/publications/images
 mkdir -p /var/www/html/storage/app/public/uploads/publications/videos
 mkdir -p /var/www/html/storage/app/public/uploads/publications/documents
 
-# 2. Créer des images par défaut si elles n'existent pas
-echo "🖼️ Création des images par défaut..."
-if [ ! -f "/var/www/html/public/images/img-elevage.jpeg" ]; then
-    echo "⚠️ Image par défaut manquante, création d'une image placeholder..."
-    # Créer une image placeholder simple
-    echo "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAADkSURBVDiNpZO9TsMwFIVPjR+gYkCILYIhG5WKDYkFoW7sLLxAF8QGi7RUaiUYkSgDT9CJpeMvaQCDhLlKklb4C3F0Yg/3I33nyrmxwBp/uN/e/f7eO9dmwT/BggXLqNVqSznnK5xzbC4EAULI1ZxzM+d8BQBnzhXG3DnnpZRyRinlOUtJ5xxgAfjj4/s75pwHhJBFhLmQlFIueI5rlpaHME4pObXWb5QSA7XWb87Z83+8B1wAmXNeVErZARyYmBGCUEC4Xh9FFIAPAIW9iOAchJAzpZTT0SKEYF/j2+yutc62tTb/AcEHdP0/irzN/Xua9bL/BDwbD73+DA5bP1c+AAAAAElFTkSuQmCC" | base64 -d > /var/www/html/public/images/default-image.png
+if [ -d "/var/www/html/storage/app/public" ]; then
+    echo "✅ Disque persistant monté avec succès !"
+else
+    echo "❌ Disque persistant NON monté !"
+    # Créer les dossiers même si le disque n'est pas monté
+    mkdir -p /var/www/html/storage/app/public
 fi
 
 # 3. 🔗 FORCER la création du lien symbolique

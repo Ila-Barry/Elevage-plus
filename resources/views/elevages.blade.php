@@ -731,6 +731,7 @@ document.getElementById('removePhotoBtn').addEventListener('click', function() {
 });
 
 // ================= CRÉATION - SOUMISSION =================
+// ================= CRÉATION - SOUMISSION =================
 document.getElementById('createElevageForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -739,12 +740,38 @@ document.getElementById('createElevageForm').addEventListener('submit', async fu
     errorDiv.style.display = 'none';
     
     const nom = document.getElementById('nomElevage').value.trim();
+    const type = document.getElementById('typeElevage').value;
+    const localisation = document.getElementById('localisation').value.trim() || 'Non renseignée';
+    const superficie = document.getElementById('superficie').value;
+    const description = document.getElementById('description').value.trim();
+    
     if (!nom) {
         showToast('Veuillez saisir un nom pour l\'élevage', 'warning');
         return;
     }
     
-    const formData = new FormData(this);
+    if (!type) {
+        showToast('Veuillez sélectionner un type d\'élevage', 'warning');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('nom', nom);
+    formData.append('type_elevage', type);
+    formData.append('localisation', localisation);
+    
+    if (superficie && superficie !== '') {
+        formData.append('superficie', superficie);
+    }
+    if (description) {
+        formData.append('description', description);
+    }
+    
+    // ✅ Ajouter l'image si elle existe
+    const photoInput = document.getElementById('photoInput');
+    if (photoInput.files && photoInput.files[0]) {
+        formData.append('image', photoInput.files[0]);
+    }
     
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> En cours...';
