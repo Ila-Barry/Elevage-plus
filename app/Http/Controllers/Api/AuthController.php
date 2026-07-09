@@ -561,11 +561,24 @@ class AuthController extends Controller
         $filename = time() . '_' . uniqid() . '.' . $photo->getClientOriginalExtension();
         $path = 'avatars/' . $filename;
         
-        // ✅ Stocker l'image directement sans redimensionnement
-        Storage::disk('public')->put($path, file_get_contents($photo));
+        // ✅ CRÉER LE DOSSIER AVATARS S'IL N'EXISTE PAS
+        $fullPath = storage_path('app/public/avatars');
+        if (!file_exists($fullPath)) {
+            mkdir($fullPath, 0777, true);
+            \Log::info('📁 Dossier avatars créé: ' . $fullPath);
+        }
         
-        return $path;
+        // ✅ STOCKER L'IMAGE
+        try {
+            Storage::disk('public')->put($path, file_get_contents($photo));
+            \Log::info('✅ Photo uploadée avec succès: ' . $path);
+            return $path;
+        } catch (\Exception $e) {
+            \Log::error('❌ Erreur upload photo: ' . $e->getMessage());
+            throw $e;
+        }
     }
+
 
     private function createDefaultFarm(User $user, string $typeElevage): void
     {

@@ -453,20 +453,21 @@ class ElevageController extends Controller
     {
         try {
             $filename = 'elevage_' . time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+            $path = 'elevages/' . $filename;
             
-            // ✅ Stocker dans le dossier elevages
-            $path = $image->store('elevages', 'public');
-            
-            if (!$path) {
-                Log::error('❌ Échec de sauvegarde de l\'image');
-                return '';
+            // ✅ CRÉER LE DOSSIER ELEVAGES S'IL N'EXISTE PAS
+            $fullPath = storage_path('app/public/elevages');
+            if (!file_exists($fullPath)) {
+                mkdir($fullPath, 0777, true);
+                \Log::info('📁 Dossier elevages créé: ' . $fullPath);
             }
             
-            Log::info('✅ Image sauvegardée', ['path' => $path]);
-            
-            return $path; // Retourne "elevages/nom_fichier.png"
+            // ✅ STOCKER L'IMAGE
+            Storage::disk('public')->put($path, file_get_contents($image));
+            \Log::info('✅ Image uploadée avec succès: ' . $path);
+            return $path;
         } catch (\Exception $e) {
-            Log::error('❌ Erreur upload image: ' . $e->getMessage());
+            \Log::error('❌ Erreur upload image: ' . $e->getMessage());
             return '';
         }
     }

@@ -20,40 +20,30 @@ mkdir -p /var/www/html/storage/app/public/uploads/publications/images
 mkdir -p /var/www/html/storage/app/public/uploads/publications/videos
 mkdir -p /var/www/html/storage/app/public/uploads/publications/documents
 
-if [ -d "/var/www/html/storage/app/public" ]; then
-    echo "✅ Disque persistant monté avec succès !"
-else
-    echo "❌ Disque persistant NON monté !"
-    # Créer les dossiers même si le disque n'est pas monté
-    mkdir -p /var/www/html/storage/app/public
+# 2. ✅ VÉRIFIER ET CRÉER LE DOSSIER AVATARS
+echo "👤 Vérification du dossier avatars..."
+if [ ! -d "/var/www/html/storage/app/public/avatars" ]; then
+    echo "📁 Création du dossier avatars..."
+    mkdir -p /var/www/html/storage/app/public/avatars
 fi
 
-# 3. 🔗 FORCER la création du lien symbolique
+# 3. Donner les permissions
+echo "🔐 Application des permissions..."
+chown -R www-data:www-data /var/www/html/storage
+chmod -R 775 /var/www/html/storage
+chmod -R 775 /var/www/html/public/storage
+
+# 4. 🔗 FORCER la création du lien symbolique
 echo "🔗 Création du lien symbolique storage..."
 rm -rf /var/www/html/public/storage
 ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage
 
-# 4. ✅ Vérifier que le lien est créé
+# 5. ✅ Vérifier que le lien est créé
 if [ -L "/var/www/html/public/storage" ]; then
     echo "✅ Lien symbolique storage créé avec succès !"
-    # Lister le contenu pour vérifier
-    ls -la /var/www/html/public/storage/
 else
     echo "❌ Échec de la création du lien symbolique"
     php artisan storage:link
-fi
-
-# 5. ✅ VÉRIFICATION CRUCIALE : Vérifier que les dossiers des publications existent
-echo "🔍 Vérification des dossiers de publications..."
-if [ -d "/var/www/html/storage/app/public/uploads/publications/images" ]; then
-    echo "✅ Dossier des images de publications existe"
-    # Compter les images
-    IMAGE_COUNT=$(ls -1 /var/www/html/storage/app/public/uploads/publications/images/ 2>/dev/null | wc -l)
-    echo "   📸 Images trouvées: $IMAGE_COUNT"
-else
-    echo "❌ Dossier des images de publications manquant !"
-    mkdir -p /var/www/html/storage/app/public/uploads/publications/images
-    chmod -R 775 /var/www/html/storage/app/public/uploads
 fi
 
 # 6. Nettoyer les caches
@@ -67,13 +57,7 @@ echo "📋 Configuration :"
 echo "  APP_ENV: $APP_ENV"
 echo "  APP_URL: $APP_URL"
 
-# 8. Permissions
-echo "🔐 Application des permissions..."
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-chmod -R 775 /var/www/html/public/storage
-
-# 9. Attendre la base de données
+# 8. Attendre la base de données
 echo "⏳ Attente de la base de données Aiven..."
 for i in {1..20}; do
     if php artisan db:show > /dev/null 2>&1; then
@@ -84,26 +68,26 @@ for i in {1..20}; do
     sleep 3
 done
 
-# 10. Exécuter les migrations
+# 9. Exécuter les migrations
 echo "📦 Exécution des migrations..."
 php artisan migrate --force
 
-# 11. Optimisation
+# 10. Optimisation
 echo "⚡ Optimisation finale de Laravel..."
 php artisan config:cache
 php artisan route:cache
 
-# 12. Vérification finale du lien
+# 11. Vérification finale du lien
 echo "🔗 Vérification finale du lien symbolique :"
 ls -la /var/www/html/public/ | grep storage
 
-# 13. Lancer les services
+# 12. Lancer les services
 echo "🔄 Démarrage du worker de queue..."
 php artisan queue:work --daemon --quiet > /dev/null 2>&1 &
 
 echo "⏰ Démarrage du scheduler..."
 nohup php artisan schedule:work > /tmp/scheduler.log 2>&1 &
 
-# 14. Démarrer Apache
+# 13. Démarrer Apache
 echo "🌐 Démarrage du serveur Apache..."
 exec apache2-foreground

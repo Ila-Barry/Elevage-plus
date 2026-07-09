@@ -263,23 +263,28 @@ class PublicationController extends Controller
             return [];
         }
 
-        $uploaded = [];
-        foreach ($files as $file) {
-            try {
-                // ✅ Utiliser Storage::putFile
-                $path = Storage::disk('public')->putFile($directory, $file);
-                
+        try {
+            // ✅ CRÉER LE DOSSIER AUTOMATIQUEMENT
+            $fullPath = storage_path('app/public/' . $directory);
+            if (!file_exists($fullPath)) {
+                mkdir($fullPath, 0777, true);
+                \Log::info('📁 Dossier créé: ' . $fullPath);
+            }
+
+            $uploaded = [];
+            foreach ($files as $file) {
+                \Log::info('📤 Upload du fichier: ' . $file->getClientOriginalName());
+                $path = $file->store($directory, 'public');
                 if ($path) {
                     $uploaded[] = $path;
-                    \Log::info('✅ Fichier uploadé via Storage: ' . $path);
-                } else {
-                    \Log::error('❌ Échec Storage::putFile pour: ' . $file->getClientOriginalName());
+                    \Log::info('✅ Fichier uploadé: ' . $path);
                 }
-            } catch (\Exception $e) {
-                \Log::error('❌ Erreur Storage::putFile: ' . $e->getMessage());
             }
+            return $uploaded;
+        } catch (\Exception $e) {
+            \Log::error('❌ Erreur upload: ' . $e->getMessage());
+            throw $e;
         }
-        return $uploaded;
     }
 
     /**
